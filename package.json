@@ -11,14 +11,14 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+ssh://git@github.com/adamas-vr/Prefab-JavaScript-API.git"
+		"url": "git+ssh://git@github.com:adamas-vr/prefab-interface.git"
 	},
 	"author": "Adamas VR, Inc.",
 	"license": "ISC",
 	"bugs": {
-		"url": "https://github.com/adamas-vr/Prefab-JavaScript-API/issues"
+		"url": "https://github.com/adamas-vr/prefab-interface/issues"
 	},
-	"homepage": "https://github.com/adamas-vr/Prefab-JavaScript-API#readme",
+	"homepage": "https://github.com/adamas-vr/prefab-interface#readme",
 	"dependencies": {
 		"node-addon-api": "^8.4.0"
 	},
