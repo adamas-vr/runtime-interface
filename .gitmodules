@@ -1,0 +1,3 @@
+[submodule "external/Unity-NodeJS-RPC"]
+	path = external/Unity-NodeJS-RPC
+	url = git@github.com:adamas-vr/Unity-NodeJS-RPC.git

@@ -1,1 +1,1 @@
-add_subdirectory(Shared-Memory-RPC)
+add_subdirectory(Unity-NodeJS-RPC)
