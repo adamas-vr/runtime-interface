@@ -7,7 +7,7 @@
 	"scripts": {
 		"install": "cmake-js compile -G 'Unix Makefiles'",
 		"start": "ts-node index.ts",
-		"lint": "npx prettier --write *.ts ./library/*.ts *.json"
+		"lint": "npx prettier . --write"
 	},
 	"repository": {
 		"type": "git",
