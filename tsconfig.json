@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"moduleResolution": "node",
+		"module": "commonjs",
+		"strict": true,
+		"noEmit": true,
+		"baseUrl": ".", // Required for "paths"
+		"paths": {
+			"@adamas/*": ["library/*"]
+		}
+	},
+	"ts-node": {
+		"require": ["tsconfig-paths/register"]
+	}
+}

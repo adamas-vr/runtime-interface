@@ -1,0 +1,30 @@
+{
+	"name": "adamas-bindings",
+	"version": "1.0.0",
+	"description": "Unity bindings of the adamas prefab API",
+	"main": "dist/index.js",
+	"private": true,
+	"scripts": {
+		"install": "cmake-js compile -G 'Unix Makefiles'",
+		"test": "ts-node index.ts",
+		"lint": "npx prettier --write *.ts ./library/*.ts *.json"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+ssh://git@github.com/adamas-vr/Prefab-JavaScript-API.git"
+	},
+	"author": "Adamas VR, Inc.",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/adamas-vr/Prefab-JavaScript-API/issues"
+	},
+	"homepage": "https://github.com/adamas-vr/Prefab-JavaScript-API#readme",
+	"dependencies": {
+		"node-addon-api": "^8.4.0"
+	},
+	"devDependencies": {
+		"ts-node": "^10.0.0",
+		"tsconfig-paths": "^4.2.0",
+		"typescript": "^5.0.0"
+	}
+}
