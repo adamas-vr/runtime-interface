@@ -6,7 +6,7 @@
 	"private": true,
 	"scripts": {
 		"install": "cmake-js compile -G 'Unix Makefiles'",
-		"test": "ts-node index.ts",
+		"start": "ts-node index.ts",
 		"lint": "npx prettier --write *.ts ./library/*.ts *.json"
 	},
 	"repository": {
