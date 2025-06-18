@@ -1,8 +1,12 @@
 import { Device } from "@adamas/device";
 import { Debug } from "@adamas/debug";
+import { EntityManager, Entity } from "@adamas/entity";
 
 // let Device = require("@adamas/device")
 console.log(process.cwd());
+setInterval(() => {
+	console.log("Ticked!");
+}, 30000);
 
 Debug.OnCmdCallback((command) => {
 	console.log("COMMAND: ", command);
@@ -33,4 +37,11 @@ function logXRDeviceData() {
 
 // logXRDeviceData();
 
-setInterval(logXRDeviceData, 20000);
+let entity: Entity = EntityManager.Create("test entity");
+console.log("entity handle", entity);
+
+setTimeout(() => {
+	console.log("Entity name: ", EntityManager.GetName(entity));
+	EntityManager.SetName(entity, "updated name");
+	console.log("Updated name: ", EntityManager.GetName(entity));
+}, 10000);

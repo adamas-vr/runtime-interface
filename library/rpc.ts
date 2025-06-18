@@ -12,16 +12,23 @@ export class RpcClient {
 		});
 	}
 
-	static RegisterCallback(callback: (...args: any[]) => any) {
-		let callbackId = RpcClient.Call("_RPC::AllocateCallback", {
-			clientId: RpcClient.GetClientId(),
-		});
-		console.log("Allocated callback:", callbackId);
+	static RegisterCallback(callback: (...args: any[]) => any): number {
+		let callbackId: number = Number(
+			RpcClient.Call("_RPC::AllocateCallback", {
+				clientId: RpcClient.GetClientId(),
+			}),
+		);
 		RpcClient.callbackRegistry[callbackId] = callback;
 		return callbackId;
 	}
 
-	static Call(funcName: string, args: object) {
+	/**
+	 *
+	 * @param funcName RPC function name to call
+	 * @param args Arguments of RPC in the format: {parameter0: value0, parameter1: value1, ...}
+	 * @returns The value returned from RPC function in string type
+	 */
+	static Call(funcName: string, args: object): string {
 		if (!this.initialized) {
 			this.initialized = true;
 			RpcClient.Init();
@@ -40,8 +47,8 @@ export class RpcClient {
 		);
 	}
 
-	static GetClientId() {
-		return addon.Rpc_GetClientId();
+	static GetClientId(): number {
+		return Number(addon.Rpc_GetClientId());
 	}
 
 	static objectToKeyValue(obj: Record<string, any>) {
