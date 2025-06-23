@@ -1,6 +1,11 @@
 import { RpcClient } from "./rpc";
 import { Entity }    from "./entity";
 
+// NOTE: the following are not supported compared to legacy code:
+// - Filament’s RenderableBuilder.Geometry(index,type,vertices,indices,offset,count)
+// - RenderableBuilder.Material(index,materialInstance)
+// - BoundingBox(...), SetBlendOrderAt
+
 export class RenderableBuilder {
   public meshHandle!: number;      // expose for skinning support
   private entityHandle!: Entity;
@@ -91,5 +96,72 @@ export class RenderableBuilder {
       value:          smooth
     });
     return this;
+  }
+}
+
+export class RenderableManager {
+  /** Destroy the Renderable component on this entity. */
+  static destroy(entityHandle: number): boolean {
+    return Boolean(
+      RpcClient.Call("Renderable_Destroy", { entityHandle })
+    );
+  }
+
+  /** Returns whether this entity currently has a Renderable. */
+  static hasComponent(entityHandle: number): boolean {
+    return Boolean(
+      RpcClient.Call("Renderable_HasComponent", { entityHandle })
+    );
+  }
+
+  /** Set the layer mask on this Renderable (bitmask of visible layers). */
+  static setLayerMask(entityHandle: number, layerMask: number): boolean {
+    return Boolean(
+      RpcClient.Call("Renderable_SetLayerMask", {
+        entityHandle,
+        layerMask
+      })
+    );
+  }
+
+  /** Enable or disable receiving shadows on this Renderable. */
+  static setReceiveShadows(
+    entityHandle: number,
+    receive: boolean
+  ): boolean {
+    return Boolean(
+      RpcClient.Call("Renderable_SetReceiveShadows", {
+        entityHandle,
+        receive
+      })
+    );
+  }
+
+  /** Control shadow‐casting mode. 
+   *   0 = Off, 1 = On, 2 = TwoSided, 3 = ShadowsOnly
+   */
+  static setCastShadows(
+    entityHandle: number,
+    shadowMode: number
+  ): boolean {
+    return Boolean(
+      RpcClient.Call("Renderable_SetCastShadows", {
+        entityHandle,
+        shadowMode
+      })
+    );
+  }
+
+  /** Enable or disable frustum‐culling on this Renderable. */
+  static setCulling(
+    entityHandle: number,
+    enabled: boolean
+  ): boolean {
+    return Boolean(
+      RpcClient.Call("Renderable_SetCulling", {
+        entityHandle,
+        enabled
+      })
+    );
   }
 }

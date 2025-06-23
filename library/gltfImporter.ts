@@ -6,7 +6,7 @@ import { PNG } from "pngjs";
 
 import { RpcClient } from "./rpc";
 import { EntityManager }    from "./entity";
-import { RenderableBuilder } from "./render";
+import { RenderableBuilder } from "./renderable";
 
 /**
  * Import .glb/.gltf/VRM and push every asset—nodes, cameras, lights, skeletons, skinned

@@ -1,7 +1,7 @@
 import { Device } from "@adamas/device";
 import { Debug } from "@adamas/debug";
 import { EntityManager, Entity } from "@adamas/entity";
-import { RenderableBuilder} from "@adamas/render";
+import { RenderableBuilder} from "@adamas/renderable";
 import { importGltfAndRender } from "@adamas/gltfImporter";
 
 // let Device = require("@adamas/device")
