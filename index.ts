@@ -1,7 +1,7 @@
 import { Device } from "@adamas/device";
 import { Debug } from "@adamas/debug";
 import { EntityManager, Entity } from "@adamas/entity";
-import { RenderableBuilder} from "@adamas/render/renderable";
+import { RenderableBuilder } from "@adamas/render/renderable";
 import { importGltfAndRender } from "@adamas/utilities/gltfImporter";
 
 // let Device = require("@adamas/device")
@@ -76,7 +76,6 @@ importGltfAndRender("./prefabs/rusk.glb").catch(console.error);
 //   .build(entity)
 //   .geometry(cubeVertices, cubeIndices) // make primitive objects so user doesn't have to construct these manually
 //   .material("Universal Render Pipeline/Lit"); // should make aliases to make these calls easier
-
 
 // setTimeout(() => {
 // 	console.log("Entity name: ", EntityManager.GetName(entity));
