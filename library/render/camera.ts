@@ -1,5 +1,5 @@
-import { RpcClient } from "./rpc";
-import { Entity }    from "./entity";
+import { RpcClient } from "@adamas/rpc";
+import { Entity }    from "@adamas/entity";
 
 export class Camera {
   constructor(public entity: Entity) {}

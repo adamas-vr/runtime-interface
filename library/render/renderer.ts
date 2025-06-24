@@ -1,7 +1,7 @@
-import { RpcClient } from "./rpc";
-import { Material }  from "./material";
-import { Texture }   from "./texture";
-import { Scene }     from "./scene";
+import { RpcClient } from "@adamas/rpc";
+import { Material }  from "@adamas/render/material";
+import { Texture }   from "@adamas/render/texture";
+import { Scene }     from "@adamas/render/scene";
 
 
 export class Renderer {

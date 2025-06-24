@@ -1,4 +1,4 @@
-import { RpcClient } from "./rpc";
+import { RpcClient } from "@adamas/rpc";
 
 export class Material {
   constructor(public handle: number) {}

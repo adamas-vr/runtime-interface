@@ -1,4 +1,4 @@
-import { RpcClient } from "./rpc";
+import { RpcClient } from "@adamas/rpc";
 
 export class Debug {
 	static OnCmdCallback(fn: (...args: any[]) => any) {

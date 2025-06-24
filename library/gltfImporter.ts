@@ -4,9 +4,9 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { PNG } from "pngjs";
 
-import { RpcClient } from "./rpc";
-import { EntityManager }    from "./entity";
-import { RenderableBuilder } from "./renderable";
+import { RpcClient } from "@adamas/rpc";
+import { EntityManager }    from "@adamas/entity";
+import { RenderableBuilder } from "@adamas/render/renderable";
 
 /**
  * Import .glb/.gltf/VRM and push every asset—nodes, cameras, lights, skeletons, skinned

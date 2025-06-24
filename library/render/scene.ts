@@ -1,4 +1,4 @@
-import { RpcClient } from "./rpc";
+import { RpcClient } from "@adamas/rpc";
 
 // NOTE: the following are not supported compared to legacy code:
 // - A dedicated “SkyboxBuilder” or multiple‐camera viewports (Unity handles those internally)

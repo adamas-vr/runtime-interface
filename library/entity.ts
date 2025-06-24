@@ -1,4 +1,4 @@
-import { RpcClient } from "./rpc";
+import { RpcClient } from "@adamas/rpc";
 
 export type Entity = number;
 

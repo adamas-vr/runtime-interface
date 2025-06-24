@@ -1,4 +1,4 @@
-import { RpcClient } from "./rpc";
+import { RpcClient } from "@adamas/rpc";
 
 // NOTE: the following are not supported compared to legacy code:
 // - Filament’s TextureBuilder, Swizzle, GenerateMipmaps, PixelBufferDescriptor
