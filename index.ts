@@ -2,7 +2,7 @@ import { Device } from "@adamas/device";
 import { Debug } from "@adamas/debug";
 import { EntityManager, Entity } from "@adamas/entity";
 import { RenderableBuilder} from "@adamas/render/renderable";
-import { importGltfAndRender } from "@adamas/gltfImporter";
+import { importGltfAndRender } from "@adamas/utilities/gltfImporter";
 
 // let Device = require("@adamas/device")
 console.log(process.cwd());
