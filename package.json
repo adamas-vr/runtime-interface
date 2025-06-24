@@ -22,11 +22,8 @@
 	"dependencies": {
 		"@babylonjs/core": "^8.13.0",
 		"@babylonjs/loaders": "^8.13.0",
-		"jpeg-js": "^0.4.4",
 		"node-addon-api": "^8.4.0",
-		"pngjs": "^7.0.0",
-		"xhr2": "^0.2.1",
-		"xmlhttprequest": "^1.8.0"
+		"pngjs": "^7.0.0"
 	},
 	"devDependencies": {
 		"@types/jpeg-js": "^0.3.0",
