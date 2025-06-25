@@ -2,6 +2,8 @@ import { RpcClient } from "@adamas/rpc";
 
 /**
  * Wrapper for Unity Transform RPCs.
+ * Automatically transposes row-major matrices to Unity's column-major format
+ * and flips the Z-axis to correct handedness.
  */
 export class TransformManager {
 	/** Returns whether this entity has a Transform component */
@@ -9,14 +11,43 @@ export class TransformManager {
 		return Boolean(RpcClient.Call("Transform_HasComponent", { entityHandle }));
 	}
 
-	/** Sets the full transform matrix (column-major JSON) */
-	static setTransform(entityHandle: number, matrixJson: string): boolean {
+	/**
+	 * Sets the full transform matrix.
+	 * Accepts a row-major CSV string, transposes to column-major,
+	 * flips the Z-axis, and sends to Unity.
+	 */
+	static setTransform(entityHandle: number, srcMatrixJson: string): boolean {
+		// Parse row-major values
+		const src = srcMatrixJson.split(",").map((s) => parseFloat(s.trim()));
+		if (src.length !== 16) {
+			console.error(`Invalid matrix length: ${src.length}`);
+			return false;
+		}
+
+		// Transpose to column-major
+		const colMaj = new Float32Array(16);
+		for (let r = 0; r < 4; r++) {
+			for (let c = 0; c < 4; c++) {
+				colMaj[c * 4 + r] = src[r * 4 + c];
+			}
+		}
+
+		// Flip Z-axis (third column of a 4x4 matrix)
+		colMaj[8] = -colMaj[8];
+		colMaj[9] = -colMaj[9];
+		colMaj[10] = -colMaj[10];
+		colMaj[11] = -colMaj[11];
+
+		const fixedMatrixJson = Array.from(colMaj).join(",");
 		return Boolean(
-			RpcClient.Call("Transform_SetTransform", { entityHandle, matrixJson }),
+			RpcClient.Call("Transform_SetTransform", {
+				entityHandle,
+				matrixJson: fixedMatrixJson,
+			}),
 		);
 	}
 
-	/** Gets the transform matrix as a JSON string */
+	/** Gets the transform matrix as a JSON string (column-major) */
 	static getTransform(entityHandle: number): string {
 		return RpcClient.Call("Transform_GetTransform", { entityHandle });
 	}
