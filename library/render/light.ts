@@ -13,8 +13,6 @@ export class Light {
 		);
 	}
 
-	// TODO: add ability to change light component type after creation
-
 	static destroy(entity: Entity): boolean {
 		return Boolean(RpcClient.Call("Light_Destroy", { entityHandle: entity }));
 	}
@@ -22,6 +20,16 @@ export class Light {
 	static hasComponent(entity: Entity): boolean {
 		return Boolean(
 			RpcClient.Call("Light_HasComponent", { entityHandle: entity }),
+		);
+	}
+
+	// TODO: add ability to change light component type after creation
+	static setType(entity: Entity, type: LightType): boolean {
+		return Boolean(
+			RpcClient.Call("Light_SetType", {
+				entityHandle: entity,
+				lightType: type, // 0=Spot,1=Directional,2=Point,3=Area
+			}),
 		);
 	}
 
