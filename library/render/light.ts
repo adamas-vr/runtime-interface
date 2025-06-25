@@ -4,7 +4,7 @@ import { Entity } from "@adamas/entity";
 export class Light {
 	constructor(public entity: Entity) {}
 
-	static create(entity: Entity, type: number): boolean {
+	static create(entity: Entity, type: LightType): boolean {
 		return Boolean(
 			RpcClient.Call("Light_Create", {
 				entityHandle: entity,
@@ -12,6 +12,8 @@ export class Light {
 			}),
 		);
 	}
+
+	// TODO: add ability to change light component type after creation
 
 	static destroy(entity: Entity): boolean {
 		return Boolean(RpcClient.Call("Light_Destroy", { entityHandle: entity }));
@@ -67,7 +69,7 @@ export class Light {
 		);
 	}
 
-	static setShadows(entity: Entity, mode: number): boolean {
+	static setShadows(entity: Entity, mode: LightShadowMode): boolean {
 		return Boolean(
 			RpcClient.Call("Light_SetShadows", {
 				entityHandle: entity,
@@ -84,4 +86,17 @@ export class Light {
 			}),
 		);
 	}
+}
+
+export enum LightShadowMode {
+	NoShadows = 0,
+	Hard = 1,
+	Soft = 2,
+}
+
+export enum LightType {
+	Spot = 0,
+	Directional = 1,
+	Point = 2,
+	Area = 3,
 }

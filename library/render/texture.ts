@@ -67,7 +67,7 @@ export class Texture {
 		);
 	}
 
-	static setFilterMode(handle: number, mode: number): boolean {
+	static setFilterMode(handle: number, mode: TextureFilterMode): boolean {
 		return Boolean(
 			RpcClient.Call("Texture_SetFilterMode", {
 				textureHandle: handle,
@@ -76,7 +76,7 @@ export class Texture {
 		);
 	}
 
-	static setWrapMode(handle: number, wrapMode: number): boolean {
+	static setWrapMode(handle: number, wrapMode: TextureWrapMode): boolean {
 		return Boolean(
 			RpcClient.Call("Texture_SetWrapMode", {
 				textureHandle: handle,
@@ -84,4 +84,19 @@ export class Texture {
 			}),
 		);
 	}
+}
+
+export enum TextureFilterMode {
+	NEAREST = 0,
+	LINEAR = 1,
+	NEAREST_MIPMAP_NEAREST = 2,
+	LINEAR_MIPMAP_NEAREST = 3,
+	NEAREST_MIPMAP_LINEAR = 4,
+	LINEAR_MIPMAP_LINEAR = 5,
+}
+
+export enum TextureWrapMode {
+	CLAMP_TO_EDGE = 0,
+	REPEAT = 1,
+	MIRRORED_REPEAT = 2,
 }
