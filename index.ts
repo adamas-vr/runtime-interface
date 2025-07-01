@@ -1,8 +1,11 @@
 import { Device } from "@adamas/device";
 import { Debug } from "@adamas/debug";
 import { EntityManager, Entity } from "@adamas/entity";
-import { RenderableBuilder } from "@adamas/render/renderable";
+import { RenderableManager } from "@adamas/render/renderable";
+import { MeshManager } from "@adamas/render/mesh";
+import { MaterialManager } from "@adamas/render/material";
 import { importGltfAndRender } from "@adamas/utilities/gltfImporter";
+import { TransformManager } from "@adamas/render/transform";
 
 // let Device = require("@adamas/device")
 console.log(process.cwd());
@@ -39,7 +42,7 @@ function logXRDeviceData() {
 
 // logXRDeviceData();
 
-// importGltfAndRender("./prefabs/rusk.glb").catch(console.error);
+importGltfAndRender("./prefabs/rusk.glb").catch(console.error);
 
 // 8 vertices for a unit cube
 const cubeVertices = [
@@ -85,16 +88,29 @@ const cubeIndices = [
 	1, 2, 6, 1, 6, 5,
 ];
 
-let entity: Entity = EntityManager.Create("test entity");
-console.log("entity handle", entity);
+// let entity: Entity = EntityManager.Create("test entity");
+// console.log("entity handle", entity);
 
-new RenderableBuilder()
-	.build(entity)
-	.geometry(cubeVertices, cubeIndices) // make primitive objects so user doesn't have to construct these manually
-	.materialURPLit();
+// // Create renderable component
+// RenderableManager.Create(entity);
 
-setTimeout(() => {
-	console.log("Entity name: ", EntityManager.GetName(entity));
-	EntityManager.SetName(entity, "updated name");
-	console.log("Updated name: ", EntityManager.GetName(entity));
-}, 10000);
+// // Create mesh and attach to renderable
+// const meshHandle = MeshManager.Create(entity);
+// MeshManager.SetVertices(meshHandle, cubeVertices);
+// MeshManager.SetTriangles(meshHandle, cubeIndices);
+// MeshManager.RecalcNormals(meshHandle);
+// MeshManager.RecalcBounds(meshHandle);
+
+// // Create material and attach to renderable
+// const materialHandle = MaterialManager.Create("Universal Render Pipeline/Lit", entity);
+// MaterialManager.SetColor(materialHandle, "_BaseColor", 1.0, 1.0, 1.0, 1.0);
+
+// // Play around with the transform of the entity
+// TransformManager.SetPosition(entity, { x: 0, y: 1, z: 0 });
+// TransformManager.SetScale(entity, { x: 2, y: 1, z: 2 });
+
+// setTimeout(() => {
+// 	console.log("Entity name: ", EntityManager.GetName(entity));
+// 	EntityManager.SetName(entity, "updated name");
+// 	console.log("Updated name: ", EntityManager.GetName(entity));
+// }, 10000);

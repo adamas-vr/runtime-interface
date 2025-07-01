@@ -1,10 +1,14 @@
 import { RpcClient } from "@adamas/rpc";
 import { Entity } from "@adamas/entity";
 
-export class Light {
-	constructor(public entity: Entity) {}
-
-	static create(entity: Entity, type: LightType): boolean {
+export class LightManager {
+	/**
+	 * Create a Light component and attach it to the specified entity
+	 * @param entity The entity to attach the light to
+	 * @param type The type of light to create
+	 * @returns boolean indicating success
+	 */
+	static Create(entity: Entity, type: LightType): boolean {
 		return Boolean(
 			RpcClient.Call("Light_Create", {
 				entityHandle: entity,
@@ -13,18 +17,33 @@ export class Light {
 		);
 	}
 
-	static destroy(entity: Entity): boolean {
+	/**
+	 * Destroy the Light component from the specified entity
+	 * @param entity The entity to remove the light from
+	 * @returns boolean indicating success
+	 */
+	static Destroy(entity: Entity): boolean {
 		return Boolean(RpcClient.Call("Light_Destroy", { entityHandle: entity }));
 	}
 
-	static hasComponent(entity: Entity): boolean {
+	/**
+	 * Check if the entity has a Light component
+	 * @param entity The entity to check
+	 * @returns boolean indicating if light component exists
+	 */
+	static HasComponent(entity: Entity): boolean {
 		return Boolean(
 			RpcClient.Call("Light_HasComponent", { entityHandle: entity }),
 		);
 	}
 
-	// TODO: add ability to change light component type after creation
-	static setType(entity: Entity, type: LightType): boolean {
+	/**
+	 * Set the type of light
+	 * @param entity The entity with the light component
+	 * @param type The light type
+	 * @returns boolean indicating success
+	 */
+	static SetType(entity: Entity, type: LightType): boolean {
 		return Boolean(
 			RpcClient.Call("Light_SetType", {
 				entityHandle: entity,
@@ -33,7 +52,15 @@ export class Light {
 		);
 	}
 
-	static setColor(entity: Entity, r: number, g: number, b: number): boolean {
+	/**
+	 * Set the color of the light
+	 * @param entity The entity with the light component
+	 * @param r Red component (0-1)
+	 * @param g Green component (0-1)
+	 * @param b Blue component (0-1)
+	 * @returns boolean indicating success
+	 */
+	static SetColor(entity: Entity, r: number, g: number, b: number): boolean {
 		return Boolean(
 			RpcClient.Call("Light_SetColor", {
 				entityHandle: entity,
@@ -44,7 +71,13 @@ export class Light {
 		);
 	}
 
-	static setIntensity(entity: Entity, intensity: number): boolean {
+	/**
+	 * Set the intensity of the light
+	 * @param entity The entity with the light component
+	 * @param intensity The light intensity
+	 * @returns boolean indicating success
+	 */
+	static SetIntensity(entity: Entity, intensity: number): boolean {
 		return Boolean(
 			RpcClient.Call("Light_SetIntensity", {
 				entityHandle: entity,
@@ -53,7 +86,13 @@ export class Light {
 		);
 	}
 
-	static setRange(entity: Entity, range: number): boolean {
+	/**
+	 * Set the range of the light
+	 * @param entity The entity with the light component
+	 * @param range The light range
+	 * @returns boolean indicating success
+	 */
+	static SetRange(entity: Entity, range: number): boolean {
 		return Boolean(
 			RpcClient.Call("Light_SetRange", {
 				entityHandle: entity,
@@ -62,7 +101,14 @@ export class Light {
 		);
 	}
 
-	static setSpotAngle(
+	/**
+	 * Set the spot angle for spot lights
+	 * @param entity The entity with the light component
+	 * @param angle The spot angle
+	 * @param asDegrees Whether the angle is in degrees (default: true)
+	 * @returns boolean indicating success
+	 */
+	static SetSpotAngle(
 		entity: Entity,
 		angle: number,
 		asDegrees = true,
@@ -71,13 +117,19 @@ export class Light {
 			RpcClient.Call("Light_SetSpotAngle", {
 				entityHandle: entity,
 				angle,
-				// third param “bool” unused in bridge—always true
+				// third param "bool" unused in bridge—always true
 				value: asDegrees,
 			}),
 		);
 	}
 
-	static setShadows(entity: Entity, mode: LightShadowMode): boolean {
+	/**
+	 * Set the shadow mode for the light
+	 * @param entity The entity with the light component
+	 * @param mode The shadow mode
+	 * @returns boolean indicating success
+	 */
+	static SetShadows(entity: Entity, mode: LightShadowMode): boolean {
 		return Boolean(
 			RpcClient.Call("Light_SetShadows", {
 				entityHandle: entity,
@@ -86,7 +138,13 @@ export class Light {
 		);
 	}
 
-	static setCullingMask(entity: Entity, mask: number): boolean {
+	/**
+	 * Set the culling mask for the light
+	 * @param entity The entity with the light component
+	 * @param mask The culling mask
+	 * @returns boolean indicating success
+	 */
+	static SetCullingMask(entity: Entity, mask: number): boolean {
 		return Boolean(
 			RpcClient.Call("Light_SetCullingMask", {
 				entityHandle: entity,

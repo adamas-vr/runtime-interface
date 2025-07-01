@@ -2,118 +2,89 @@ import { RpcClient } from "@adamas/rpc";
 import { Entity } from "@adamas/entity";
 
 // NOTE: the following are not supported compared to legacy code:
-// - Filament’s RenderableBuilder.Geometry(index,type,vertices,indices,offset,count)
+// - Filament's RenderableBuilder.Geometry(index,type,vertices,indices,offset,count)
 // - RenderableBuilder.Material(index,materialInstance)
 // - BoundingBox(...), SetBlendOrderAt
 
-export class RenderableBuilder {
-	public meshHandle!: number; // expose for skinning support
-	private entityHandle!: Entity;
-	private materialHandles: number[] = [];
-
-	build(entity: Entity): this {
-		this.entityHandle = entity;
-		RpcClient.Call("Renderable_Create", { entityHandle: entity });
-		return this;
-	}
-
-	geometry(vertices: number[], indices: number[]): this {
-		this.meshHandle = Number(RpcClient.Call("Mesh_Create", {}));
-		RpcClient.Call("Mesh_SetVertices", {
-			meshHandle: this.meshHandle,
-			verticesJson: JSON.stringify(vertices),
-		});
-		RpcClient.Call("Mesh_SetTriangles", {
-			meshHandle: this.meshHandle,
-			trianglesJson: JSON.stringify(indices),
-		});
-		RpcClient.Call("Mesh_RecalculateNormals", { meshHandle: this.meshHandle });
-		RpcClient.Call("Mesh_RecalculateBounds", { meshHandle: this.meshHandle });
-
-		RpcClient.Call("Renderable_SetMesh", {
-			entityHandle: this.entityHandle,
-			meshHandle: this.meshHandle,
-		});
-		return this;
+// TODO: make this clear.
+// - entity
+// - renderable component
+//     - mesh
+//     - materials
+//         - texture
+export class RenderableManager {
+	/**
+	 * Create a renderable component and attach it to the specified entity
+	 * @param entity The entity to attach the renderable component to
+	 * @returns boolean indicating success
+	 */
+	static Create(entity: Entity): boolean {
+		return Boolean(
+			RpcClient.Call("Renderable_Create", { entityHandle: entity }),
+		);
 	}
 
 	/**
-	 * Create (or reuse) a URP-lit material and bind to submesh 0.
-	 * Uses Unity’s “Universal Render Pipeline/Lit” shader.
+	 * Destroy the Renderable component on this entity.
+	 * @param entityHandle The entity to remove the renderable component from
+	 * @returns boolean indicating success
 	 */
-	materialURPLit(): this {
-		const matHandle = Number(
-			RpcClient.Call("Material_Create", {
-				shaderName: "Universal Render Pipeline/Lit",
-			}),
-		);
-		this.materialHandles[0] = matHandle;
-		RpcClient.Call("Renderable_SetMaterial", {
-			entityHandle: this.entityHandle,
-			materialHandle: matHandle,
-			index: 0,
-		});
-		return this;
-	}
-
-	/** PBR parameters on URP-lit */
-	setBaseColor(red: number, green: number, blue: number, alpha: number): this {
-		const matHandle = this.materialHandles[0];
-		RpcClient.Call("Material_SetColor", {
-			materialHandle: matHandle,
-			propertyName: "_BaseColor",
-			r: red,
-			g: green,
-			b: blue,
-			a: alpha,
-		});
-		return this;
-	}
-
-	setBaseTexture(textureHandle: number): this {
-		const matHandle = this.materialHandles[0];
-		RpcClient.Call("Material_SetTexture", {
-			materialHandle: matHandle,
-			propertyName: "_BaseMap",
-			textureHandle,
-		});
-		return this;
-	}
-
-	setMetallic(metal: number): this {
-		const matHandle = this.materialHandles[0];
-		RpcClient.Call("Material_SetFloat", {
-			materialHandle: matHandle,
-			propertyName: "_Metallic",
-			value: metal,
-		});
-		return this;
-	}
-
-	setSmoothness(smooth: number): this {
-		const matHandle = this.materialHandles[0];
-		RpcClient.Call("Material_SetFloat", {
-			materialHandle: matHandle,
-			propertyName: "_Smoothness",
-			value: smooth,
-		});
-		return this;
-	}
-}
-
-export class RenderableManager {
-	/** Destroy the Renderable component on this entity. */
-	static destroy(entityHandle: number): boolean {
+	static Destroy(entityHandle: number): boolean {
 		return Boolean(RpcClient.Call("Renderable_Destroy", { entityHandle }));
 	}
 
-	/** Returns whether this entity currently has a Renderable. */
-	static hasComponent(entityHandle: number): boolean {
+	/**
+	 * Returns whether this entity currently has a Renderable.
+	 * @param entityHandle The entity to check
+	 * @returns boolean indicating if renderable component exists
+	 */
+	static HasComponent(entityHandle: number): boolean {
 		return Boolean(RpcClient.Call("Renderable_HasComponent", { entityHandle }));
 	}
 
-	/** Set the layer mask on this Renderable (bitmask of visible layers). */
-	static setLayerMask(entityHandle: number, layerMask: number): boolean {
+	/**
+	 * Set the mesh for the renderable component
+	 * @param entityHandle The entity with the renderable component
+	 * @param meshHandle The mesh handle to attach
+	 * @returns boolean indicating success
+	 */
+	static SetMesh(entityHandle: number, meshHandle: number): boolean {
+		return Boolean(
+			RpcClient.Call("Renderable_SetMesh", {
+				entityHandle,
+				meshHandle,
+			}),
+		);
+	}
+
+	/**
+	 * Set the material for the renderable component
+	 * @param entityHandle The entity with the renderable component
+	 * @param materialHandle The material handle to attach
+	 * @param index The submesh index (default: 0)
+	 * @returns boolean indicating success
+	 */
+	static SetMaterial(
+		entityHandle: number,
+		materialHandle: number,
+		index: number = 0,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("Renderable_SetMaterial", {
+				entityHandle,
+				materialHandle,
+				index,
+			}),
+		);
+	}
+
+	/**
+	 * Set the layer mask on this Renderable (bitmask of visible layers).
+	 * @param entityHandle The entity with the renderable component
+	 * @param layerMask The layer mask
+	 * @returns boolean indicating success
+	 */
+	static SetLayerMask(entityHandle: number, layerMask: number): boolean {
 		return Boolean(
 			RpcClient.Call("Renderable_SetLayerMask", {
 				entityHandle,
@@ -122,8 +93,13 @@ export class RenderableManager {
 		);
 	}
 
-	/** Enable or disable receiving shadows on this Renderable. */
-	static setReceiveShadows(entityHandle: number, receive: boolean): boolean {
+	/**
+	 * Enable or disable receiving shadows on this Renderable.
+	 * @param entityHandle The entity with the renderable component
+	 * @param receive Whether to receive shadows
+	 * @returns boolean indicating success
+	 */
+	static SetReceiveShadows(entityHandle: number, receive: boolean): boolean {
 		return Boolean(
 			RpcClient.Call("Renderable_SetReceiveShadows", {
 				entityHandle,
@@ -132,10 +108,14 @@ export class RenderableManager {
 		);
 	}
 
-	/** Control shadow‐casting mode.
+	/**
+	 * Control shadow‐casting mode.
 	 *   0 = Off, 1 = On, 2 = TwoSided, 3 = ShadowsOnly
+	 * @param entityHandle The entity with the renderable component
+	 * @param shadowMode The shadow casting mode
+	 * @returns boolean indicating success
 	 */
-	static setCastShadows(entityHandle: number, shadowMode: number): boolean {
+	static SetCastShadows(entityHandle: number, shadowMode: number): boolean {
 		return Boolean(
 			RpcClient.Call("Renderable_SetCastShadows", {
 				entityHandle,
@@ -144,8 +124,13 @@ export class RenderableManager {
 		);
 	}
 
-	/** Enable or disable frustum‐culling on this Renderable. */
-	static setCulling(entityHandle: number, enabled: boolean): boolean {
+	/**
+	 * Enable or disable frustum‐culling on this Renderable.
+	 * @param entityHandle The entity with the renderable component
+	 * @param enabled Whether to enable culling
+	 * @returns boolean indicating success
+	 */
+	static SetCulling(entityHandle: number, enabled: boolean): boolean {
 		return Boolean(
 			RpcClient.Call("Renderable_SetCulling", {
 				entityHandle,

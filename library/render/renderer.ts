@@ -1,9 +1,9 @@
 import { RpcClient } from "@adamas/rpc";
-import { Material } from "@adamas/render/material";
-import { Texture } from "@adamas/render/texture";
-import { Scene } from "@adamas/render/scene";
+import { MaterialManager } from "@adamas/render/material";
+import { TextureManager } from "@adamas/render/texture";
+import { SceneManager } from "@adamas/render/scene";
 
-export class Renderer {
+export class RendererManager {
 	// ------------------------------------------------------------
 	// Camera / XR
 	// ------------------------------------------------------------
@@ -11,18 +11,20 @@ export class Renderer {
 	/**
 	 * Filament: Renderer::getDefaultCameraEntity()
 	 * Unity RPC not yet implemented; please register a CameraManager method.
+	 * @returns The default camera entity handle
 	 */
-	static getDefaultCameraEntity(): number {
-		console.warn("getDefaultCameraEntity(): Unity RPC not available");
+	static GetDefaultCameraEntity(): number {
+		console.warn("GetDefaultCameraEntity(): Unity RPC not available");
 		return -1;
 	}
 
 	/**
 	 * Filament: Renderer::getXRCameras()
 	 * Unity RPC not yet implemented.
+	 * @returns Array of XR camera entity handles
 	 */
-	static getXRCameras(): number[] {
-		console.warn("getXRCameras(): Unity RPC not available");
+	static GetXRCameras(): number[] {
+		console.warn("GetXRCameras(): Unity RPC not available");
 		return [];
 	}
 
@@ -32,30 +34,38 @@ export class Renderer {
 
 	/**
 	 * Destroy a material instance (mimics Filament::Renderer::destroyMaterialInstance)
+	 * @param instanceHandle The material instance handle to destroy
+	 * @returns boolean indicating success
 	 */
-	static destroyMaterialInstance(instanceHandle: number): boolean {
-		return Material.destroy(instanceHandle);
+	static DestroyMaterialInstance(instanceHandle: number): boolean {
+		return MaterialManager.Destroy(instanceHandle);
 	}
 
 	/**
 	 * Destroy a render-target (in Unity, render textures)
+	 * @param rtHandle The render target handle to destroy
+	 * @returns boolean indicating success
 	 */
-	static destroyRenderTarget(rtHandle: number): boolean {
-		return Texture.destroy(rtHandle);
+	static DestroyRenderTarget(rtHandle: number): boolean {
+		return TextureManager.Destroy(rtHandle);
 	}
 
 	/**
 	 * Destroy a skybox (in Unity, just a material)
+	 * @param skyboxMatHandle The skybox material handle to destroy
+	 * @returns boolean indicating success
 	 */
-	static destroySkybox(skyboxMatHandle: number): boolean {
-		return Material.destroy(skyboxMatHandle);
+	static DestroySkybox(skyboxMatHandle: number): boolean {
+		return MaterialManager.Destroy(skyboxMatHandle);
 	}
 
 	/**
 	 * Destroy an indirect light (no direct Unity equivalent)
+	 * @param ilHandle The indirect light handle to destroy
+	 * @returns boolean indicating success
 	 */
-	static destroyIndirectLight(ilHandle: number): boolean {
-		console.warn("destroyIndirectLight(): no Unity RPC equivalent");
+	static DestroyIndirectLight(ilHandle: number): boolean {
+		console.warn("DestroyIndirectLight(): no Unity RPC equivalent");
 		return false;
 	}
 
@@ -65,28 +75,44 @@ export class Renderer {
 
 	/**
 	 * Wraps Scene_SetSkybox
+	 * @param sceneHandle The scene handle
+	 * @param skyboxMatHandle The skybox material handle
+	 * @returns boolean indicating success
 	 */
-	static setSkybox(sceneHandle: number, skyboxMatHandle: number): boolean {
-		return Scene.setSkybox(sceneHandle, skyboxMatHandle);
+	static SetSkybox(sceneHandle: number, skyboxMatHandle: number): boolean {
+		return SceneManager.SetSkybox(sceneHandle, skyboxMatHandle);
 	}
 
 	/**
 	 * Wraps Scene_SetAmbientLight
+	 * @param sceneHandle The scene handle
+	 * @param r Red component (0-1)
+	 * @param g Green component (0-1)
+	 * @param b Blue component (0-1)
+	 * @param intensity The ambient light intensity
+	 * @returns boolean indicating success
 	 */
-	static setAmbientLight(
+	static SetAmbientLight(
 		sceneHandle: number,
 		r: number,
 		g: number,
 		b: number,
 		intensity: number,
 	): boolean {
-		return Scene.setAmbientLight(sceneHandle, r, g, b, intensity);
+		return SceneManager.SetAmbientLight(sceneHandle, r, g, b, intensity);
 	}
 
 	/**
 	 * Wraps Scene_SetFog
+	 * @param sceneHandle The scene handle
+	 * @param enabled Whether fog is enabled
+	 * @param mode The fog mode
+	 * @param density The fog density
+	 * @param start The fog start distance
+	 * @param end The fog end distance
+	 * @returns boolean indicating success
 	 */
-	static setFog(
+	static SetFog(
 		sceneHandle: number,
 		enabled: boolean,
 		mode: number,
@@ -94,6 +120,6 @@ export class Renderer {
 		start: number,
 		end: number,
 	): boolean {
-		return Scene.setFog(sceneHandle, enabled, mode, density, start, end);
+		return SceneManager.SetFog(sceneHandle, enabled, mode, density, start, end);
 	}
 }

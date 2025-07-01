@@ -1,25 +1,87 @@
 import { RpcClient } from "@adamas/rpc";
+import { Entity } from "@adamas/entity";
 
-export class Material {
-	constructor(public handle: number) {}
+export type MaterialHandle = number;
 
-	static create(shaderName: string): number {
-		return Number(RpcClient.Call("Material_Create", { shaderName }));
+export class MaterialManager {
+	/**
+	 * Create a new material with the specified shader
+	 * @param shaderName The name of the shader to use
+	 * @returns The material handle
+	 */
+	static Create(shaderName: string): MaterialHandle;
+	/**
+	 * Create a new material and attach it to a renderable component
+	 * @param shaderName The name of the shader to use
+	 * @param entity The entity with the renderable component
+	 * @param submeshIndex The submesh index to attach to (default: 0)
+	 * @returns The material handle
+	 */
+	static Create(
+		shaderName: string,
+		entity: Entity,
+		submeshIndex?: number,
+	): MaterialHandle;
+	static Create(
+		shaderName: string,
+		entity?: Entity,
+		submeshIndex: number = 0,
+	): MaterialHandle {
+		const matHandle = Number(
+			RpcClient.Call("Material_Create", {
+				shaderName,
+				clientId: RpcClient.GetClientId(),
+			}),
+		);
+
+		if (entity !== undefined) {
+			RpcClient.Call("Renderable_SetMaterial", {
+				entityHandle: entity,
+				materialHandle: matHandle,
+				index: submeshIndex,
+			});
+		}
+
+		return matHandle;
 	}
 
-	static destroy(handle: number): boolean {
+	/**
+	 * Destroy a material
+	 * @param handle The material handle to destroy
+	 * @returns boolean indicating success
+	 */
+	static Destroy(handle: MaterialHandle): boolean {
 		return Boolean(
 			RpcClient.Call("Material_Destroy", { materialHandle: handle }),
 		);
 	}
 
-	static createInstance(handle: number): number {
+	/**
+	 * Create a material instance
+	 * @param handle The material handle to create an instance from
+	 * @returns The material instance handle
+	 */
+	static CreateInstance(handle: MaterialHandle): MaterialHandle {
 		return Number(
-			RpcClient.Call("Material_CreateInstance", { materialHandle: handle }),
+			RpcClient.Call("Material_CreateInstance", {
+				materialHandle: handle,
+				clientId: RpcClient.GetClientId(),
+			}),
 		);
 	}
 
-	static setFloat(handle: number, prop: string, value: number): boolean {
+	/**
+	 * Set a float property on the material
+	 * @param handle The material handle
+	 * @param prop The property name
+	 * @param value The float value
+	 * @returns boolean indicating success
+	 */
+	static SetFloat(
+		handle: MaterialHandle,
+		prop: string,
+		value: number,
+	): boolean {
 		return Boolean(
 			RpcClient.Call("Material_SetFloat", {
 				materialHandle: handle,
@@ -29,8 +91,18 @@ export class Material {
 		);
 	}
 
-	static setVector(
-		handle: number,
+	/**
+	 * Set a vector property on the material
+	 * @param handle The material handle
+	 * @param prop The property name
+	 * @param x X component
+	 * @param y Y component
+	 * @param z Z component
+	 * @param w W component
+	 * @returns boolean indicating success
+	 */
+	static SetVector(
+		handle: MaterialHandle,
 		prop: string,
 		x: number,
 		y: number,
@@ -49,8 +121,18 @@ export class Material {
 		);
 	}
 
-	static setColor(
-		handle: number,
+	/**
+	 * Set a color property on the material
+	 * @param handle The material handle
+	 * @param prop The property name
+	 * @param r Red component (0-1)
+	 * @param g Green component (0-1)
+	 * @param b Blue component (0-1)
+	 * @param a Alpha component (0-1)
+	 * @returns boolean indicating success
+	 */
+	static SetColor(
+		handle: MaterialHandle,
 		prop: string,
 		r: number,
 		g: number,
@@ -69,7 +151,18 @@ export class Material {
 		);
 	}
 
-	static setTexture(handle: number, prop: string, tex: number): boolean {
+	/**
+	 * Set a texture property on the material
+	 * @param handle The material handle
+	 * @param prop The property name
+	 * @param tex The texture handle
+	 * @returns boolean indicating success
+	 */
+	static SetTexture(
+		handle: MaterialHandle,
+		prop: string,
+		tex: number,
+	): boolean {
 		return Boolean(
 			RpcClient.Call("Material_SetTexture", {
 				materialHandle: handle,
@@ -79,7 +172,13 @@ export class Material {
 		);
 	}
 
-	static getFloat(handle: number, prop: string): number {
+	/**
+	 * Get a float property from the material
+	 * @param handle The material handle
+	 * @param prop The property name
+	 * @returns The float value
+	 */
+	static GetFloat(handle: MaterialHandle, prop: string): number {
 		return Number(
 			RpcClient.Call("Material_GetFloat", {
 				materialHandle: handle,
@@ -88,7 +187,13 @@ export class Material {
 		);
 	}
 
-	static getColor(handle: number, prop: string): string {
+	/**
+	 * Get a color property from the material
+	 * @param handle The material handle
+	 * @param prop The property name
+	 * @returns The color as a string
+	 */
+	static GetColor(handle: MaterialHandle, prop: string): string {
 		return RpcClient.Call("Material_GetColor", {
 			materialHandle: handle,
 			propertyName: prop,

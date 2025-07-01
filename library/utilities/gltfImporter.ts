@@ -16,7 +16,13 @@ import { PNG } from "pngjs";
 
 import { RpcClient } from "@adamas/rpc";
 import { EntityManager } from "@adamas/entity";
-import { RenderableBuilder } from "@adamas/render/renderable";
+import { RenderableManager } from "@adamas/render/renderable";
+import { MeshManager } from "@adamas/render/mesh";
+import { MaterialManager } from "@adamas/render/material";
+import { CameraManager } from "@adamas/render/camera";
+import { LightManager } from "@adamas/render/light";
+import { TransformManager, Matrix4 } from "@adamas/render/transform";
+import { TextureManager } from "@adamas/render/texture";
 
 /**
  * Import .glb/.gltf/VRM and push every asset—nodes, cameras, lights, skeletons, skinned
@@ -47,17 +53,14 @@ export async function importGltfAndRender(assetPath: string) {
 
 				// Set local transform using the node's local matrix
 				const localMatrix = node._localMatrix;
-				RpcClient.Call("Transform_SetTransform", {
-					entityHandle: ent,
-					matrixJson: localMatrix.toArray().join(","),
-				});
+				TransformManager.SetTransform(
+					ent,
+					Array.from(localMatrix.toArray()) as Matrix4,
+				);
 
 				// Set parent-child relationship
 				if (parentEnt != null) {
-					RpcClient.Call("Transform_SetParent", {
-						entityHandle: ent,
-						parentHandle: parentEnt,
-					});
+					TransformManager.SetParent(ent, parentEnt);
 				}
 
 				// Process children
@@ -115,24 +118,23 @@ export async function importGltfAndRender(assetPath: string) {
 		// 3) Process Cameras
 		scene.cameras.forEach((cam) => {
 			const ent = EntityManager.Create(cam.name || "camera");
-			RpcClient.Call("Camera_Create", { entityHandle: ent });
+			CameraManager.Create(ent);
 
-			RpcClient.Call("Camera_SetProjection", {
-				entityHandle: ent,
-				projectionType: 0, // 0 = PERSPECTIVE
-				fov: cam.fov,
-				aspect:
-					cam.getEngine().getRenderWidth() / cam.getEngine().getRenderHeight(),
-				near: cam.minZ,
-				far: cam.maxZ,
-			});
+			CameraManager.SetProjection(
+				ent,
+				0, // 0 = PERSPECTIVE
+				cam.fov,
+				cam.getEngine().getRenderWidth() / cam.getEngine().getRenderHeight(),
+				cam.minZ,
+				cam.maxZ,
+			);
 
 			// Set camera transform
 			const worldMatrix = cam.getWorldMatrix();
-			RpcClient.Call("Transform_SetTransform", {
-				entityHandle: ent,
-				matrixJson: worldMatrix.toArray().join(","),
-			});
+			TransformManager.SetTransform(
+				ent,
+				Array.from(worldMatrix.toArray()) as Matrix4,
+			);
 		});
 
 		// 4) Process Lights
@@ -144,29 +146,23 @@ export async function importGltfAndRender(assetPath: string) {
 			const typeName = ((light as any).getTypeName?.() ??
 				"PointLight") as keyof typeof typeMap;
 
-			RpcClient.Call("Light_Create", {
-				entityHandle: ent,
-				lightType: typeMap[typeName] ?? 2,
-			});
+			LightManager.Create(ent, typeMap[typeName] ?? 2);
 
-			RpcClient.Call("Light_SetColor", {
-				entityHandle: ent,
-				r: light.diffuse?.r ?? 1,
-				g: light.diffuse?.g ?? 1,
-				b: light.diffuse?.b ?? 1,
-			});
+			LightManager.SetColor(
+				ent,
+				light.diffuse?.r ?? 1,
+				light.diffuse?.g ?? 1,
+				light.diffuse?.b ?? 1,
+			);
 
-			RpcClient.Call("Light_SetIntensity", {
-				entityHandle: ent,
-				intensity: light.intensity || 1,
-			});
+			LightManager.SetIntensity(ent, light.intensity || 1);
 
 			// Set light transform
 			const worldMatrix = light.getWorldMatrix();
-			RpcClient.Call("Transform_SetTransform", {
-				entityHandle: ent,
-				matrixJson: worldMatrix.toArray().join(","),
-			});
+			TransformManager.SetTransform(
+				ent,
+				Array.from(worldMatrix.toArray()) as Matrix4,
+			);
 		});
 
 		// 5) Process Meshes & Materials
@@ -182,21 +178,28 @@ export async function importGltfAndRender(assetPath: string) {
 			const ent =
 				nodeToEntity.get(mesh as any) ||
 				EntityManager.Create(mesh.name || "mesh");
-			const rb = new RenderableBuilder().build(ent);
+
+			// Create renderable component
+			RenderableManager.Create(ent);
+
+			// Create mesh and attach to renderable
+			const meshHandle = MeshManager.Create(ent);
 
 			// Upload geometry data
 			const positions = mesh.getVerticesData(VertexBuffer.PositionKind)!;
 			const indices = mesh.getIndices()!;
-			rb.geometry(Array.from(positions), Array.from(indices));
+			MeshManager.SetVertices(meshHandle, Array.from(positions));
+			MeshManager.SetTriangles(meshHandle, Array.from(indices));
 
 			// Handle UV coordinates if available
 			const uvs = mesh.getVerticesData(VertexBuffer.UVKind);
 			if (uvs) {
-				RpcClient.Call("Mesh_SetUVs", {
-					meshHandle: rb.meshHandle,
-					uvsJson: JSON.stringify(Array.from(uvs)),
-				});
+				MeshManager.SetUVs(meshHandle, Array.from(uvs));
 			}
+
+			// Recalculate normals and bounds
+			MeshManager.RecalcNormals(meshHandle);
+			MeshManager.RecalcBounds(meshHandle);
 
 			// TODO: Handle skinning data for VRM avatars
 			// const skeleton = (mesh as any).skeleton as Skeleton;
@@ -226,10 +229,21 @@ export async function importGltfAndRender(assetPath: string) {
 
 			// Process material
 			if (mesh.material) {
-				await processMaterial(mesh.material, rb, assetPath);
+				await processMaterial(mesh.material, ent, assetPath);
 			} else {
 				// Create default material
-				rb.materialURPLit().setBaseColor(0.8, 0.8, 0.8, 1.0);
+				const materialHandle = MaterialManager.Create(
+					"Universal Render Pipeline/Lit",
+					ent,
+				);
+				MaterialManager.SetColor(
+					materialHandle,
+					"_BaseColor",
+					0.8,
+					0.8,
+					0.8,
+					1.0,
+				);
 			}
 		}
 
@@ -247,20 +261,24 @@ export async function importGltfAndRender(assetPath: string) {
  */
 async function processMaterial(
 	material: any,
-	rb: RenderableBuilder,
+	entityHandle: number,
 	assetPath: string,
 ) {
 	try {
 		console.log(`Processing material: ${material.name || "unnamed"}`);
 
-		rb.materialURPLit();
+		// Create material and attach to renderable
+		const materialHandle = MaterialManager.Create(
+			"Universal Render Pipeline/Lit",
+			entityHandle,
+		);
 
 		// Handle base color texture
 		const baseColorTexture = material.albedoTexture || material.baseTexture;
 		if (baseColorTexture) {
 			const textureHandle = await processTexture(baseColorTexture, assetPath);
 			if (textureHandle !== -1) {
-				rb.setBaseTexture(textureHandle);
+				MaterialManager.SetTexture(materialHandle, "_BaseMap", textureHandle);
 			}
 		}
 
@@ -274,9 +292,9 @@ async function processMaterial(
 				baseColor.a ?? 1,
 			];
 			const [r = 1, g = 1, b = 1, a = 1] = colorArray;
-			rb.setBaseColor(r, g, b, a);
+			MaterialManager.SetColor(materialHandle, "_BaseColor", r, g, b, a);
 		} else {
-			rb.setBaseColor(1, 1, 1, 1);
+			MaterialManager.SetColor(materialHandle, "_BaseColor", 1, 1, 1, 1);
 		}
 
 		// Handle metallic and roughness properties
@@ -284,7 +302,8 @@ async function processMaterial(
 		const roughness = material.roughness ?? material.roughnessFactor ?? 1;
 		const smoothness = 1 - roughness;
 
-		rb.setMetallic(metallic).setSmoothness(smoothness);
+		MaterialManager.SetFloat(materialHandle, "_Metallic", metallic);
+		MaterialManager.SetFloat(materialHandle, "_Smoothness", smoothness);
 
 		console.log(
 			`Material processed - Metallic: ${metallic}, Smoothness: ${smoothness}`,
@@ -292,7 +311,11 @@ async function processMaterial(
 	} catch (error) {
 		console.error(`Error processing material: ${material.name}`, error);
 		// Set default material properties on error
-		rb.setBaseColor(0.8, 0.8, 0.8, 1.0);
+		const materialHandle = MaterialManager.Create(
+			"Universal Render Pipeline/Lit",
+			entityHandle,
+		);
+		MaterialManager.SetColor(materialHandle, "_BaseColor", 0.8, 0.8, 0.8, 1.0);
 	}
 }
 
@@ -473,13 +496,7 @@ async function processTexture(
 		}
 
 		// Create Unity texture
-		const textureHandle = Number(
-			RpcClient.Call("Texture_Create2D", {
-				width: png.width,
-				height: png.height,
-				format: 4, // RGBA32
-			}),
-		);
+		const textureHandle = TextureManager.Create2D(png.width, png.height, 4); // RGBA32
 
 		if (textureHandle === -1) {
 			console.warn("Failed to create Unity texture");
@@ -487,12 +504,12 @@ async function processTexture(
 		}
 
 		// Upload pixel data
-		const success = RpcClient.Call("Texture_SetPixels", {
-			textureHandle: textureHandle,
-			pixelDataJson: Array.from(png.data).join(","),
-			width: png.width,
-			height: png.height,
-		});
+		const success = TextureManager.SetPixels(
+			textureHandle,
+			Array.from(png.data).join(","),
+			png.width,
+			png.height,
+		);
 
 		if (!success) {
 			console.warn("Failed to upload texture pixels");
@@ -500,10 +517,7 @@ async function processTexture(
 		}
 
 		// Set texture filtering
-		RpcClient.Call("Texture_SetFilterMode", {
-			textureHandle: textureHandle,
-			filterMode: 1, // Bilinear
-		});
+		TextureManager.SetFilterMode(textureHandle, 1); // Bilinear
 
 		console.log(`Texture processed successfully: ${png.width}x${png.height}`);
 		return textureHandle;

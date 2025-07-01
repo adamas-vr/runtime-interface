@@ -1,73 +1,138 @@
 import { RpcClient } from "@adamas/rpc";
 
+export type TextureHandle = number;
+
 // NOTE: the following are not supported compared to legacy code:
-// - Filament’s TextureBuilder, Swizzle, GenerateMipmaps, PixelBufferDescriptor
+// - Filament's TextureBuilder, Swizzle, GenerateMipmaps, PixelBufferDescriptor
 
-export class Texture {
-	constructor(public handle: number) {}
-
-	static create2D(
+export class TextureManager {
+	/**
+	 * Create a 2D texture
+	 * @param width The texture width
+	 * @param height The texture height
+	 * @param format The texture format
+	 * @returns The texture handle
+	 */
+	static Create2D(
 		width: number,
 		height: number,
-		depth: number,
 		format: number,
-	): number {
+	): TextureHandle {
 		return Number(
 			RpcClient.Call("Texture_Create2D", {
 				width,
 				height,
-				depth,
 				format,
+				clientId: RpcClient.GetClientId(),
 			}),
 		);
 	}
 
-	static createRenderTexture(
+	/**
+	 * Create a 2D texture and attach it to a material
+	 * @param width The texture width
+	 * @param height The texture height
+	 * @param format The texture format
+	 * @param materialHandle The material handle to attach to
+	 * @param propertyName The material property name
+	 * @returns The texture handle
+	 */
+	static Create2DForMaterial(
+		width: number,
+		height: number,
+		format: number,
+		materialHandle: number,
+		propertyName: string,
+	): TextureHandle {
+		const textureHandle = Number(
+			RpcClient.Call("Texture_Create2D", {
+				width,
+				height,
+				format,
+				clientId: RpcClient.GetClientId(),
+			}),
+		);
+		RpcClient.Call("Material_SetTexture", {
+			materialHandle: materialHandle,
+			propertyName: propertyName,
+			textureHandle: textureHandle,
+		});
+		return textureHandle;
+	}
+
+	/**
+	 * Create a render texture
+	 * @param width The texture width
+	 * @param height The texture height
+	 * @param depth The texture depth
+	 * @param format The texture format
+	 * @param usage The texture usage flags
+	 * @returns The texture handle
+	 */
+	static CreateRenderTexture(
 		width: number,
 		height: number,
 		depth: number,
 		format: number,
 		usage: number,
-	): number {
+	): TextureHandle {
 		return Number(
 			RpcClient.Call("Texture_CreateRenderTexture", {
 				width,
 				height,
 				depth,
+				format,
 				usage,
+				clientId: RpcClient.GetClientId(),
 			}),
 		);
 	}
 
-	static destroy(handle: number): boolean {
+	/**
+	 * Destroy a texture
+	 * @param handle The texture handle to destroy
+	 * @returns boolean indicating success
+	 */
+	static Destroy(handle: TextureHandle): boolean {
 		return Boolean(
 			RpcClient.Call("Texture_Destroy", { textureHandle: handle }),
 		);
 	}
 
-	static setPixels(
-		handle: number,
-		name: string,
-		x: number,
-		y: number,
-		w: number,
-		h: number,
-		data: Uint8Array,
+	/**
+	 * Set pixel data for the texture
+	 * @param handle The texture handle
+	 * @param pixelDataJson JSON string with comma-separated RGBA values
+	 * @param width The texture width
+	 * @param height The texture height
+	 * @returns boolean indicating success
+	 */
+	static SetPixels(
+		handle: TextureHandle,
+		pixelDataJson: string,
+		width: number,
+		height: number,
 	): boolean {
 		return Boolean(
 			RpcClient.Call("Texture_SetPixels", {
 				textureHandle: handle,
-				name,
-				x,
-				y,
-				w,
-				h,
-				// TODO: need to extend bridge to pass raw byte buffers
+				pixelDataJson,
+				width,
+				height,
 			}),
 		);
 	}
 
-	static setFilterMode(handle: number, mode: TextureFilterMode): boolean {
+	/**
+	 * Set the filter mode for the texture
+	 * @param handle The texture handle
+	 * @param mode The filter mode
+	 * @returns boolean indicating success
+	 */
+	static SetFilterMode(
+		handle: TextureHandle,
+		mode: TextureFilterMode,
+	): boolean {
 		return Boolean(
 			RpcClient.Call("Texture_SetFilterMode", {
 				textureHandle: handle,
@@ -76,7 +141,16 @@ export class Texture {
 		);
 	}
 
-	static setWrapMode(handle: number, wrapMode: TextureWrapMode): boolean {
+	/**
+	 * Set the wrap mode for the texture
+	 * @param handle The texture handle
+	 * @param wrapMode The wrap mode
+	 * @returns boolean indicating success
+	 */
+	static SetWrapMode(
+		handle: TextureHandle,
+		wrapMode: TextureWrapMode,
+	): boolean {
 		return Boolean(
 			RpcClient.Call("Texture_SetWrapMode", {
 				textureHandle: handle,
