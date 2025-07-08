@@ -5,7 +5,7 @@
 	"main": "dist/index.js",
 	"private": true,
 	"scripts": {
-		"install": "npx cmake-js compile -G 'Unix Makefiles'",
+		"install": "npx cmake-js compile",
 		"start": "npx ts-node index.ts",
 		"format": "npx prettier . --write"
 	},
