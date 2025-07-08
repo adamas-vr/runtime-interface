@@ -5,9 +5,9 @@
 	"main": "dist/index.js",
 	"private": true,
 	"scripts": {
-		"install": "cmake-js compile -G 'Unix Makefiles'",
-		"start": "ts-node index.ts",
-		"lint": "npx prettier --write *.ts ./library/*.ts *.json"
+		"install": "npx cmake-js compile -G 'Unix Makefiles'",
+		"start": "npx ts-node index.ts",
+		"format": "npx prettier . --write"
 	},
 	"repository": {
 		"type": "git",
@@ -20,9 +20,17 @@
 	},
 	"homepage": "https://github.com/adamas-vr/prefab-interface#readme",
 	"dependencies": {
-		"node-addon-api": "^8.4.0"
+		"@babylonjs/core": "^8.13.0",
+		"@babylonjs/loaders": "^8.13.0",
+		"gl-matrix": "^3.4.3",
+		"node-addon-api": "^8.4.0",
+		"pngjs": "^7.0.0"
 	},
 	"devDependencies": {
+		"@types/jpeg-js": "^0.3.0",
+		"@types/node": "^24.0.3",
+		"@types/pngjs": "^6.0.5",
+		"cmake-js": "^7.3.1",
 		"ts-node": "^10.0.0",
 		"tsconfig-paths": "^4.2.0",
 		"typescript": "^5.0.0"
