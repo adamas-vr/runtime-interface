@@ -1,6 +1,7 @@
 import { RpcClient } from "@adamas/rpc";
 
 export class Device {
+	// Local positions (relative to XR Origin)
 	static GetLeftPosition() {
 		return JSON.parse(RpcClient.Call("XRI Left/Position", {}));
 	}
@@ -64,6 +65,26 @@ export class Device {
 	}
 	static GetHeadRotation() {
 		return JSON.parse(RpcClient.Call("XRI Head/Rotation", {}));
+	}
+
+	// World positions (absolute positions in world space)
+	static GetLeftWorldPosition() {
+		return JSON.parse(RpcClient.Call("XRI Left/WorldPosition", {}));
+	}
+	static GetLeftWorldRotation() {
+		return JSON.parse(RpcClient.Call("XRI Left/WorldRotation", {}));
+	}
+	static GetRightWorldPosition() {
+		return JSON.parse(RpcClient.Call("XRI Right/WorldPosition", {}));
+	}
+	static GetRightWorldRotation() {
+		return JSON.parse(RpcClient.Call("XRI Right/WorldRotation", {}));
+	}
+	static GetHeadWorldPosition() {
+		return JSON.parse(RpcClient.Call("XRI Head/WorldPosition", {}));
+	}
+	static GetHeadWorldRotation() {
+		return JSON.parse(RpcClient.Call("XRI Head/WorldRotation", {}));
 	}
 }
 
