@@ -1,11 +1,11 @@
 {
 	"name": "adamas-bindings",
-	"version": "1.0.0",
-	"description": "Unity bindings of the adamas prefab API",
+	"version": "0.1.0",
+	"description": "Unity bindings of the adamas project API",
 	"main": "dist/index.js",
 	"private": true,
 	"scripts": {
-		"install": "npx cmake-js compile",
+		"compile": "npx cmake-js compile",
 		"start": "npx ts-node index.ts",
 		"format": "npx prettier . --write"
 	},
@@ -14,7 +14,6 @@
 		"url": "git+ssh://git@github.com:adamas-vr/prefab-interface.git"
 	},
 	"author": "Adamas VR, Inc.",
-	"license": "ISC",
 	"bugs": {
 		"url": "https://github.com/adamas-vr/prefab-interface/issues"
 	},

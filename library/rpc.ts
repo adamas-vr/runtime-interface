@@ -1,4 +1,9 @@
-const addon = require("./native-bindings.node");
+import { platform } from "node:os";
+
+const addon =
+	platform() === "darwin"
+		? require("./native-bindings-osx.node")
+		: require("./native-bindings-win.node");
 
 export class RpcClient {
 	static Init() {

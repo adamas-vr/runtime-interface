@@ -30,11 +30,20 @@ set(OUTPUT_DIR "${CMAKE_SOURCE_DIR}/library")
 # Ensure the output directory exists
 file(MAKE_DIRECTORY ${OUTPUT_DIR})
 
+if(WIN32)
+    set(PLATFORM_SUFFIX "-win")
+elseif(APPLE)
+    set(PLATFORM_SUFFIX "-osx")
+endif()
+
+# Define a new name with suffix
+set(PROJECT_NAME_WITH_SUFFIX "${PROJECT_NAME}${PLATFORM_SUFFIX}")
+
 # Copy the built .node file to the output directory after build
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
         $<TARGET_FILE:${PROJECT_NAME}>
-        ${OUTPUT_DIR}/$<TARGET_FILE_NAME:${PROJECT_NAME}>
+        ${OUTPUT_DIR}/${PROJECT_NAME_WITH_SUFFIX}.node
     COMMENT "Copying ${PROJECT_NAME}.node to ${OUTPUT_DIR}"
 )
 
