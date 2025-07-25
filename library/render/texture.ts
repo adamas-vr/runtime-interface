@@ -1,10 +1,50 @@
 import { RpcClient } from "@adamas/rpc";
 import { base64Encode } from "@adamas/utilities/base64";
+import { MaterialHandle } from "./material";
 
 export type TextureHandle = number;
 
 // NOTE: the following are not supported compared to legacy code:
 // - Filament's TextureBuilder, Swizzle, GenerateMipmaps, PixelBufferDescriptor
+
+export enum TextureFormat {
+	//
+	// Summary:
+	//     Alpha-only texture format, 8 bit integer.
+	Alpha8 = 1,
+	//
+	// Summary:
+	//     A 16 bits/pixel texture format. Texture stores color with an alpha channel.
+	ARGB4444 = 2,
+	//
+	// Summary:
+	//     Three channel (RGB) texture format, 8-bits unsigned integer per channel.
+	RGB24 = 3,
+	//
+	// Summary:
+	//     Four channel (RGBA) texture format, 8-bits unsigned integer per channel.
+	RGBA32 = 4,
+	//
+	// Summary:
+	//     Color with alpha texture format, 8-bits per channel.
+	ARGB32 = 5,
+	//
+	// Summary:
+	//     A 16 bit color texture format.
+	RGB565 = 7,
+	//
+	// Summary:
+	//     Single channel (R) texture format, 16-bits unsigned integer.
+	R16 = 9,
+	//
+	// Summary:
+	//     Compressed color texture format.
+	DXT1 = 10,
+	//
+	// Summary:
+	//     Compressed color with alpha channel texture format.
+	DXT5 = 12,
+}
 
 export class TextureManager {
 	/**
@@ -17,7 +57,7 @@ export class TextureManager {
 	static Create2D(
 		width: number,
 		height: number,
-		format: number,
+		format: TextureFormat,
 	): TextureHandle {
 		return Number(
 			RpcClient.Call("Texture_Create2D", {
@@ -41,8 +81,8 @@ export class TextureManager {
 	static Create2DForMaterial(
 		width: number,
 		height: number,
-		format: number,
-		materialHandle: number,
+		format: TextureFormat,
+		materialHandle: MaterialHandle,
 		propertyName: string,
 	): TextureHandle {
 		const textureHandle = Number(
@@ -74,7 +114,7 @@ export class TextureManager {
 		width: number,
 		height: number,
 		depth: number,
-		format: number,
+		format: TextureFormat,
 		usage: number,
 	): TextureHandle {
 		return Number(
@@ -114,7 +154,7 @@ export class TextureManager {
 		width: number,
 		height: number,
 	): boolean {
-		const base64String = base64Encode(base64Rgba)
+		const base64String = base64Encode(base64Rgba);
 		return Boolean(
 			RpcClient.Call("Texture_LoadRawTextureData", {
 				textureHandle: handle,
@@ -135,7 +175,7 @@ export class TextureManager {
 		handle: TextureHandle,
 		base64Image: ArrayBufferLike,
 	): boolean {
-		const base64String = base64Encode(base64Image)
+		const base64String = base64Encode(base64Image);
 
 		return Boolean(
 			RpcClient.Call("Texture_LoadImage", {

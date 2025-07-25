@@ -28,7 +28,11 @@ import {
 import { CameraManager } from "@adamas/render/camera";
 import { LightManager } from "@adamas/render/light";
 import { TransformManager } from "@adamas/render/transform";
-import { TextureHandle, TextureManager } from "@adamas/render/texture";
+import {
+	TextureFormat,
+	TextureHandle,
+	TextureManager,
+} from "@adamas/render/texture";
 import { vec4 } from "gl-matrix";
 
 const DEFAULT_MATERIAL = MaterialManager.Create(ShaderType.URP_LIT);
@@ -262,7 +266,11 @@ export async function importGltfAndRender(assetPath: string) {
 				}
 
 				// Create Unity texture
-				const textureHandle = TextureManager.Create2D(10, 10, 4); // RGBA32
+				const textureHandle = TextureManager.Create2D(
+					10,
+					10,
+					TextureFormat.RGBA32,
+				);
 				if (textureHandle === -1) {
 					console.warn("Failed to create Unity texture");
 					return -1;
