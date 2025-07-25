@@ -53,6 +53,7 @@ export class MeshManager {
 	 * @returns boolean indicating success
 	 */
 	static SetVertices(handle: MeshHandle, vertices: number[]): boolean {
+		// FIXME: @zekailin00 large binary encoding
 		return Boolean(
 			RpcClient.Call("Mesh_SetVertices", {
 				meshHandle: handle,
@@ -68,6 +69,7 @@ export class MeshManager {
 	 * @returns boolean indicating success
 	 */
 	static SetTriangles(handle: MeshHandle, indices: number[]): boolean {
+		// FIXME: @zekailin00 large binary encoding
 		return Boolean(
 			RpcClient.Call("Mesh_SetTriangles", {
 				meshHandle: handle,
@@ -83,6 +85,7 @@ export class MeshManager {
 	 * @returns boolean indicating success
 	 */
 	static SetUVs(handle: MeshHandle, uvs: number[]): boolean {
+		// FIXME: @zekailin00 large binary encoding
 		return Boolean(
 			RpcClient.Call("Mesh_SetUVs", {
 				meshHandle: handle,
@@ -98,6 +101,7 @@ export class MeshManager {
 	 * @returns boolean indicating success
 	 */
 	static SetNormals(handle: MeshHandle, normals: number[]): boolean {
+		// FIXME: @zekailin00 large binary encoding
 		return Boolean(
 			RpcClient.Call("Mesh_SetNormals", {
 				meshHandle: handle,

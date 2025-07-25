@@ -1,47 +1,12 @@
 import { RpcClient } from "@adamas/rpc";
 import { Entity } from "@adamas/entity";
-
-export type Matrix4 = [
-	number,
-	number,
-	number,
-	number,
-	number,
-	number,
-	number,
-	number,
-	number,
-	number,
-	number,
-	number,
-	number,
-	number,
-	number,
-	number,
-];
-
-export interface Vector3 {
-	x: number;
-	y: number;
-	z: number;
-}
+import { mat4, quat, vec3 } from "gl-matrix";
 
 /**
  * Wrapper for Unity Transform RPCs.
  * Provides strongly-typed parameters and returns.
  */
 export class TransformManager {
-	/**
-	 * Create a Transform component and attach it to the specified entity
-	 * @param entity The entity to attach the transform to
-	 * @returns boolean indicating success
-	 */
-	static Create(entity: Entity): boolean {
-		return Boolean(
-			RpcClient.Call("Transform_Create", { entityHandle: entity }),
-		);
-	}
-
 	/**
 	 * Checks if the entity has a Transform component.
 	 * @param entity The entity to check
@@ -62,7 +27,7 @@ export class TransformManager {
 	 * @param srcMatrix The source transformation matrix
 	 * @returns boolean indicating success
 	 */
-	static SetTransform(entity: Entity, srcMatrix: Matrix4): boolean {
+	static SetTransform(entity: Entity, srcMatrix: mat4): boolean {
 		const colMaj: number[] = new Array(16);
 		for (let row = 0; row < 4; row++) {
 			for (let col = 0; col < 4; col++) {
@@ -85,15 +50,33 @@ export class TransformManager {
 	 * @param entity The entity with the transform component
 	 * @returns The transformation matrix
 	 */
-	static GetTransform(entity: Entity): Matrix4 {
+	static GetTransform(entity: Entity): mat4 {
 		const result = RpcClient.Call("Transform_GetTransform", {
 			entityHandle: entity,
 		}) as string;
 		const nums = result.split(",").map((j) => parseFloat(j));
+
 		if (nums.length !== 16) {
 			throw new Error(`Invalid transform data (${nums.length} elements)`);
 		}
-		return nums as Matrix4;
+		return mat4.fromValues(
+			nums[0],
+			nums[1],
+			nums[2],
+			nums[3],
+			nums[4],
+			nums[5],
+			nums[6],
+			nums[7],
+			nums[8],
+			nums[9],
+			nums[10],
+			nums[11],
+			nums[12],
+			nums[13],
+			nums[14],
+			nums[15],
+		);
 	}
 
 	/**
@@ -123,20 +106,50 @@ export class TransformManager {
 	}
 
 	/**
+	 * Sets world position vector.
+	 * @param entity The entity with the transform component
+	 * @param pos The position vector
+	 * @returns boolean indicating success
+	 */
+	static SetWorldPosition(entity: Entity, pos: vec3): boolean {
+		return Boolean(
+			RpcClient.Call("Transform_SetWorldPosition", {
+				entityHandle: entity,
+				x: pos[0],
+				y: pos[1],
+				z: pos[2],
+			}),
+		);
+	}
+
+	/**
 	 * Sets local position vector.
 	 * @param entity The entity with the transform component
 	 * @param pos The position vector
 	 * @returns boolean indicating success
 	 */
-	static SetPosition(entity: Entity, pos: Vector3): boolean {
+	static SetLocalPosition(entity: Entity, pos: vec3): boolean {
 		return Boolean(
-			RpcClient.Call("Transform_SetPosition", {
+			RpcClient.Call("Transform_SetLocalPosition", {
 				entityHandle: entity,
-				x: pos.x,
-				y: pos.y,
-				z: pos.z,
+				x: pos[0],
+				y: pos[1],
+				z: pos[2],
 			}),
 		);
+	}
+
+	/**
+	 * Gets world position vector.
+	 * @param entity The entity with the transform component
+	 * @returns The position vector
+	 */
+	static GetWorldPosition(entity: Entity): vec3 {
+		const data = RpcClient.Call("Transform_GetWorldPosition", {
+			entityHandle: entity,
+		});
+		const [x, y, z] = data.split(",").map((j) => parseFloat(j));
+		return vec3.fromValues(x, y, z);
 	}
 
 	/**
@@ -144,12 +157,30 @@ export class TransformManager {
 	 * @param entity The entity with the transform component
 	 * @returns The position vector
 	 */
-	static GetPosition(entity: Entity): Vector3 {
-		const data = RpcClient.Call("Transform_GetPosition", {
+	static GetLocalPosition(entity: Entity): vec3 {
+		const data = RpcClient.Call("Transform_GetLocalPosition", {
 			entityHandle: entity,
-		}) as string;
+		});
 		const [x, y, z] = data.split(",").map((j) => parseFloat(j));
-		return { x, y, z };
+		return vec3.fromValues(x, y, z);
+	}
+
+	/**
+	 * Sets world rotation quaternion.
+	 * @param entity The entity with the transform component
+	 * @param quat The rotation quaternion [x, y, z, w]
+	 * @returns boolean indicating success
+	 */
+	static SetWorldRotation(entity: Entity, quat: quat): boolean {
+		return Boolean(
+			RpcClient.Call("Transform_SetWorldRotation", {
+				entityHandle: entity,
+				x: quat[0],
+				y: quat[1],
+				z: quat[2],
+				w: quat[3],
+			}),
+		);
 	}
 
 	/**
@@ -158,20 +189,42 @@ export class TransformManager {
 	 * @param quat The rotation quaternion [x, y, z, w]
 	 * @returns boolean indicating success
 	 */
-	static SetRotation(
-		entity: Entity,
-		quat: [number, number, number, number],
-	): boolean {
-		const [x, y, z, w] = quat;
+	static SetLocalRotation(entity: Entity, quat: quat): boolean {
 		return Boolean(
-			RpcClient.Call("Transform_SetRotation", {
+			RpcClient.Call("Transform_SetLocalRotation", {
 				entityHandle: entity,
-				x,
-				y,
-				z,
-				w,
+				x: quat[0],
+				y: quat[1],
+				z: quat[2],
+				w: quat[3],
 			}),
 		);
+	}
+
+	/**
+	 * Gets local rotation quaternion.
+	 * @param entity The entity with the transform component
+	 * @returns The rotation quaternion
+	 */
+	static GetWorldRotation(entity: Entity): quat {
+		const data = RpcClient.Call("Transform_GetWorldRotation", {
+			entityHandle: entity,
+		});
+		const [x, y, z, w] = data.split(",").map((j) => parseFloat(j));
+		return quat.fromValues(x, y, z, w);
+	}
+
+	/**
+	 * Gets local rotation quaternion.
+	 * @param entity The entity with the transform component
+	 * @returns The rotation quaternion
+	 */
+	static GetLocalRotation(entity: Entity): quat {
+		const data = RpcClient.Call("Transform_GetLocalRotation", {
+			entityHandle: entity,
+		});
+		const [x, y, z, w] = data.split(",").map((j) => parseFloat(j));
+		return quat.fromValues(x, y, z, w);
 	}
 
 	/**
@@ -180,14 +233,27 @@ export class TransformManager {
 	 * @param scale The scale vector
 	 * @returns boolean indicating success
 	 */
-	static SetScale(entity: Entity, scale: Vector3): boolean {
+	static SetLocalScale(entity: Entity, scale: vec3): boolean {
 		return Boolean(
-			RpcClient.Call("Transform_SetScale", {
+			RpcClient.Call("Transform_SetLocalScale", {
 				entityHandle: entity,
-				x: scale.x,
-				y: scale.y,
-				z: scale.z,
+				x: scale[0],
+				y: scale[1],
+				z: scale[2],
 			}),
 		);
+	}
+
+	/**
+	 * Gets local scale vector.
+	 * @param entity The entity with the transform component
+	 * @returns The position vector
+	 */
+	static GetLocalScale(entity: Entity): vec3 {
+		const data = RpcClient.Call("Transform_GetLocalScale", {
+			entityHandle: entity,
+		});
+		const [x, y, z] = data.split(",").map((j) => parseFloat(j));
+		return vec3.fromValues(x, y, z);
 	}
 }

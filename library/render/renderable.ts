@@ -6,12 +6,6 @@ import { Entity } from "@adamas/entity";
 // - RenderableBuilder.Material(index,materialInstance)
 // - BoundingBox(...), SetBlendOrderAt
 
-// TODO: make this clear.
-// - entity
-// - renderable component
-//     - mesh
-//     - materials
-//         - texture
 export class RenderableManager {
 	/**
 	 * Create a renderable component and attach it to the specified entity
@@ -29,7 +23,7 @@ export class RenderableManager {
 	 * @param entityHandle The entity to remove the renderable component from
 	 * @returns boolean indicating success
 	 */
-	static Destroy(entityHandle: number): boolean {
+	static Destroy(entityHandle: Entity): boolean {
 		return Boolean(RpcClient.Call("Renderable_Destroy", { entityHandle }));
 	}
 
@@ -38,7 +32,7 @@ export class RenderableManager {
 	 * @param entityHandle The entity to check
 	 * @returns boolean indicating if renderable component exists
 	 */
-	static HasComponent(entityHandle: number): boolean {
+	static HasComponent(entityHandle: Entity): boolean {
 		return Boolean(RpcClient.Call("Renderable_HasComponent", { entityHandle }));
 	}
 
@@ -48,13 +42,15 @@ export class RenderableManager {
 	 * @param meshHandle The mesh handle to attach
 	 * @returns boolean indicating success
 	 */
-	static SetMesh(entityHandle: number, meshHandle: number): boolean {
-		return Boolean(
-			RpcClient.Call("Renderable_SetMesh", {
-				entityHandle,
-				meshHandle,
-			}),
-		);
+	static SetMesh(entityHandle: Entity, meshHandle: number): boolean {
+		if (RenderableManager.HasComponent(entityHandle)) {
+			return Boolean(
+				RpcClient.Call("Renderable_SetMesh", {
+					entityHandle,
+					meshHandle,
+				}),
+			);
+		} else return false;
 	}
 
 	/**
@@ -65,7 +61,7 @@ export class RenderableManager {
 	 * @returns boolean indicating success
 	 */
 	static SetMaterial(
-		entityHandle: number,
+		entityHandle: Entity,
 		materialHandle: number,
 		index: number = 0,
 	): boolean {
@@ -84,7 +80,7 @@ export class RenderableManager {
 	 * @param layerMask The layer mask
 	 * @returns boolean indicating success
 	 */
-	static SetLayerMask(entityHandle: number, layerMask: number): boolean {
+	static SetLayerMask(entityHandle: Entity, layerMask: number): boolean {
 		return Boolean(
 			RpcClient.Call("Renderable_SetLayerMask", {
 				entityHandle,
@@ -99,7 +95,7 @@ export class RenderableManager {
 	 * @param receive Whether to receive shadows
 	 * @returns boolean indicating success
 	 */
-	static SetReceiveShadows(entityHandle: number, receive: boolean): boolean {
+	static SetReceiveShadows(entityHandle: Entity, receive: boolean): boolean {
 		return Boolean(
 			RpcClient.Call("Renderable_SetReceiveShadows", {
 				entityHandle,
@@ -115,7 +111,7 @@ export class RenderableManager {
 	 * @param shadowMode The shadow casting mode
 	 * @returns boolean indicating success
 	 */
-	static SetCastShadows(entityHandle: number, shadowMode: number): boolean {
+	static SetCastShadows(entityHandle: Entity, shadowMode: number): boolean {
 		return Boolean(
 			RpcClient.Call("Renderable_SetCastShadows", {
 				entityHandle,
@@ -130,7 +126,7 @@ export class RenderableManager {
 	 * @param enabled Whether to enable culling
 	 * @returns boolean indicating success
 	 */
-	static SetCulling(entityHandle: number, enabled: boolean): boolean {
+	static SetCulling(entityHandle: Entity, enabled: boolean): boolean {
 		return Boolean(
 			RpcClient.Call("Renderable_SetCulling", {
 				entityHandle,

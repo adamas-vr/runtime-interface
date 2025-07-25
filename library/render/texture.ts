@@ -1,4 +1,5 @@
 import { RpcClient } from "@adamas/rpc";
+import { base64Encode } from "@adamas/utilities/base64";
 
 export type TextureHandle = number;
 
@@ -100,25 +101,46 @@ export class TextureManager {
 	}
 
 	/**
-	 * Set pixel data for the texture
+	 * Set raw RGBA iamge for the texture
 	 * @param handle The texture handle
-	 * @param pixelDataJson JSON string with comma-separated RGBA values
+	 * @param rgbaDataJson RGBA values
 	 * @param width The texture width
 	 * @param height The texture height
 	 * @returns boolean indicating success
 	 */
-	static SetPixels(
+	static LoadRawTextureData(
 		handle: TextureHandle,
-		pixelDataJson: string,
+		base64Rgba: ArrayBufferLike,
 		width: number,
 		height: number,
 	): boolean {
+		const base64String = base64Encode(base64Rgba)
 		return Boolean(
-			RpcClient.Call("Texture_SetPixels", {
+			RpcClient.Call("Texture_LoadRawTextureData", {
 				textureHandle: handle,
-				pixelDataJson,
+				base64Rgba: base64String,
 				width,
 				height,
+			}),
+		);
+	}
+
+	/**
+	 * Loads PNG/JPG image byte array into a texture.
+	 * @param handle The texture handle
+	 * @param imageDataJson JSON string with comma-separated RGBA values
+	 * @returns boolean indicating success
+	 */
+	static LoadImage(
+		handle: TextureHandle,
+		base64Image: ArrayBufferLike,
+	): boolean {
+		const base64String = base64Encode(base64Image)
+
+		return Boolean(
+			RpcClient.Call("Texture_LoadImage", {
+				textureHandle: handle,
+				base64Image: base64String,
 			}),
 		);
 	}
