@@ -13,7 +13,11 @@ export class RpcClient {
 				kvJson["keys"],
 				kvJson["values"],
 			);
-			RpcClient.callbackRegistry[callbackId](objJson);
+			try {
+				RpcClient.callbackRegistry[callbackId](objJson);
+			} catch (error) {
+				console.error(`${error}`);
+			}
 		});
 	}
 
