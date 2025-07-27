@@ -53,3 +53,44 @@ export function NewCubeMesh(): number {
 
 	return meshHandle;
 }
+
+export function NewQuadMesh(): number {
+	// Define 4 vertices of the quad in the X-Y plane, Z = 0
+	const quadVertices = [
+		-0.5,
+		-0.5,
+		0.0, // 0: bottom-left
+		0.5,
+		-0.5,
+		0.0, // 1: bottom-right
+		0.5,
+		0.5,
+		0.0, // 2: top-right
+		-0.5,
+		0.5,
+		0.0, // 3: top-left
+	];
+
+	// Y-flipped UVs: (0,0) is top-left instead of bottom-left
+	const quadUVs = [
+		0.0,
+		1.0, // 0: bottom-left
+		1.0,
+		1.0, // 1: bottom-right
+		1.0,
+		0.0, // 2: top-right
+		0.0,
+		0.0, // 3: top-left
+	];
+
+	const quadIndices = [0, 1, 2, 0, 2, 3];
+	// Create mesh and set geometry
+	const meshHandle = MeshManager.Create();
+	MeshManager.SetVertices(meshHandle, quadVertices);
+	MeshManager.SetUVs(meshHandle, quadUVs);
+	MeshManager.SetTriangles(meshHandle, quadIndices);
+	MeshManager.RecalcNormals(meshHandle);
+	MeshManager.RecalcBounds(meshHandle);
+
+	return meshHandle;
+}

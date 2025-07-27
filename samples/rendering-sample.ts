@@ -7,7 +7,9 @@ import {
 } from "@adamas/render/material";
 import { importGltfAndRender } from "@adamas/utilities/gltfImporter";
 import { TransformManager } from "@adamas/render/transform";
-import { NewCubeMesh } from "@adamas/render/primitives";
+import { NewCubeMesh, NewQuadMesh } from "@adamas/render/primitives";
+import { CameraManager } from "@adamas/render/camera";
+import { TextureFormat, TextureManager } from "@adamas/render/texture";
 import { vec3, vec4 } from "gl-matrix";
 
 export const renderGltf = (path: string = "./prefabs/rusk.glb") => {
@@ -42,4 +44,30 @@ export const renderCube = () => {
 		EntityManager.SetName(entity, "updated name");
 		console.log("Updated name: ", EntityManager.GetName(entity));
 	}, 10000);
+};
+
+export const cameraRenderTexture = () => {
+	const camEntity = EntityManager.Create("camera");
+	TransformManager.SetLocalPosition(camEntity, vec3.fromValues(0, 2, -1));
+
+	const textureHandle = TextureManager.CreateRenderTexture(
+		1920,
+		1080,
+		0,
+		TextureFormat.RGBA32,
+	);
+
+	CameraManager.Create(camEntity);
+	CameraManager.SetRenderTexture(camEntity, textureHandle);
+
+	RenderableManager.Create(camEntity);
+	RenderableManager.SetMesh(camEntity, NewQuadMesh());
+
+	const materialHandle = MaterialManager.Create(ShaderType.URP_LIT);
+	RenderableManager.SetMaterial(camEntity, materialHandle);
+	MaterialManager.SetTexture(
+		materialHandle,
+		ShaderProperties.BaseMap,
+		textureHandle,
+	);
 };

@@ -107,7 +107,6 @@ export class TextureManager {
 	 * @param height The texture height
 	 * @param depth The texture depth
 	 * @param format The texture format
-	 * @param usage The texture usage flags
 	 * @returns The texture handle
 	 */
 	static CreateRenderTexture(
@@ -115,7 +114,6 @@ export class TextureManager {
 		height: number,
 		depth: number,
 		format: TextureFormat,
-		usage: number,
 	): TextureHandle {
 		return Number(
 			RpcClient.Call("Texture_CreateRenderTexture", {
@@ -123,7 +121,6 @@ export class TextureManager {
 				height,
 				depth,
 				format,
-				usage,
 				clientId: RpcClient.GetClientId(),
 			}),
 		);

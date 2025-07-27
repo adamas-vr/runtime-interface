@@ -1,5 +1,6 @@
 import { RpcClient } from "@adamas/rpc";
 import { Entity } from "@adamas/entity";
+import { TextureHandle } from "./texture";
 
 export class CameraManager {
 	/**
@@ -157,11 +158,14 @@ export class CameraManager {
 	 * @param textureHandle The render texture handle
 	 * @returns boolean indicating success
 	 */
-	static SetRenderTexture(entity: Entity, textureHandle: number): boolean {
+	static SetRenderTexture(
+		entity: Entity,
+		textureHandle: TextureHandle,
+	): boolean {
 		return Boolean(
 			RpcClient.Call("Camera_SetRenderTexture", {
 				entityHandle: entity,
-				renderTexture: textureHandle,
+				renderTextureHandle: textureHandle,
 			}),
 		);
 	}
