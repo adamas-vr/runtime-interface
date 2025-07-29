@@ -37,7 +37,7 @@ export class RpcClient {
 	 * @param args Arguments of RPC in the format: {parameter0: value0, parameter1: value1, ...}
 	 * @returns The value returned from RPC function in string type
 	 */
-	static Call(funcName: string, args: object): string {
+	static Call(funcName: string, args: object): any {
 		if (!this.initialized) {
 			this.initialized = true;
 			RpcClient.Init();
@@ -50,10 +50,12 @@ export class RpcClient {
 				processedArgs[key] = value;
 			}
 		}
-		return addon.Rpc_Call(
-			funcName,
-			JSON.stringify(this.objectToKeyValue(processedArgs)),
-		);
+		return JSON.parse(
+			addon.Rpc_Call(
+				funcName,
+				JSON.stringify(this.objectToKeyValue(processedArgs)),
+			),
+		).result;
 	}
 
 	static GetClientId(): number {

@@ -147,7 +147,7 @@ export class TransformManager {
 	static GetWorldPosition(entity: Entity): vec3 {
 		const data = RpcClient.Call("Transform_GetWorldPosition", {
 			entityHandle: entity,
-		});
+		}) as string;
 		const [x, y, z] = data.split(",").map((j) => parseFloat(j));
 		return vec3.fromValues(x, y, z);
 	}
@@ -160,7 +160,7 @@ export class TransformManager {
 	static GetLocalPosition(entity: Entity): vec3 {
 		const data = RpcClient.Call("Transform_GetLocalPosition", {
 			entityHandle: entity,
-		});
+		}) as string;
 		const [x, y, z] = data.split(",").map((j) => parseFloat(j));
 		return vec3.fromValues(x, y, z);
 	}
@@ -209,7 +209,7 @@ export class TransformManager {
 	static GetWorldRotation(entity: Entity): quat {
 		const data = RpcClient.Call("Transform_GetWorldRotation", {
 			entityHandle: entity,
-		});
+		}) as string;
 		const [x, y, z, w] = data.split(",").map((j) => parseFloat(j));
 		return quat.fromValues(x, y, z, w);
 	}
@@ -222,7 +222,7 @@ export class TransformManager {
 	static GetLocalRotation(entity: Entity): quat {
 		const data = RpcClient.Call("Transform_GetLocalRotation", {
 			entityHandle: entity,
-		});
+		}) as string;
 		const [x, y, z, w] = data.split(",").map((j) => parseFloat(j));
 		return quat.fromValues(x, y, z, w);
 	}
@@ -252,7 +252,7 @@ export class TransformManager {
 	static GetLocalScale(entity: Entity): vec3 {
 		const data = RpcClient.Call("Transform_GetLocalScale", {
 			entityHandle: entity,
-		});
+		}) as string;
 		const [x, y, z] = data.split(",").map((j) => parseFloat(j));
 		return vec3.fromValues(x, y, z);
 	}

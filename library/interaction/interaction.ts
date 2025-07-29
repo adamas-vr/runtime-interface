@@ -84,7 +84,7 @@ export class GrabInteractableManager {
 		return JSON.parse(
 			RpcClient.Call("GrabInteractableAPI_GetTrackRotation", {
 				entityHandle,
-			}).toLowerCase(),
+			}),
 		);
 	}
 
@@ -99,7 +99,7 @@ export class GrabInteractableManager {
 			RpcClient.Call("GrabInteractableAPI_SetTrackRotation", {
 				entityHandle,
 				isTracking,
-			}).toLowerCase(),
+			}),
 		);
 	}
 

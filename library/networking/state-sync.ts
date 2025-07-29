@@ -47,10 +47,8 @@ export class StateSync {
 	}
 
 	static IsStateAuthority(): boolean {
-		return JSON.parse(
-			RpcClient.Call("_RPC:IsStateAuthority", {
-				networkId: StateSync.GetNetworkID(),
-			}).toLowerCase(),
-		);
+		return RpcClient.Call("_RPC:IsStateAuthority", {
+			networkId: StateSync.GetNetworkID(),
+		}) as boolean;
 	}
 }

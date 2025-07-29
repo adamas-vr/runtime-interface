@@ -12,7 +12,7 @@ import { CameraManager } from "@adamas/render/camera";
 import { TextureFormat, TextureManager } from "@adamas/render/texture";
 import { vec3, vec4 } from "gl-matrix";
 
-export const renderGltf = (path: string = "./prefabs/rusk.glb") => {
+export const renderGltf = (path: string = "./rusk.glb") => {
 	importGltfAndRender(path).catch(console.error);
 };
 
