@@ -198,12 +198,17 @@ export class GrabInteractableManager {
 	 */
 	static AddSelectEnteredCallback(
 		entityHandle: Entity,
-		onSelectEntered: () => void,
+		onSelectEntered: (
+			interactableEntity: Entity,
+			interactorEntity: Entity,
+		) => void,
 	): boolean {
 		return Boolean(
 			RpcClient.Call("GrabInteractableAPI_AddSelectEnteredCallback", {
 				entityHandle,
-				onSelectEntered,
+				onSelectEntered: (args: any) => {
+					onSelectEntered(args.interactableEntity, args.interactorEntity);
+				},
 			}),
 		);
 	}
@@ -216,12 +221,17 @@ export class GrabInteractableManager {
 	 */
 	static AddSelectExitedCallback(
 		entityHandle: Entity,
-		onSelectExited: () => void,
+		onSelectExited: (
+			interactableEntity: Entity,
+			interactorEntity: Entity,
+		) => void,
 	): boolean {
 		return Boolean(
 			RpcClient.Call("GrabInteractableAPI_AddSelectExitedCallback", {
 				entityHandle,
-				onSelectExited,
+				onSelectExited: (args: any) => {
+					onSelectExited(args.interactableEntity, args.interactorEntity);
+				},
 			}),
 		);
 	}
@@ -234,12 +244,14 @@ export class GrabInteractableManager {
 	 */
 	static AddActivatedCallback(
 		entityHandle: Entity,
-		onActivated: () => void,
+		onActivated: (interactableEntity: Entity, interactorEntity: Entity) => void,
 	): boolean {
 		return Boolean(
 			RpcClient.Call("GrabInteractableAPI_AddActivatedCallback", {
 				entityHandle,
-				onActivated,
+				onActivated: (args: any) => {
+					onActivated(args.interactableEntity, args.interactorEntity);
+				},
 			}),
 		);
 	}
@@ -252,12 +264,17 @@ export class GrabInteractableManager {
 	 */
 	static AddDeactivatedCallback(
 		entityHandle: Entity,
-		onDeactivated: () => void,
+		onDeactivated: (
+			interactableEntity: Entity,
+			interactorEntity: Entity,
+		) => void,
 	): boolean {
 		return Boolean(
 			RpcClient.Call("GrabInteractableAPI_AddDeactivatedCallback", {
 				entityHandle,
-				onDeactivated,
+				onDeactivated: (args: any) => {
+					onDeactivated(args.interactableEntity, args.interactorEntity);
+				},
 			}),
 		);
 	}
