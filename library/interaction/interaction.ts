@@ -279,5 +279,3 @@ export class GrabInteractableManager {
 		);
 	}
 }
-
-export class NetworkGrabInteractableManager {}
