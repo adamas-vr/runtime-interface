@@ -1,5 +1,5 @@
 import { Entity } from "@adamas/entity";
-import { RpcClient } from "../rpc";
+import { RpcClient } from "@adamas/rpc";
 
 /**
  * Provides a static interface for managing XR grab interactable components
@@ -279,3 +279,5 @@ export class GrabInteractableManager {
 		);
 	}
 }
+
+export class NetworkGrabInteractableManager {}

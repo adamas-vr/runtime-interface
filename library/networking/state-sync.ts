@@ -9,7 +9,11 @@ export class StateSync {
 		});
 	}
 
-	static CreateNetworkState<T extends object>(key: string, initial: T): T {
+	static CreateNetworkState<T extends object>(
+		key: string,
+		initial: T,
+		onStateChange: (prop: string, value: any) => void,
+	): T {
 		const internalState = structuredClone(initial); // deep clone to decouple
 
 		StateSync.stateMap.set(key, internalState);
@@ -38,8 +42,8 @@ export class StateSync {
 				if (!internalState) return;
 
 				const { prop, value } = JSON.parse(jsonObject.data);
-				console.log(" prop, value ", prop, value);
 				(internalState as any)[prop] = value;
+				onStateChange(prop, value);
 			},
 		});
 
@@ -50,5 +54,9 @@ export class StateSync {
 		return RpcClient.Call("_RPC:IsStateAuthority", {
 			networkId: StateSync.GetNetworkID(),
 		}) as boolean;
+	}
+
+	static GetPlayerId(): number {
+		return RpcClient.Call("Multiplayer_GetPlayerId", {}) as number;
 	}
 }
