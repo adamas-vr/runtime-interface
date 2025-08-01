@@ -73,16 +73,15 @@ export function NewQuadMesh(): number {
 
 	// Y-flipped UVs: (0,0) is top-left instead of bottom-left
 	const quadUVs = [
-		0.0,
+		1.0,
 		1.0, // 0: bottom-left
-		1.0,
-		1.0, // 1: bottom-right
-		1.0,
-		0.0, // 2: top-right
 		0.0,
+		1.0, // 1: bottom-right
+		0.0,
+		0.0, // 2: top-right
+		1.0,
 		0.0, // 3: top-left
 	];
-
 	const quadIndices = [0, 1, 2, 0, 2, 3];
 	// Create mesh and set geometry
 	const meshHandle = MeshManager.Create();
