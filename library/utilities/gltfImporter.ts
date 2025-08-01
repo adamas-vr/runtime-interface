@@ -46,9 +46,13 @@ MaterialManager.SetColor(
  * Import .glb/.gltf/VRM and push every asset—nodes, cameras, lights, skeletons, skinned
  * + non-skinned meshes, materials—to Unity via our RPC bridge.
  */
-export async function importGltfAndRender(assetPath: string) {
+export async function importGltfAndRender(
+	assetPath: string,
+	name: string = "model",
+): Promise<Entity> {
 	const engine = new NullEngine();
 	const scene = new Scene(engine);
+	const rootEntity = EntityManager.Create(name);
 
 	try {
 		// Load file into a Buffer (Uint8Array) and append with explicit ".glb"
@@ -393,7 +397,7 @@ export async function importGltfAndRender(assetPath: string) {
 		// Process root nodes recursively
 		scene.rootNodes.forEach((root) => {
 			if (root instanceof TransformNode) {
-				recurse(root);
+				recurse(root, rootEntity);
 			}
 		});
 
@@ -563,4 +567,6 @@ export async function importGltfAndRender(assetPath: string) {
 	} finally {
 		engine.dispose();
 	}
+
+	return rootEntity;
 }

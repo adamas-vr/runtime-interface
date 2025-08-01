@@ -12,8 +12,8 @@ import { CameraManager } from "@adamas/render/camera";
 import { TextureFormat, TextureManager } from "@adamas/render/texture";
 import { vec3, vec4 } from "gl-matrix";
 
-export const renderGltf = (path: string = "./rusk.glb") => {
-	importGltfAndRender(path).catch(console.error);
+export const renderGltf = async (path: string = "./rusk.glb") => {
+	return await importGltfAndRender(path);
 };
 
 export const renderCube = () => {
