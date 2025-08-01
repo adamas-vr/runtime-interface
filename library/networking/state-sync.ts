@@ -12,7 +12,7 @@ export class StateSync {
 	static CreateNetworkState<T extends object>(
 		key: string,
 		initial: T,
-		onStateChange: (prop: string, value: any) => void,
+		onStateChange: (prop: string, value: any) => void = () => {},
 	): T {
 		const internalState = structuredClone(initial); // deep clone to decouple
 
