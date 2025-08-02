@@ -9,12 +9,14 @@ import {
 	BaseTexture,
 	Tools,
 	Material,
+	AbstractMesh,
+	PBRMaterial,
+	Node,
 } from "@babylonjs/core";
 import "@babylonjs/loaders";
 
 import * as fs from "fs/promises";
 import * as path from "path";
-import { PNG } from "pngjs";
 
 import { Entity, EntityManager } from "@adamas/entity";
 import { RenderableManager } from "@adamas/render/renderable";
@@ -33,7 +35,7 @@ import {
 	TextureHandle,
 	TextureManager,
 } from "@adamas/render/texture";
-import { vec4 } from "gl-matrix";
+import { quat, vec3, vec4 } from "gl-matrix";
 
 const DEFAULT_MATERIAL = MaterialManager.Create(ShaderType.URP_LIT);
 MaterialManager.SetColor(
@@ -41,6 +43,96 @@ MaterialManager.SetColor(
 	ShaderProperties.BaseColor,
 	vec4.fromValues(0.8, 0.8, 0.8, 1.0),
 );
+
+/**
+ * Extract texture data from embedded glTF textures in Babylon.js
+ */
+async function extractEmbeddedTextureData(
+	texture: BaseTexture,
+): Promise<Buffer | undefined> {
+	try {
+		// Method 1: Check for direct buffer access
+		if ((texture as any)._buffer) {
+			console.log("Found texture data in _buffer");
+			return Buffer.from((texture as any)._buffer);
+		}
+
+		// Method 2: Check texture source buffer
+		if ((texture as any)._source && (texture as any)._source._buffer) {
+			console.log("Found texture data in _source._buffer");
+			return Buffer.from((texture as any)._source._buffer);
+		}
+
+		// Method 3: Check internal texture object
+		const internalTexture = (texture as any)._texture;
+		if (internalTexture) {
+			if (internalTexture._buffer) {
+				console.log("Found texture data in internal texture _buffer");
+				return Buffer.from(internalTexture._buffer);
+			}
+
+			// Method 4: Check if it's a WebGL texture with associated image data
+			if (internalTexture._source && internalTexture._source._buffer) {
+				console.log("Found texture data in internal texture source");
+				return Buffer.from(internalTexture._source._buffer);
+			}
+		}
+
+		// Method 5: Try to access the underlying image data
+		if ((texture as any)._domImage) {
+			const image = (texture as any)._domImage;
+			if (image instanceof HTMLImageElement) {
+				// Convert image to canvas and extract data
+				const canvas = document.createElement("canvas");
+				const ctx = canvas.getContext("2d");
+				if (ctx) {
+					canvas.width = image.naturalWidth || image.width;
+					canvas.height = image.naturalHeight || image.height;
+					ctx.drawImage(image, 0, 0);
+
+					const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+					console.log(
+						`Extracted texture data from DOM image: ${canvas.width}x${canvas.height}`,
+					);
+					return Buffer.from(imageData.data);
+				}
+			}
+		}
+
+		// Method 6: Check for Babylon's texture data property
+		if ((texture as any).textureData) {
+			console.log("Found texture data in textureData property");
+			return Buffer.from((texture as any).textureData);
+		}
+
+		// Method 7: Try to read pixel data if it's a readable texture
+		if (typeof (texture as any).readPixels === "function") {
+			try {
+				const pixels = (texture as any).readPixels();
+				if (pixels) {
+					console.log("Extracted texture data using readPixels()");
+					return Buffer.from(pixels);
+				}
+			} catch (readError) {
+				if (
+					readError &&
+					typeof readError === "object" &&
+					"message" in readError
+				) {
+					console.log("readPixels() failed:", (readError as any).message);
+				} else {
+					console.log("readPixels() failed with unknown error:", readError);
+				}
+			}
+		}
+
+		console.log("No accessible texture data found in embedded texture");
+		return undefined;
+	} catch (error) {
+		console.warn("Error extracting embedded texture data:", error);
+		return undefined;
+	}
+}
 
 /**
  * Import .glb/.gltf/VRM and push every asset—nodes, cameras, lights, skeletons, skinned
@@ -67,134 +159,16 @@ export async function importGltfAndRender(
 		);
 
 		// 1) Create a GameObject for each transform node and preserve hierarchy
-		const nodeToEntity = new Map<TransformNode, Entity>();
 		const skeletonHandles = new Map<Skeleton, number>();
-		const materialCache = new Map<string, MaterialHandle>();
+		const materialCache = new Map<Material, MaterialHandle>();
 		const textureCache = new Map<BaseTexture, TextureHandle>();
-
-		function recurse(node: TransformNode, parentEnt?: number) {
-			const ent = EntityManager.Create(node.name || "node");
-			nodeToEntity.set(node, ent);
-
-			// Set local transform using the node's local matrix
-			const localMatrix = node._localMatrix;
-			TransformManager.SetTransform(ent, localMatrix.asArray());
-
-			// Set parent-child relationship
-			if (parentEnt != null) {
-				TransformManager.SetParent(ent, parentEnt);
-			}
-
-			// Process children
-			node.getChildren().forEach((child) => {
-				if (child instanceof TransformNode) {
-					recurse(child, ent);
-				}
-			});
-		}
-
-		/**
-		 * Process a Babylon material and convert it to Unity material properties
-		 */
-		async function processMaterial(
-			material: any,
-			entityHandle: number,
-			assetPath: string,
-		) {
-			try {
-				console.log(`Processing material: ${material.name || "unnamed"}`);
-
-				const cachedMaterialHandle = materialCache.get(material.name);
-				if (cachedMaterialHandle) {
-					console.log(`Read cached material: ${material.name || "unnamed"}`);
-					RenderableManager.SetMaterial(entityHandle, cachedMaterialHandle);
-					return;
-				}
-
-				// Create material
-				const materialHandle = MaterialManager.Create(ShaderType.URP_LIT);
-
-				// Handle base color texture
-				const baseColorTexture = material.albedoTexture || material.baseTexture;
-				if (baseColorTexture) {
-					const textureHandle = await processTexture(
-						baseColorTexture,
-						assetPath,
-					);
-					if (textureHandle !== -1) {
-						MaterialManager.SetTexture(
-							materialHandle,
-							ShaderProperties.BaseMap,
-							textureHandle,
-						);
-					}
-				}
-
-				// Set base color (fallback or tint)
-				const baseColor = material.albedoColor || material.diffuseColor;
-				if (baseColor) {
-					const colorArray = baseColor.asArray?.() ?? [
-						baseColor.r ?? 1,
-						baseColor.g ?? 1,
-						baseColor.b ?? 1,
-						baseColor.a ?? 1,
-					];
-					const [r = 1, g = 1, b = 1, a = 1] = colorArray;
-					MaterialManager.SetColor(
-						materialHandle,
-						ShaderProperties.BaseColor,
-						vec4.fromValues(r, g, b, a),
-					);
-				} else {
-					MaterialManager.SetColor(
-						materialHandle,
-						ShaderProperties.BaseColor,
-						vec4.fromValues(1.0, 1.0, 1.0, 1.0),
-					);
-				}
-
-				// Handle metallic and roughness properties
-				const metallic = material.metallic ?? material.metallicFactor ?? 0;
-				const roughness = material.roughness ?? material.roughnessFactor ?? 1;
-				const smoothness = 1 - roughness;
-
-				MaterialManager.SetFloat(
-					materialHandle,
-					ShaderProperties.Metallic,
-					metallic,
-				);
-				MaterialManager.SetFloat(
-					materialHandle,
-					ShaderProperties.Smoothness,
-					smoothness,
-				);
-
-				// Cache and set the material to the renderable
-				RenderableManager.SetMaterial(entityHandle, materialHandle);
-				materialCache.set(material.name, materialHandle);
-				console.log(
-					`Material processed - Metallic: ${metallic}, Smoothness: ${smoothness}`,
-				);
-			} catch (error) {
-				console.error(`Error processing material: ${material.name}`, error);
-				// Set default material properties on error
-				RenderableManager.SetMaterial(entityHandle, DEFAULT_MATERIAL);
-			}
-		}
+		const meshCache = new Map<AbstractMesh, TextureHandle>();
 
 		/**
 		 * Process a Babylon texture and upload it to Unity
 		 */
-		async function processTexture(
-			texture: BaseTexture,
-			assetPath: string,
-		): Promise<number> {
+		const texProm = scene.textures.map(async (texture) => {
 			try {
-				const cachedTextureHandle = textureCache.get(texture);
-				if (cachedTextureHandle) {
-					return cachedTextureHandle;
-				}
-
 				// Get texture URL - different ways depending on texture type
 				let textureUrl: string | undefined;
 
@@ -208,7 +182,7 @@ export async function importGltfAndRender(
 
 				if (!textureUrl) {
 					console.warn("Texture has no URL or name");
-					return -1;
+					return;
 				}
 
 				console.log(`Processing texture: ${textureUrl}`);
@@ -240,12 +214,12 @@ export async function importGltfAndRender(
 							console.warn(
 								"Could not extract texture data from embedded glTF reference",
 							);
-							return -1;
+							return;
 						}
 						console.log("Successfully extracted embedded glTF texture data");
 					} else {
 						console.warn(`Unknown data URL format: ${textureUrl}`);
-						return -1;
+						return;
 					}
 				} else {
 					// External file reference
@@ -260,13 +234,13 @@ export async function importGltfAndRender(
 							`Failed to load external texture file: ${textureUrl}`,
 							fileError,
 						);
-						return -1;
+						return;
 					}
 				}
 
 				if (!buffer) {
 					console.warn("No texture data available");
-					return -1;
+					return;
 				}
 
 				// Create Unity texture
@@ -275,16 +249,12 @@ export async function importGltfAndRender(
 					10,
 					TextureFormat.RGBA32,
 				);
-				if (textureHandle === -1) {
-					console.warn("Failed to create Unity texture");
-					return -1;
-				}
 
 				// Upload pixel data
 				const success = TextureManager.LoadImage(textureHandle, buffer.buffer);
 				if (!success) {
 					console.warn("Failed to upload texture pixels");
-					return -1;
+					return;
 				}
 
 				// Set texture filtering
@@ -292,114 +262,76 @@ export async function importGltfAndRender(
 
 				console.log(`Texture processed successfully: ${texture.name}`);
 				textureCache.set(texture, textureHandle);
-				return textureHandle;
 			} catch (error) {
 				console.error("Error processing texture:", error);
-				return -1;
-			}
-		}
-
-		/**
-		 * Extract texture data from embedded glTF textures in Babylon.js
-		 */
-		async function extractEmbeddedTextureData(
-			texture: BaseTexture,
-		): Promise<Buffer | undefined> {
-			try {
-				// Method 1: Check for direct buffer access
-				if ((texture as any)._buffer) {
-					console.log("Found texture data in _buffer");
-					return Buffer.from((texture as any)._buffer);
-				}
-
-				// Method 2: Check texture source buffer
-				if ((texture as any)._source && (texture as any)._source._buffer) {
-					console.log("Found texture data in _source._buffer");
-					return Buffer.from((texture as any)._source._buffer);
-				}
-
-				// Method 3: Check internal texture object
-				const internalTexture = (texture as any)._texture;
-				if (internalTexture) {
-					if (internalTexture._buffer) {
-						console.log("Found texture data in internal texture _buffer");
-						return Buffer.from(internalTexture._buffer);
-					}
-
-					// Method 4: Check if it's a WebGL texture with associated image data
-					if (internalTexture._source && internalTexture._source._buffer) {
-						console.log("Found texture data in internal texture source");
-						return Buffer.from(internalTexture._source._buffer);
-					}
-				}
-
-				// Method 5: Try to access the underlying image data
-				if ((texture as any)._domImage) {
-					const image = (texture as any)._domImage;
-					if (image instanceof HTMLImageElement) {
-						// Convert image to canvas and extract data
-						const canvas = document.createElement("canvas");
-						const ctx = canvas.getContext("2d");
-						if (ctx) {
-							canvas.width = image.naturalWidth || image.width;
-							canvas.height = image.naturalHeight || image.height;
-							ctx.drawImage(image, 0, 0);
-
-							const imageData = ctx.getImageData(
-								0,
-								0,
-								canvas.width,
-								canvas.height,
-							);
-							console.log(
-								`Extracted texture data from DOM image: ${canvas.width}x${canvas.height}`,
-							);
-							return Buffer.from(imageData.data);
-						}
-					}
-				}
-
-				// Method 6: Check for Babylon's texture data property
-				if ((texture as any).textureData) {
-					console.log("Found texture data in textureData property");
-					return Buffer.from((texture as any).textureData);
-				}
-
-				// Method 7: Try to read pixel data if it's a readable texture
-				if (typeof (texture as any).readPixels === "function") {
-					try {
-						const pixels = (texture as any).readPixels();
-						if (pixels) {
-							console.log("Extracted texture data using readPixels()");
-							return Buffer.from(pixels);
-						}
-					} catch (readError) {
-						if (
-							readError &&
-							typeof readError === "object" &&
-							"message" in readError
-						) {
-							console.log("readPixels() failed:", (readError as any).message);
-						} else {
-							console.log("readPixels() failed with unknown error:", readError);
-						}
-					}
-				}
-
-				console.log("No accessible texture data found in embedded texture");
-				return undefined;
-			} catch (error) {
-				console.warn("Error extracting embedded texture data:", error);
-				return undefined;
-			}
-		}
-
-		// Process root nodes recursively
-		scene.rootNodes.forEach((root) => {
-			if (root instanceof TransformNode) {
-				recurse(root, rootEntity);
 			}
 		});
+		await Promise.all(texProm);
+
+		const matProm = scene.materials.map(async (mat) => {
+			const material: PBRMaterial = mat as PBRMaterial;
+			console.log(`\nMaterial: ${material.name}`);
+			console.log(`Type: ${material.getClassName()}`);
+			try {
+				console.log(`Processing material: ${material.name || "unnamed"}`);
+
+				// Create material
+				const materialHandle = MaterialManager.Create(ShaderType.URP_LIT);
+
+				// Handle base color texture
+				if (material.albedoTexture) {
+					const textureHandle = textureCache.get(material.albedoTexture);
+					if (textureHandle) {
+						MaterialManager.SetTexture(
+							materialHandle,
+							ShaderProperties.BaseMap,
+							textureHandle,
+						);
+					}
+				}
+
+				// Set base color (fallback or tint)
+				const baseColor = material.albedoColor;
+				if (baseColor) {
+					MaterialManager.SetColor(
+						materialHandle,
+						ShaderProperties.BaseColor,
+						vec4.fromValues(baseColor.r, baseColor.g, baseColor.b, 1.0),
+					);
+				} else {
+					MaterialManager.SetColor(
+						materialHandle,
+						ShaderProperties.BaseColor,
+						vec4.fromValues(1.0, 1.0, 1.0, 1.0),
+					);
+				}
+
+				// Handle metallic and roughness properties
+				const metallic = material.metallic ?? 0;
+				const roughness = material.roughness ?? 1;
+				const smoothness = 1 - roughness;
+
+				MaterialManager.SetFloat(
+					materialHandle,
+					ShaderProperties.Metallic,
+					metallic,
+				);
+				MaterialManager.SetFloat(
+					materialHandle,
+					ShaderProperties.Smoothness,
+					smoothness,
+				);
+
+				// Cache and set the material to the renderable
+				materialCache.set(mat, materialHandle);
+				console.log(
+					`Material processed - Metallic: ${metallic}, Smoothness: ${smoothness}`,
+				);
+			} catch (error) {
+				console.error(`Error processing material: ${material.name}`, error);
+			}
+		});
+		await Promise.all(matProm);
 
 		// TODO: 2) Process Skeletons (armatures) for VRM support
 		// scene.skeletons.forEach((skeleton: Skeleton, skelIndex) => {
@@ -440,75 +372,17 @@ export async function importGltfAndRender(
 		//   });
 		// });
 
-		// // 3) Process Cameras
-		// scene.cameras.forEach((cam) => {
-		// 	const ent = EntityManager.Create(cam.name || "camera");
-		// 	CameraManager.Create(ent);
-
-		// 	CameraManager.SetProjection(
-		// 		ent,
-		// 		0, // 0 = PERSPECTIVE
-		// 		cam.fov,
-		// 		cam.getEngine().getRenderWidth() / cam.getEngine().getRenderHeight(),
-		// 		cam.minZ,
-		// 		cam.maxZ,
-		// 	);
-
-		// 	// Set camera transform
-		// 	const worldMatrix = cam.getWorldMatrix();
-		// 	TransformManager.SetTransform(
-		// 		ent,
-		// 		Array.from(worldMatrix.toArray()) as Matrix4,
-		// 	);
-		// });
-
-		// // 4) Process Lights
-		// scene.lights.forEach((light) => {
-		// 	const ent = EntityManager.Create(light.name || "light");
-
-		// 	// Map Babylon's light types to Unity's enum: 0=Spot, 1=Directional, 2=Point, 3=Area
-		// 	const typeMap = { SpotLight: 0, DirectionalLight: 1, PointLight: 2 };
-		// 	const typeName = ((light as any).getTypeName?.() ??
-		// 		"PointLight") as keyof typeof typeMap;
-
-		// 	LightManager.Create(ent, typeMap[typeName] ?? 2);
-
-		// 	LightManager.SetColor(
-		// 		ent,
-		// 		light.diffuse?.r ?? 1,
-		// 		light.diffuse?.g ?? 1,
-		// 		light.diffuse?.b ?? 1,
-		// 	);
-
-		// 	LightManager.SetIntensity(ent, light.intensity || 1);
-
-		// 	// Set light transform
-		// 	const worldMatrix = light.getWorldMatrix();
-		// 	TransformManager.SetTransform(
-		// 		ent,
-		// 		Array.from(worldMatrix.toArray()) as Matrix4,
-		// 	);
-		// });
-
-		// 5) Process Meshes & Materials
-		for (const mesh of scene.meshes) {
+		// Process Meshes & Materials
+		const meshProm = scene.meshes.map(async (mesh) => {
 			if (!mesh.getTotalVertices() || !mesh.getIndices()) {
 				console.log(`Skipping mesh ${mesh.name} - no geometry data`);
-				continue;
+				return;
 			}
 
 			console.log(`Processing mesh: ${mesh.name}`);
 
-			// Find or create the GameObject for this mesh
-			const ent =
-				nodeToEntity.get(mesh as any) ||
-				EntityManager.Create(mesh.name || "mesh");
-
-			// Create renderable component
-			RenderableManager.Create(ent);
-
 			// Create mesh and attach to renderable
-			const meshHandle = MeshManager.Create(ent);
+			const meshHandle = MeshManager.Create();
 
 			// Upload geometry data
 			const positions = mesh.getVerticesData(VertexBuffer.PositionKind)!;
@@ -552,13 +426,64 @@ export async function importGltfAndRender(
 			//   }
 			// }
 
-			// Process material
-			if (mesh.material) {
-				await processMaterial(mesh.material, ent, assetPath);
-			} else {
-				RenderableManager.SetMaterial(ent, DEFAULT_MATERIAL);
+			meshCache.set(mesh, meshHandle);
+		});
+		await Promise.all(meshProm);
+
+		function recurse(node: Node, parentEnt?: number) {
+			const ent = EntityManager.Create(node.name || "node");
+			if (parentEnt != null) {
+				TransformManager.SetParent(ent, parentEnt);
+			}
+
+			if (node instanceof AbstractMesh) {
+				console.log("node instanceof AbstractMesh");
+				RenderableManager.Create(ent);
+
+				const mesh = meshCache.get(node);
+				console.log("Getting Mesh: ", mesh);
+				if (mesh) {
+					RenderableManager.SetMesh(ent, mesh);
+				}
+				const mat = node.material && materialCache.get(node.material);
+				if (mat) RenderableManager.SetMaterial(ent, mat);
+			}
+
+			if (node instanceof TransformNode) {
+				TransformManager.SetLocalPosition(
+					ent,
+					vec3.fromValues(node.position._x, node.position._y, node.position._z),
+				);
+				TransformManager.SetLocalScale(
+					ent,
+					vec3.fromValues(node.scaling._x, node.scaling._y, node.scaling._z),
+				);
+				if (node.rotationQuaternion) {
+					console.log("node.rotation", node.rotationQuaternion);
+					TransformManager.SetLocalRotation(
+						ent,
+						quat.fromValues(
+							node.rotationQuaternion._x,
+							node.rotationQuaternion._y,
+							node.rotationQuaternion._z,
+							node.rotationQuaternion._w,
+						),
+					);
+				}
+
+				// Process children
+				node.getChildren().forEach((child) => {
+					if (child instanceof TransformNode) {
+						recurse(child, ent);
+					}
+				});
 			}
 		}
+
+		// Process root nodes recursively
+		scene.rootNodes.forEach((node) => {
+			recurse(node, rootEntity);
+		});
 
 		console.log("glTF import completed successfully");
 	} catch (error) {

@@ -10,7 +10,10 @@ import { TransformManager } from "@adamas/render/transform";
 import { NewCubeMesh, NewQuadMesh } from "@adamas/render/primitives";
 import { CameraManager } from "@adamas/render/camera";
 import { TextureFormat, TextureManager } from "@adamas/render/texture";
-import { vec3, vec4 } from "gl-matrix";
+import { quat, vec3, vec4 } from "gl-matrix";
+import { RigidbodyManager } from "@adamas/physics/rigidbody";
+import { ColliderManager } from "@adamas/physics/collider";
+import { GrabInteractableManager } from "@adamas/interaction/interaction";
 
 export const renderGltf = async (path: string = "./rusk.glb") => {
 	return await importGltfAndRender(path);
@@ -48,8 +51,6 @@ export const renderCube = () => {
 
 export const cameraRenderTexture = () => {
 	const camEntity = EntityManager.Create("camera");
-	TransformManager.SetLocalPosition(camEntity, vec3.fromValues(0, 2, -1));
-
 	const textureHandle = TextureManager.CreateRenderTexture(
 		1920,
 		1080,
@@ -60,14 +61,28 @@ export const cameraRenderTexture = () => {
 	CameraManager.Create(camEntity);
 	CameraManager.SetRenderTexture(camEntity, textureHandle);
 
-	RenderableManager.Create(camEntity);
-	RenderableManager.SetMesh(camEntity, NewQuadMesh());
-
+	const displayEntity = EntityManager.Create("display");
+	RenderableManager.Create(displayEntity);
+	RenderableManager.SetMesh(displayEntity, NewQuadMesh());
 	const materialHandle = MaterialManager.Create(ShaderType.URP_LIT);
-	RenderableManager.SetMaterial(camEntity, materialHandle);
+	RenderableManager.SetMaterial(displayEntity, materialHandle);
 	MaterialManager.SetTexture(
 		materialHandle,
 		ShaderProperties.BaseMap,
 		textureHandle,
 	);
+
+	RigidbodyManager.Create(displayEntity);
+	RigidbodyManager.SetIsKinematic(displayEntity, true);
+	RigidbodyManager.SetUseGravity(displayEntity, false);
+	const collider = ColliderManager.CreateBox(displayEntity);
+	// ColliderManager.Setboxs(collider, 1.0);
+	GrabInteractableManager.Create(displayEntity);
+
+	TransformManager.SetParent(camEntity, displayEntity);
+	TransformManager.SetLocalRotation(
+		camEntity,
+		quat.fromEuler(quat.fromValues(1, 0, 0, 0), 0, 180, 0),
+	);
+	TransformManager.SetLocalPosition(displayEntity, vec3.fromValues(0, 2, -1));
 };
