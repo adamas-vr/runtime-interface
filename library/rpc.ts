@@ -34,7 +34,7 @@ export class RpcClient {
 	/**
 	 *
 	 * @param funcName RPC function name to call
-	 * @param args Arguments of RPC in the format: {parameter0: value0, parameter1: value1, ...}
+	 * @param args Arguments of RPC in the format: `{parameter0: value0, parameter1: value1}`
 	 * @returns The value returned from RPC function in string type
 	 */
 	static Call(funcName: string, args: object): any {

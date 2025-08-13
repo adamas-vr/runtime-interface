@@ -459,7 +459,6 @@ export async function importGltfAndRender(
 					vec3.fromValues(node.scaling._x, node.scaling._y, node.scaling._z),
 				);
 				if (node.rotationQuaternion) {
-					console.log("node.rotation", node.rotationQuaternion);
 					TransformManager.SetLocalRotation(
 						ent,
 						quat.fromValues(
