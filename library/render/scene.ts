@@ -1,4 +1,4 @@
-import { RpcClient } from "@adamas/rpc";
+import { RpcClient } from "../rpc";
 
 export type SceneHandle = number;
 

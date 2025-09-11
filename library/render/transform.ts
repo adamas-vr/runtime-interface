@@ -1,6 +1,6 @@
-import { RpcClient } from "@adamas/rpc";
-import { Entity } from "@adamas/entity";
-import { mat4, quat, vec3 } from "gl-matrix";
+import { RpcClient } from "../rpc";
+import { Entity } from "../entity";
+import { mat4, quat, vec3 } from "../gl-matrix";
 
 /**
  * Wrapper for Unity Transform RPCs.

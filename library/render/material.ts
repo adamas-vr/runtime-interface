@@ -1,6 +1,6 @@
-import { RpcClient } from "@adamas/rpc";
-import { Entity } from "@adamas/entity";
-import { vec4 } from "gl-matrix";
+import { RpcClient } from "../rpc";
+import { Entity } from "../entity";
+import { vec4 } from "../gl-matrix";
 
 export type MaterialHandle = number;
 

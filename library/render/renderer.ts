@@ -1,7 +1,6 @@
-import { RpcClient } from "@adamas/rpc";
-import { MaterialManager } from "@adamas/render/material";
-import { TextureManager } from "@adamas/render/texture";
-import { SceneManager } from "@adamas/render/scene";
+import { MaterialManager } from "../render/material";
+import { TextureManager } from "../render/texture";
+import { SceneManager } from "../render/scene";
 
 export class RendererManager {
 	// ------------------------------------------------------------

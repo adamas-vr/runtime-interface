@@ -1,5 +1,5 @@
-import { RpcClient } from "@adamas/rpc";
-import { base64Encode } from "@adamas/utilities/base64";
+import { RpcClient } from "../rpc";
+import { base64Encode } from "../utilities/base64";
 import { MaterialHandle } from "./material";
 
 export type TextureHandle = number;

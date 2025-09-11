@@ -1,4 +1,4 @@
-import { RpcClient } from "@adamas/rpc";
+import { RpcClient } from "../rpc";
 
 export class StateSync {
 	static stateMap = new Map<string, object>(); // holds all proxies by key

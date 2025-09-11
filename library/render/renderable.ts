@@ -1,5 +1,5 @@
-import { RpcClient } from "@adamas/rpc";
-import { Entity } from "@adamas/entity";
+import { RpcClient } from "../rpc";
+import { Entity } from "../entity";
 
 // NOTE: the following are not supported compared to legacy code:
 // - Filament's RenderableBuilder.Geometry(index,type,vertices,indices,offset,count)

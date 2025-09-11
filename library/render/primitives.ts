@@ -1,4 +1,4 @@
-import { MeshManager } from "@adamas/render/mesh";
+import { MeshManager } from "../render/mesh";
 
 export function NewCubeMesh(): number {
 	// 8 vertices for a unit cube

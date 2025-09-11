@@ -1,5 +1,5 @@
-import { RpcClient } from "@adamas/rpc";
-import { Entity } from "@adamas/entity";
+import { RpcClient } from "../rpc";
+import { Entity } from "../entity";
 
 export type MeshHandle = number;
 

@@ -1,6 +1,6 @@
-import { Entity } from "@adamas/entity";
-import { RpcClient } from "@adamas/rpc";
-import { vec3 } from "gl-matrix";
+import { Entity } from "../entity";
+import { RpcClient } from "../rpc";
+import { vec3 } from "../gl-matrix";
 
 export type ColliderHandle = number;
 

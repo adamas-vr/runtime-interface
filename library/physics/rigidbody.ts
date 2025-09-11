@@ -1,5 +1,5 @@
-import { Entity } from "@adamas/entity";
-import { RpcClient } from "@adamas/rpc";
+import { Entity } from "../entity";
+import { RpcClient } from "../rpc";
 
 export class RigidbodyManager {
 	static Create(entityHandle: Entity): boolean {
