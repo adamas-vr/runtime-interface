@@ -2,6 +2,7 @@
 	"compilerOptions": {
 		"target": "es2020",
 		"moduleResolution": "node16",
+        "resolveJsonModule": true,
 		"module": "node16",
 		"strict": true,
 		"noEmit": true,

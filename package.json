@@ -2,8 +2,12 @@
 	"name": "adamas-bindings",
 	"version": "0.1.0",
 	"description": "Unity bindings of the adamas project API",
-	"main": "dist/index.js",
+	"main": "library/index.ts",
 	"private": true,
+	"exports": {
+		".": "./library/index.ts",
+		"./*": "./library/*"
+	},
 	"scripts": {
 		"compile": "npx cmake-js compile",
 		"start": "npx ts-node index.ts",

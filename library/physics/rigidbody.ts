@@ -68,7 +68,7 @@ export class RigidbodyManager {
 		);
 	}
 
-	static SetMass(entityHandle: Entity, mass: boolean): boolean {
+	static SetMass(entityHandle: Entity, mass: number): boolean {
 		return Boolean(
 			RpcClient.Call("RidigbodyAPI_SetMass", {
 				entityHandle,

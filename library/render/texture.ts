@@ -168,16 +168,28 @@ export class TextureManager {
 	 * @param imageDataJson JSON string with comma-separated RGBA values
 	 * @returns boolean indicating success
 	 */
-	static LoadImage(
-		handle: TextureHandle,
-		base64Image: ArrayBufferLike,
-	): boolean {
-		const base64String = base64Encode(base64Image);
+	static LoadImage(handle: TextureHandle, image: ArrayBufferLike): boolean {
+		const base64Image = base64Encode(image);
 
 		return Boolean(
 			RpcClient.Call("Texture_LoadImage", {
 				textureHandle: handle,
-				base64Image: base64String,
+				base64Image,
+			}),
+		);
+	}
+
+	/**
+	 * Loads PNG/JPG image byte array into a texture.
+	 * @param handle The texture handle
+	 * @param imageDataJson JSON string with comma-separated RGBA values
+	 * @returns boolean indicating success
+	 */
+	static LoadImageBase64(handle: TextureHandle, base64Image: string): boolean {
+		return Boolean(
+			RpcClient.Call("Texture_LoadImage", {
+				textureHandle: handle,
+				base64Image,
 			}),
 		);
 	}
