@@ -2,7 +2,6 @@ export * from "./rpc";
 export * from "./debug";
 export * from "./device";
 export * from "./entity";
-export * from "./gl-matrix";
 export * from "./interaction/interaction";
 export * from "./networking/state-sync";
 export * from "./physics/collider";

@@ -1,6 +1,6 @@
 import { RpcClient } from "../rpc";
 import { Entity } from "../entity";
-import { vec3 } from "../gl-matrix";
+import { vec3 } from "gl-matrix";
 
 export class LightManager {
 	/**
@@ -65,7 +65,7 @@ export class LightManager {
 		return Boolean(
 			RpcClient.Call("Light_SetColor", {
 				entityHandle: entity,
-				r: rgb[0], 
+				r: rgb[0],
 				g: rgb[1],
 				b: rgb[2],
 			}),

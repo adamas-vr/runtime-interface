@@ -8,7 +8,6 @@ import {
 	LightType,
 	MaterialManager,
 	MeshManager,
-	quat,
 	RenderableManager,
 	RigidbodyManager,
 	ShaderProperties,
@@ -16,16 +15,14 @@ import {
 	TextureFormat,
 	TextureManager,
 	TransformManager,
-	vec3,
-	vec4,
-} from "@adamas/index";
+} from "./index";
 
-export const LoadAsset = async () => {
-	const assetRecord = new Map<string, object>();
+import { quat, vec3, vec4 } from "gl-matrix";
 
+export const LoadAsset = async (assetRecord: Map<string, object>) => {
 	// <ASSET_IMPORT>
 
-	const projectFile = (await import("./project.adamas.json")).default;
+	const projectFile = (await import("../project.adamas.json")).default;
 
 	// type Properties = Exclude<(typeof scene.properties)[number][number], string>;
 	// type Transforms = Exclude<(typeof scene.transforms)[number][number], string>;

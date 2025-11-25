@@ -1,4 +1,6 @@
+import { TextureFilterMode, TextureWrapMode } from "../library";
 
+declare const jjpp = 33;
 
 declare module "*.mat" {
 	type UUID = `${string}-${string}-${string}-${string}-${string}`;
@@ -45,7 +47,6 @@ declare module "*.mat" {
 }
 
 declare module "*.tex" {
-    import { TextureFilterMode, TextureWrapMode } from "@adamas/render/texture";
 	const value: {
 		assetType: "Texture";
 
