@@ -1,6 +1,6 @@
 {
 	"name": "@jack120/test",
-	"version": "0.2.1",
+	"version": "0.2.7",
 	"description": "Adamas Typescript interface",
 	"main": "dist/index.js",
 	"scripts": {
@@ -8,7 +8,7 @@
 		"start": "npx ts-node index.ts",
 		"format": "npx prettier . --write",
 		"esbuild": "npx esbuild library/index.ts --bundle --minify --format=esm --outfile=dist/index.js --platform=node  --external:\"*.node\" --packages=external",
-		"dts": "npx dts-bundle-generator -o dist/index.d.ts library/index.ts"
+		"dts": "npx dts-bundle-generator -o types/lib.d.ts library/index.ts"
 	},
 	"repository": {
 		"type": "git",

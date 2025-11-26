@@ -19,10 +19,11 @@ import {
 
 import { quat, vec3, vec4 } from "gl-matrix";
 
-export const LoadAsset = async (assetRecord: Map<string, object>) => {
+export const LoadProject = async (
+	assetRecord: Map<string, object>,
+	projectFile: any,
+) => {
 	// <ASSET_IMPORT>
-
-	const projectFile = (await import("../project.adamas.json")).default;
 
 	// type Properties = Exclude<(typeof scene.properties)[number][number], string>;
 	// type Transforms = Exclude<(typeof scene.transforms)[number][number], string>;
@@ -227,9 +228,7 @@ export const LoadAsset = async (assetRecord: Map<string, object>) => {
 		if (renderable && renderable.mesh && renderable.material) {
 			RenderableManager.Create(currEntity);
 
-			const meshAsset = assetRecord.get(
-				renderable.mesh,
-			) as typeof import(".mesh").default;
+			const meshAsset = assetRecord.get(renderable.mesh) as any;
 
 			if (meshAsset) {
 				const mesh = MeshManager.Create();
@@ -244,9 +243,7 @@ export const LoadAsset = async (assetRecord: Map<string, object>) => {
 				RenderableManager.SetCulling(currEntity, renderable.culling);
 			}
 
-			const materialAsset = assetRecord.get(
-				renderable.material,
-			) as typeof import(".mat").default;
+			const materialAsset = assetRecord.get(renderable.material) as any;
 
 			if (materialAsset) {
 				const matHandle = MaterialManager.Create(ShaderType.URP_LIT);
@@ -263,9 +260,7 @@ export const LoadAsset = async (assetRecord: Map<string, object>) => {
 
 				if (materialAsset.baseMap) {
 					const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
-					const texAsset = assetRecord.get(
-						materialAsset.baseMap,
-					)! as typeof import(".tex").default;
+					const texAsset = assetRecord.get(materialAsset.baseMap) as any;
 
 					TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
 					MaterialManager.SetTexture(
