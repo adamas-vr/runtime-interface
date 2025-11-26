@@ -1,6 +1,6 @@
 import { RpcClient } from "../rpc";
 import { Entity } from "../entity";
-import { vec2, vec3 } from "../gl-matrix";
+import { vec2, vec3 } from "gl-matrix";
 import { base64Encode } from "../utilities/base64";
 
 export type MeshHandle = number;

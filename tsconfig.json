@@ -1,17 +1,18 @@
 {
 	"compilerOptions": {
 		"target": "es2020",
-		"moduleResolution": "node16",
-        "resolveJsonModule": true,
-		"module": "node16",
+		"moduleResolution": "nodenext",
+		"module": "nodenext",
+		"resolveJsonModule": true,
+		"declaration": true,
+		"sourceMap": true,
+		"declarationMap": true,
+		"typeRoots": ["./node_modules/@types", "./types"], // prevent typechecking in parent node_modules
+		"outDir": "dist",
+		"rootDir": "library",
 		"strict": true,
-		"noEmit": true,
-		"baseUrl": ".", // Required for "paths"
-		"paths": {
-			"@adamas/*": ["library/*"]
-		}
+		"noEmit": true
 	},
-	"ts-node": {
-		"require": ["tsconfig-paths/register"]
-	}
+	"include": ["./library", "./types"],
+	"exclude": ["samples", "index.ts"]
 }

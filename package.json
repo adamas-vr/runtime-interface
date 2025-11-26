@@ -1,17 +1,14 @@
 {
-	"name": "adamas-bindings",
-	"version": "0.1.0",
-	"description": "Unity bindings of the adamas project API",
-	"main": "library/index.ts",
-	"private": true,
-	"exports": {
-		".": "./library/index.ts",
-		"./*": "./library/*"
-	},
+	"name": "@jack120/test",
+	"version": "0.2.7",
+	"description": "Adamas Typescript interface",
+	"main": "dist/index.js",
 	"scripts": {
 		"compile": "npx cmake-js compile",
 		"start": "npx ts-node index.ts",
-		"format": "npx prettier . --write"
+		"format": "npx prettier . --write",
+		"esbuild": "npx esbuild library/index.ts --bundle --minify --format=esm --outfile=dist/index.js --platform=node  --external:\"*.node\" --packages=external",
+		"dts": "npx dts-bundle-generator -o types/lib.d.ts library/index.ts"
 	},
 	"repository": {
 		"type": "git",
@@ -21,17 +18,21 @@
 	"bugs": {
 		"url": "https://github.com/adamas-vr/prefab-interface/issues"
 	},
+	"types": "./types/index.d.ts",
+	"files": [
+		"dist",
+		"types"
+	],
 	"homepage": "https://github.com/adamas-vr/prefab-interface#readme",
 	"dependencies": {
-		"@babylonjs/core": "^8.13.0",
-		"@babylonjs/loaders": "^8.13.0",
-		"node-addon-api": "^8.4.0"
+		"gl-matrix": "^3.4.4"
 	},
 	"devDependencies": {
 		"@types/node": "^24.0.3",
 		"cmake-js": "^7.3.1",
 		"ts-node": "^10.0.0",
 		"tsconfig-paths": "^4.2.0",
-		"typescript": "^5.0.0"
+		"typescript": "^5.0.0",
+		"node-addon-api": "^8.4.0"
 	}
 }

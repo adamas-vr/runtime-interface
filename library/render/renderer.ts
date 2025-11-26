@@ -1,6 +1,6 @@
-import { MaterialManager } from "../render/material";
-import { TextureManager } from "../render/texture";
-import { SceneManager } from "../render/scene";
+import { MaterialManager } from "./material";
+import { TextureManager } from "./texture";
+import { SceneManager } from "./scene";
 
 export class RendererManager {
 	// ------------------------------------------------------------

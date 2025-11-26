@@ -1,5 +1,3 @@
-
-
 declare module "*.mat" {
 	type UUID = `${string}-${string}-${string}-${string}-${string}`;
 	const value: {
@@ -45,14 +43,13 @@ declare module "*.mat" {
 }
 
 declare module "*.tex" {
-    import { TextureFilterMode, TextureWrapMode } from "@adamas/render/texture";
 	const value: {
 		assetType: "Texture";
 
 		base64Image: string;
 		mineType: string;
-		filterMode: TextureFilterMode;
-		wrapMode: TextureWrapMode;
+		filterMode: number;
+		wrapMode: number;
 	};
 	export default value;
 }
