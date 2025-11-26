@@ -1,30 +1,24 @@
+import { quat, vec3, vec4 } from "gl-matrix";
+import { TransformManager } from "./render/transform";
+import { Entity, EntityManager } from "./entity";
+import { MeshManager } from "./render/mesh";
+import { RenderableManager } from "./render/renderable";
 import {
-	CameraManager,
-	ColliderManager,
-	Entity,
-	EntityManager,
-	GrabInteractableManager,
-	LightManager,
-	LightType,
 	MaterialManager,
-	MeshManager,
-	RenderableManager,
-	RigidbodyManager,
 	ShaderProperties,
 	ShaderType,
-	TextureFormat,
-	TextureManager,
-	TransformManager,
-} from "./index";
-
-import { quat, vec3, vec4 } from "gl-matrix";
+} from "./render/material";
+import { TextureFormat, TextureManager } from "./render/texture";
+import { LightManager, LightType } from "./render/light";
+import { ColliderManager } from "./physics/collider";
+import { CameraManager } from "./render/camera";
+import { RigidbodyManager } from "./physics/rigidbody";
+import { GrabInteractableManager } from "./interaction/interaction";
 
 export const LoadProject = async (
 	assetRecord: Map<string, object>,
 	projectFile: any,
 ) => {
-	// <ASSET_IMPORT>
-
 	// type Properties = Exclude<(typeof scene.properties)[number][number], string>;
 	// type Transforms = Exclude<(typeof scene.transforms)[number][number], string>;
 	// type Renderables = Exclude<
