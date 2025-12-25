@@ -14,6 +14,7 @@ import { ColliderManager } from "./physics/collider";
 import { CameraManager } from "./render/camera";
 import { RigidbodyManager } from "./physics/rigidbody";
 import { GrabInteractableManager } from "./interaction/interaction";
+import { RpcClient } from "./rpc";
 
 export const LoadProject = async (
 	assetRecord: Map<string, object>,
@@ -228,16 +229,13 @@ export const LoadProject = async (
 			const meshAsset = assetRecord.get(renderable.mesh) as any;
 
 			if (meshAsset) {
-				const mesh = MeshManager.Create();
-				MeshManager.SetVertices(mesh, meshAsset.base64Vertices);
-				MeshManager.SetTriangles(mesh, meshAsset.base64Indices);
+				const mesh = RpcClient.Call("Internal:Mesh_Create", {
+					clientId: RpcClient.GetClientId(),
+					primitives: meshAsset.meshPrimitives,
+				});
 
-				if (meshAsset.base64Uvs) MeshManager.SetUVs(mesh, meshAsset.base64Uvs);
-				if (meshAsset.base64Normals)
-					MeshManager.SetNormals(mesh, meshAsset.base64Normals);
 				RenderableManager.SetMesh(currEntity, mesh);
-
-				RenderableManager.SetCulling(currEntity, renderable.culling);
+				// RenderableManager.SetCulling(currEntity, renderable.culling);
 			}
 
 			const materialAsset = assetRecord.get(renderable.material) as any;
@@ -255,9 +253,9 @@ export const LoadProject = async (
 					),
 				);
 
-				if (materialAsset.baseMap) {
+				if (materialAsset.baseColorMap) {
 					const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
-					const texAsset = assetRecord.get(materialAsset.baseMap) as any;
+					const texAsset = assetRecord.get(materialAsset.baseColorMap) as any;
 
 					TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
 					MaterialManager.SetTexture(
@@ -267,7 +265,22 @@ export const LoadProject = async (
 					);
 				}
 
-				if (materialAsset.detailNormalMap) {
+				if (materialAsset.normalMap) {
+					const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
+					const texAsset = assetRecord.get(materialAsset.normalMap) as any;
+
+					TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
+					MaterialManager.SetTexture(
+						matHandle,
+						ShaderProperties.DetailNormalMap,
+						texHandle,
+					);
+
+					MaterialManager.SetFloat(
+						matHandle,
+						ShaderProperties.DetailNormalMapScale,
+						materialAsset.normalScale,
+					);
 				}
 
 				MaterialManager.SetColor(
@@ -281,6 +294,51 @@ export const LoadProject = async (
 					),
 				);
 				if (materialAsset.emissionMap) {
+					const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
+					const texAsset = assetRecord.get(materialAsset.emissionMap) as any;
+
+					TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
+					MaterialManager.SetTexture(
+						matHandle,
+						ShaderProperties.EmissionMap,
+						texHandle,
+					);
+				}
+
+				if (materialAsset.normalMap) {
+					const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
+					const texAsset = assetRecord.get(materialAsset.normalMap) as any;
+
+					TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
+					MaterialManager.SetTexture(
+						matHandle,
+						ShaderProperties.DetailNormalMap,
+						texHandle,
+					);
+
+					MaterialManager.SetFloat(
+						matHandle,
+						ShaderProperties.DetailNormalMapScale,
+						materialAsset.normalScale,
+					);
+				}
+
+				if (materialAsset.occlusionMap) {
+					const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
+					const texAsset = assetRecord.get(materialAsset.occlusionMap) as any;
+
+					TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
+					MaterialManager.SetTexture(
+						matHandle,
+						ShaderProperties.OcclusionMap,
+						texHandle,
+					);
+
+					MaterialManager.SetFloat(
+						matHandle,
+						ShaderProperties.OcclusionStrength,
+						materialAsset.occlusionStrength,
+					);
 				}
 
 				RenderableManager.SetMaterial(currEntity, matHandle);
