@@ -43,21 +43,17 @@ export const LoadProject = async (
 		parent: string;
 		children: string[];
 		localScale: {
-			x: number;
-			y: number;
-			z: number;
+			value: [number, number, number];
 		};
 		localRotation: {
-			isEuler: boolean;
-			_x: number;
-			_y: number;
-			_z: number;
-			_order: string;
+			value: {
+				x: number;
+				y: number;
+				z: number;
+			};
 		};
 		localPosition: {
-			x: number;
-			y: number;
-			z: number;
+			value: [number, number, number];
 		};
 	};
 	type Renderables = {
@@ -163,28 +159,32 @@ export const LoadProject = async (
 	};
 
 	const scene = projectFile.scene;
-	const properties = new Map(scene.properties as [string, Properties][]);
-	const transforms = new Map(scene.transforms as [string, Transforms][]);
-	const renderables = new Map(scene.renderables as [string, Renderables][]);
-	const lights = new Map(scene.lights as [string, Lights][]);
-	const cameras = new Map(scene.cameras as [string, Cameras][]);
-	const colliders = new Map(scene.colliders as [string, Colliders][]);
-	const rigidbodies = new Map(scene.rigidbodies as [string, Rigidbodies][]);
-	const grabbles = new Map(scene.grabbles as [string, Grabbles][]);
+	const properties = new Map(scene.properties.value as [string, Properties][]);
+	const transforms = new Map(scene.transforms.value as [string, Transforms][]);
+	const renderables = new Map(
+		scene.renderables.value as [string, Renderables][],
+	);
+	const lights = new Map(scene.lights.value as [string, Lights][]);
+	const cameras = new Map(scene.cameras.value as [string, Cameras][]);
+	const colliders = new Map(scene.colliders.value as [string, Colliders][]);
+	const rigidbodies = new Map(
+		scene.rigidbodies.value as [string, Rigidbodies][],
+	);
+	const grabbles = new Map(scene.grabbles.value as [string, Grabbles][]);
 
 	const entityMap = new Map<string, Entity>();
-	for (const entity of scene.entities) {
+	for (const entity of scene.entities.value) {
 		const property = properties.get(entity)!;
 		const entityId = EntityManager.Create(property.name);
 		entityMap.set(entity, entityId);
 	}
 
-	for (const entity of scene.entities) {
+	for (const entity of scene.entities.value) {
 		const currEntity = entityMap.get(entity)!;
 
 		const transform = transforms.get(entity);
 		if (transform) {
-			if (transform.parent != "root") {
+			if (transform.parent !== "00000000-0000-0000-0000-000000000000") {
 				TransformManager.SetParent(
 					currEntity,
 					entityMap.get(transform.parent)!,
@@ -194,28 +194,31 @@ export const LoadProject = async (
 			TransformManager.SetLocalPosition(
 				currEntity,
 				vec3.fromValues(
-					transform.localPosition.x,
-					transform.localPosition.y,
-					transform.localPosition.z,
+					transform.localPosition.value[0],
+					transform.localPosition.value[1],
+					transform.localPosition.value[2],
 				),
 			);
 			TransformManager.SetLocalScale(
 				currEntity,
 				vec3.fromValues(
-					transform.localScale.x,
-					transform.localScale.y,
-					transform.localScale.z,
+					transform.localScale.value[0],
+					transform.localScale.value[1],
+					transform.localScale.value[2],
 				),
 			);
 			TransformManager.SetLocalRotation(
 				currEntity,
 				quat.fromEuler(
 					[0, 0, 0, 0],
-					transform.localRotation._x,
-					transform.localRotation._y,
-					transform.localRotation._z,
+					transform.localRotation.value.x,
+					transform.localRotation.value.y,
+					transform.localRotation.value.z,
+					"xyz", // TODO: needs to be tested
 				),
 			);
+		} else {
+			throw Error(`Data corrupted. Entity ${entity} has no transform`);
 		}
 
 		const renderable = renderables.get(entity);
