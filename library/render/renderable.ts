@@ -12,9 +12,12 @@ export class RenderableManager {
 	 * @param entity The entity to attach the renderable component to
 	 * @returns boolean indicating success
 	 */
-	static Create(entity: Entity): boolean {
+	static Create(entity: Entity, isSkinnedMesh: boolean = false): boolean {
 		return Boolean(
-			RpcClient.Call("Renderable_Create", { entityHandle: entity }),
+			RpcClient.Call("Renderable_Create", {
+				entityHandle: entity,
+				isSkinnedMesh,
+			}),
 		);
 	}
 

@@ -205,4 +205,15 @@ export class MeshManager {
 			RpcClient.Call("Mesh_RecalculateBounds", { meshHandle: handle }),
 		);
 	}
+
+	/**
+	 * Return the number of blendShapes
+	 * @param handle The mesh handle
+	 * @returns -1 if mesh does not exist
+	 */
+	static BlendShapeCount(handle: MeshHandle): number {
+		return Number(
+			RpcClient.Call("Mesh_BlendShapeCount", { meshHandle: handle }),
+		);
+	}
 }

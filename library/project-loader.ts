@@ -1,20 +1,146 @@
 import { quat, vec3, vec4 } from "gl-matrix";
 import { TransformManager } from "./render/transform";
 import { Entity, EntityManager } from "./entity";
-import { MeshManager } from "./render/mesh";
+import { MeshHandle, MeshManager } from "./render/mesh";
 import { RenderableManager } from "./render/renderable";
 import {
+	MaterialHandle,
 	MaterialManager,
 	ShaderProperties,
 	ShaderType,
 } from "./render/material";
-import { TextureFormat, TextureManager } from "./render/texture";
+import { TextureFormat, TextureHandle, TextureManager } from "./render/texture";
 import { LightManager, LightType } from "./render/light";
 import { ColliderManager } from "./physics/collider";
 import { CameraManager } from "./render/camera";
 import { RigidbodyManager } from "./physics/rigidbody";
 import { GrabInteractableManager } from "./interaction/interaction";
 import { RpcClient } from "./rpc";
+import { UUID } from "crypto";
+
+type Properties = {
+	componentType: string;
+	name: string;
+};
+type Transforms = {
+	componentType: string;
+	parent: string;
+	children: string[];
+	localScale: {
+		value: [number, number, number];
+	};
+	localRotation: {
+		value: {
+			x: number;
+			y: number;
+			z: number;
+		};
+	};
+	localPosition: {
+		value: [number, number, number];
+	};
+};
+type Renderables = {
+	componentType: string;
+	layerMask: number;
+	receiveShadows: boolean;
+	castShadows: number;
+	culling: boolean;
+	mesh: string;
+	materialList: string[];
+};
+type Lights = {
+	componentType: string;
+	color: {
+		x: number;
+		y: number;
+		z: number;
+	};
+	cullingMask: number;
+	intensity: number;
+	range: number;
+	shadows: number;
+	lightType: number;
+	spotAngle: number;
+	isSpotAngleDegree: boolean;
+};
+type Cameras = {
+	componentType: string;
+	cullingMask: number;
+	projectionType: number;
+	projectionFov: number;
+	projectionAspectRatio: number;
+	projectionNear: number;
+	projectionFar: number;
+	renderTexture: string;
+	orthoLeft: number;
+	orthoRight: number;
+	orthoBottom: number;
+	orthoTop: number;
+	orthoNear: number;
+	orthoFar: number;
+};
+type Colliders = {
+	componentType: string;
+	colliders: (
+		| {
+				isTrigger: boolean;
+				colliderType: string;
+				center: {
+					x: number;
+					y: number;
+					z: number;
+				};
+				size: {
+					x: number;
+					y: number;
+					z: number;
+				};
+				radius?: undefined;
+				height?: undefined;
+		  }
+		| {
+				isTrigger: boolean;
+				colliderType: string;
+				center: {
+					x: number;
+					y: number;
+					z: number;
+				};
+				radius: number;
+				size?: undefined;
+				height?: undefined;
+		  }
+		| {
+				isTrigger: boolean;
+				colliderType: string;
+				center: {
+					x: number;
+					y: number;
+					z: number;
+				};
+				height: number;
+				radius: number;
+				size?: undefined;
+		  }
+	)[];
+};
+type Rigidbodies = {
+	componentType: string;
+	angularDamping: number;
+	isKinematic: boolean;
+	linearDamping: number;
+	mass: number;
+	useGravity: boolean;
+};
+type Grabbles = {
+	componentType: string;
+	throwOnDetach: boolean;
+	trackPosition: boolean;
+	trackRotation: boolean;
+	trackScale: boolean;
+	attachEntity: string;
+};
 
 export const LoadProject = async (
 	assetRecord: Map<string, object>,
@@ -35,130 +161,6 @@ export const LoadProject = async (
 	// >;
 	// type Grabbles = Exclude<(typeof scene.grabbles)[number][number], string>;
 
-	type Properties = {
-		componentType: string;
-		name: string;
-	};
-	type Transforms = {
-		componentType: string;
-		parent: string;
-		children: string[];
-		localScale: {
-			value: [number, number, number];
-		};
-		localRotation: {
-			value: {
-				x: number;
-				y: number;
-				z: number;
-			};
-		};
-		localPosition: {
-			value: [number, number, number];
-		};
-	};
-	type Renderables = {
-		componentType: string;
-		layerMask: number;
-		receiveShadows: boolean;
-		castShadows: number;
-		culling: boolean;
-		mesh: string;
-		materialList: string[];
-	};
-	type Lights = {
-		componentType: string;
-		color: {
-			x: number;
-			y: number;
-			z: number;
-		};
-		cullingMask: number;
-		intensity: number;
-		range: number;
-		shadows: number;
-		lightType: number;
-		spotAngle: number;
-		isSpotAngleDegree: boolean;
-	};
-	type Cameras = {
-		componentType: string;
-		cullingMask: number;
-		projectionType: number;
-		projectionFov: number;
-		projectionAspectRatio: number;
-		projectionNear: number;
-		projectionFar: number;
-		renderTexture: string;
-		orthoLeft: number;
-		orthoRight: number;
-		orthoBottom: number;
-		orthoTop: number;
-		orthoNear: number;
-		orthoFar: number;
-	};
-	type Colliders = {
-		componentType: string;
-		colliders: (
-			| {
-					isTrigger: boolean;
-					colliderType: string;
-					center: {
-						x: number;
-						y: number;
-						z: number;
-					};
-					size: {
-						x: number;
-						y: number;
-						z: number;
-					};
-					radius?: undefined;
-					height?: undefined;
-			  }
-			| {
-					isTrigger: boolean;
-					colliderType: string;
-					center: {
-						x: number;
-						y: number;
-						z: number;
-					};
-					radius: number;
-					size?: undefined;
-					height?: undefined;
-			  }
-			| {
-					isTrigger: boolean;
-					colliderType: string;
-					center: {
-						x: number;
-						y: number;
-						z: number;
-					};
-					height: number;
-					radius: number;
-					size?: undefined;
-			  }
-		)[];
-	};
-	type Rigidbodies = {
-		componentType: string;
-		angularDamping: number;
-		isKinematic: boolean;
-		linearDamping: number;
-		mass: number;
-		useGravity: boolean;
-	};
-	type Grabbles = {
-		componentType: string;
-		throwOnDetach: boolean;
-		trackPosition: boolean;
-		trackRotation: boolean;
-		trackScale: boolean;
-		attachEntity: string;
-	};
-
 	const scene = projectFile.scene;
 	const properties = new Map(scene.properties.value as [string, Properties][]);
 	const transforms = new Map(scene.transforms.value as [string, Transforms][]);
@@ -172,6 +174,159 @@ export const LoadProject = async (
 		scene.rigidbodies.value as [string, Rigidbodies][],
 	);
 	const grabbles = new Map(scene.grabbles.value as [string, Grabbles][]);
+
+	const meshCache = new Map<UUID, MeshHandle>();
+	const materialCache = new Map<UUID, MaterialHandle>();
+	const textureCache = new Map<UUID, TextureHandle>();
+
+	const createMesh = (meshAsset: any): MeshHandle => {
+		const cacheMeshHandle = meshCache.get(meshAsset.uuid);
+		if (cacheMeshHandle) return cacheMeshHandle;
+
+		const meshHandle = RpcClient.Call("Internal:Mesh_Create", {
+			clientId: RpcClient.GetClientId(),
+			meshAsset: JSON.stringify(meshAsset),
+		});
+
+		meshCache.set(meshAsset.uuid, meshHandle);
+		return meshHandle;
+	};
+
+	const createTexture = (textureAsset: any): TextureHandle => {
+		const cacheTexHandle = textureCache.get(textureAsset.uuid);
+		console.log(
+			`textureAsset ${textureAsset.uuid}, cacheTexHandle: ${cacheTexHandle}`,
+		);
+		if (cacheTexHandle) return cacheTexHandle;
+
+		const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
+		TextureManager.LoadImageBase64(texHandle, textureAsset.base64Image);
+
+		textureCache.set(textureAsset.uuid, texHandle);
+		return texHandle;
+	};
+
+	const createMaterial = (materialAsset: any): MaterialHandle => {
+		const cacheMatHandle = materialCache.get(materialAsset.uuid);
+		if (cacheMatHandle) return cacheMatHandle;
+
+		const matHandle = MaterialManager.Create(ShaderType.UnityGLTF);
+		MaterialManager.SetColor(
+			matHandle,
+			ShaderProperties.BaseColor,
+			vec4.fromValues(
+				materialAsset.baseColor.x,
+				materialAsset.baseColor.y,
+				materialAsset.baseColor.z,
+				materialAsset.baseColor.w,
+			),
+		);
+
+		if (materialAsset.baseColorMap) {
+			const texAsset = assetRecord.get(materialAsset.baseColorMap);
+
+			if (texAsset) {
+				const texHandle = createTexture(texAsset);
+				MaterialManager.SetTexture(
+					matHandle,
+					ShaderProperties.BaseColorMap,
+					texHandle,
+				);
+			}
+		}
+
+		if (materialAsset.normalMap) {
+			const texAsset = assetRecord.get(materialAsset.normalMap);
+
+			if (texAsset) {
+				const texHandle = createTexture(texAsset);
+				MaterialManager.SetTexture(
+					matHandle,
+					ShaderProperties.NormalMap,
+					texHandle,
+				);
+
+				MaterialManager.SetFloat(
+					matHandle,
+					ShaderProperties.NormalScale,
+					materialAsset.normalScale,
+				);
+			}
+		}
+
+		MaterialManager.SetColor(
+			matHandle,
+			ShaderProperties.Emission,
+			vec4.fromValues(
+				materialAsset.emission.value[0],
+				materialAsset.emission.value[1],
+				materialAsset.emission.value[2],
+				1,
+			),
+		);
+
+		if (materialAsset.emissionMap) {
+			const texAsset = assetRecord.get(materialAsset.emissionMap);
+
+			if (texAsset) {
+				const texHandle = createTexture(texAsset);
+				MaterialManager.SetTexture(
+					matHandle,
+					ShaderProperties.EmissionMap,
+					texHandle,
+				);
+			}
+		}
+
+		if (materialAsset.occlusionMap) {
+			const texAsset = assetRecord.get(materialAsset.occlusionMap) as any;
+
+			if (texAsset) {
+				const texHandle = createTexture(texAsset);
+				MaterialManager.SetTexture(
+					matHandle,
+					ShaderProperties.OcclusionMap,
+					texHandle,
+				);
+
+				MaterialManager.SetFloat(
+					matHandle,
+					ShaderProperties.OcclusionStrength,
+					materialAsset.occlusionStrength,
+				);
+			}
+		}
+
+		if (materialAsset.roughnessMap || materialAsset.metalnessMap) {
+			const texAsset = assetRecord.get(
+				materialAsset.roughnessMap || materialAsset.metalnessMap,
+			) as any;
+
+			if (texAsset) {
+				const texHandle = createTexture(texAsset);
+				MaterialManager.SetTexture(
+					matHandle,
+					ShaderProperties.RoughnessMap,
+					texHandle,
+				);
+			}
+		}
+
+		MaterialManager.SetFloat(
+			matHandle,
+			ShaderProperties.Metalness,
+			materialAsset.metalness,
+		);
+
+		MaterialManager.SetFloat(
+			matHandle,
+			ShaderProperties.Roughness,
+			materialAsset.roughness,
+		);
+
+		materialCache.set(materialAsset.uuid, matHandle);
+		return matHandle;
+	};
 
 	const entityMap = new Map<string, Entity>();
 	for (const entity of scene.entities.value) {
@@ -222,138 +377,29 @@ export const LoadProject = async (
 			throw Error(`Data corrupted. Entity ${entity} has no transform`);
 		}
 
-		const applyMaterial = (materialAsset: any, index: number) => {
-			const matHandle = MaterialManager.Create(ShaderType.UnityGLTF);
-			MaterialManager.SetColor(
-				matHandle,
-				ShaderProperties.BaseColor,
-				vec4.fromValues(
-					materialAsset.baseColor.x,
-					materialAsset.baseColor.y,
-					materialAsset.baseColor.z,
-					materialAsset.baseColor.w,
-				),
-			);
-
-			if (materialAsset.baseColorMap) {
-				const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
-				const texAsset = assetRecord.get(materialAsset.baseColorMap) as any;
-
-				TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
-				MaterialManager.SetTexture(
-					matHandle,
-					ShaderProperties.BaseColorMap,
-					texHandle,
-				);
-			}
-
-			if (materialAsset.normalMap) {
-				const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
-				const texAsset = assetRecord.get(materialAsset.normalMap) as any;
-
-				TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
-				MaterialManager.SetTexture(
-					matHandle,
-					ShaderProperties.NormalMap,
-					texHandle,
-				);
-
-				MaterialManager.SetFloat(
-					matHandle,
-					ShaderProperties.NormalScale,
-					materialAsset.normalScale,
-				);
-			}
-
-			MaterialManager.SetColor(
-				matHandle,
-				ShaderProperties.Emission,
-				vec4.fromValues(
-					materialAsset.emission.value[0],
-					materialAsset.emission.value[1],
-					materialAsset.emission.value[2],
-					1,
-				),
-			);
-			if (materialAsset.emissionMap) {
-				const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
-				const texAsset = assetRecord.get(materialAsset.emissionMap) as any;
-
-				TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
-				MaterialManager.SetTexture(
-					matHandle,
-					ShaderProperties.EmissionMap,
-					texHandle,
-				);
-			}
-
-			if (materialAsset.occlusionMap) {
-				const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
-				const texAsset = assetRecord.get(materialAsset.occlusionMap) as any;
-
-				TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
-				MaterialManager.SetTexture(
-					matHandle,
-					ShaderProperties.OcclusionMap,
-					texHandle,
-				);
-
-				MaterialManager.SetFloat(
-					matHandle,
-					ShaderProperties.OcclusionStrength,
-					materialAsset.occlusionStrength,
-				);
-			}
-
-			if (materialAsset.roughnessMap || materialAsset.metalnessMap) {
-				const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
-				const texAsset = assetRecord.get(
-					materialAsset.roughnessMap || materialAsset.metalnessMap,
-				) as any;
-
-				TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
-				MaterialManager.SetTexture(
-					matHandle,
-					ShaderProperties.RoughnessMap,
-					texHandle,
-				);
-			}
-
-			MaterialManager.SetFloat(
-				matHandle,
-				ShaderProperties.Metalness,
-				materialAsset.metalness,
-			);
-
-			MaterialManager.SetFloat(
-				matHandle,
-				ShaderProperties.Roughness,
-				materialAsset.roughness,
-			);
-
-			RenderableManager.SetMaterial(currEntity, matHandle, index);
-		};
-
 		const renderable = renderables.get(entity);
 		if (renderable && renderable.mesh) {
-			RenderableManager.Create(currEntity);
-
 			const meshAsset = assetRecord.get(renderable.mesh) as any;
 
 			if (meshAsset) {
-				const mesh = RpcClient.Call("Internal:Mesh_Create", {
-					clientId: RpcClient.GetClientId(),
-					meshAsset: JSON.stringify(meshAsset),
+				const meshHandle = createMesh(meshAsset);
+
+				if (MeshManager.BlendShapeCount(meshHandle) > 0) {
+					RenderableManager.Create(currEntity, true);
+				} else {
+					RenderableManager.Create(currEntity);
+				}
+
+				RenderableManager.SetMesh(currEntity, meshHandle);
+
+				renderable.materialList.forEach((m, idx) => {
+					const material = assetRecord.get(m) as any;
+					if (material === undefined) return;
+
+					const matHandle = createMaterial(material);
+					RenderableManager.SetMaterial(currEntity, matHandle, idx);
 				});
-
-				RenderableManager.SetMesh(currEntity, mesh);
-				RenderableManager.SetCulling(currEntity, renderable.culling);
 			}
-
-			renderable.materialList.forEach((m, idx) => {
-				const material = assetRecord.get(m) as any;
-				if (material) applyMaterial(material, idx);
-			});
 		}
 
 		const light = lights.get(entity);
