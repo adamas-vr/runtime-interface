@@ -223,7 +223,7 @@ export const LoadProject = async (
 		}
 
 		const applyMaterial = (materialAsset: any, index: number) => {
-			const matHandle = MaterialManager.Create(ShaderType.URP_LIT);
+			const matHandle = MaterialManager.Create(ShaderType.UnityGLTF);
 			MaterialManager.SetColor(
 				matHandle,
 				ShaderProperties.BaseColor,
@@ -269,9 +269,9 @@ export const LoadProject = async (
 				matHandle,
 				ShaderProperties.Emission,
 				vec4.fromValues(
-					materialAsset.emissionColor.x,
-					materialAsset.emissionColor.y,
-					materialAsset.emissionColor.z,
+					materialAsset.emission.value[0],
+					materialAsset.emission.value[1],
+					materialAsset.emission.value[2],
 					1,
 				),
 			);
@@ -304,8 +304,6 @@ export const LoadProject = async (
 					materialAsset.occlusionStrength,
 				);
 			}
-
-			RenderableManager.SetMaterial(currEntity, matHandle);
 
 			if (materialAsset.roughnessMap || materialAsset.metalnessMap) {
 				const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);

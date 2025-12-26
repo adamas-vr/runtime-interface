@@ -1,6 +1,6 @@
 {
 	"name": "@jack120/test",
-	"version": "0.2.8",
+	"version": "0.2.15",
 	"description": "Adamas Typescript interface",
 	"main": "dist/index.js",
 	"scripts": {
