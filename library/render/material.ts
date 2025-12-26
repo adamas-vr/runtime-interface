@@ -230,4 +230,16 @@ export class MaterialManager {
 			propertyName: prop,
 		});
 	}
+
+	static SetAlphaMode(
+		handle: MaterialHandle,
+		alphaMode: "Blend" | "Mask" | "Opaque" = "Opaque",
+	) {
+		return Boolean(
+			RpcClient.Call("Material_SetAlphaMode", {
+				materialHandle: handle,
+				alphaMode,
+			}),
+		);
+	}
 }

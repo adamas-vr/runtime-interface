@@ -194,9 +194,6 @@ export const LoadProject = async (
 
 	const createTexture = (textureAsset: any): TextureHandle => {
 		const cacheTexHandle = textureCache.get(textureAsset.uuid);
-		console.log(
-			`textureAsset ${textureAsset.uuid}, cacheTexHandle: ${cacheTexHandle}`,
-		);
 		if (cacheTexHandle) return cacheTexHandle;
 
 		const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
@@ -323,6 +320,16 @@ export const LoadProject = async (
 			ShaderProperties.Roughness,
 			materialAsset.roughness,
 		);
+
+		setTimeout(() => {
+			console.log(`SetAlphaMode: ${materialAsset.name}`);
+			MaterialManager.SetAlphaMode(matHandle, materialAsset.alphaMode);
+			MaterialManager.SetFloat(
+				matHandle,
+				ShaderProperties.AlphaCutoff,
+				materialAsset.alphaCutoff,
+			);
+		}, 6000);
 
 		materialCache.set(materialAsset.uuid, matHandle);
 		return matHandle;
