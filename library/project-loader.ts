@@ -64,7 +64,7 @@ export const LoadProject = async (
 		castShadows: number;
 		culling: boolean;
 		mesh: string;
-		material: string;
+		materialList: string[];
 	};
 	type Lights = {
 		componentType: string;
@@ -222,8 +222,122 @@ export const LoadProject = async (
 			throw Error(`Data corrupted. Entity ${entity} has no transform`);
 		}
 
+		const applyMaterial = (materialAsset: any, index: number) => {
+			const matHandle = MaterialManager.Create(ShaderType.URP_LIT);
+			MaterialManager.SetColor(
+				matHandle,
+				ShaderProperties.BaseColor,
+				vec4.fromValues(
+					materialAsset.baseColor.x,
+					materialAsset.baseColor.y,
+					materialAsset.baseColor.z,
+					materialAsset.baseColor.w,
+				),
+			);
+
+			if (materialAsset.baseColorMap) {
+				const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
+				const texAsset = assetRecord.get(materialAsset.baseColorMap) as any;
+
+				TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
+				MaterialManager.SetTexture(
+					matHandle,
+					ShaderProperties.BaseColorMap,
+					texHandle,
+				);
+			}
+
+			if (materialAsset.normalMap) {
+				const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
+				const texAsset = assetRecord.get(materialAsset.normalMap) as any;
+
+				TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
+				MaterialManager.SetTexture(
+					matHandle,
+					ShaderProperties.NormalMap,
+					texHandle,
+				);
+
+				MaterialManager.SetFloat(
+					matHandle,
+					ShaderProperties.NormalScale,
+					materialAsset.normalScale,
+				);
+			}
+
+			MaterialManager.SetColor(
+				matHandle,
+				ShaderProperties.Emission,
+				vec4.fromValues(
+					materialAsset.emissionColor.x,
+					materialAsset.emissionColor.y,
+					materialAsset.emissionColor.z,
+					1,
+				),
+			);
+			if (materialAsset.emissionMap) {
+				const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
+				const texAsset = assetRecord.get(materialAsset.emissionMap) as any;
+
+				TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
+				MaterialManager.SetTexture(
+					matHandle,
+					ShaderProperties.EmissionMap,
+					texHandle,
+				);
+			}
+
+			if (materialAsset.occlusionMap) {
+				const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
+				const texAsset = assetRecord.get(materialAsset.occlusionMap) as any;
+
+				TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
+				MaterialManager.SetTexture(
+					matHandle,
+					ShaderProperties.OcclusionMap,
+					texHandle,
+				);
+
+				MaterialManager.SetFloat(
+					matHandle,
+					ShaderProperties.OcclusionStrength,
+					materialAsset.occlusionStrength,
+				);
+			}
+
+			RenderableManager.SetMaterial(currEntity, matHandle);
+
+			if (materialAsset.roughnessMap || materialAsset.metalnessMap) {
+				const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
+				const texAsset = assetRecord.get(
+					materialAsset.roughnessMap || materialAsset.metalnessMap,
+				) as any;
+
+				TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
+				MaterialManager.SetTexture(
+					matHandle,
+					ShaderProperties.RoughnessMap,
+					texHandle,
+				);
+			}
+
+			MaterialManager.SetFloat(
+				matHandle,
+				ShaderProperties.Metalness,
+				materialAsset.metalness,
+			);
+
+			MaterialManager.SetFloat(
+				matHandle,
+				ShaderProperties.Roughness,
+				materialAsset.roughness,
+			);
+
+			RenderableManager.SetMaterial(currEntity, matHandle, index);
+		};
+
 		const renderable = renderables.get(entity);
-		if (renderable && renderable.mesh && renderable.material) {
+		if (renderable && renderable.mesh) {
 			RenderableManager.Create(currEntity);
 
 			const meshAsset = assetRecord.get(renderable.mesh) as any;
@@ -231,118 +345,17 @@ export const LoadProject = async (
 			if (meshAsset) {
 				const mesh = RpcClient.Call("Internal:Mesh_Create", {
 					clientId: RpcClient.GetClientId(),
-					primitives: meshAsset.meshPrimitives,
+					meshAsset: JSON.stringify(meshAsset),
 				});
 
 				RenderableManager.SetMesh(currEntity, mesh);
-				// RenderableManager.SetCulling(currEntity, renderable.culling);
+				RenderableManager.SetCulling(currEntity, renderable.culling);
 			}
 
-			const materialAsset = assetRecord.get(renderable.material) as any;
-
-			if (materialAsset) {
-				const matHandle = MaterialManager.Create(ShaderType.URP_LIT);
-				MaterialManager.SetColor(
-					matHandle,
-					ShaderProperties.BaseColor,
-					vec4.fromValues(
-						materialAsset.baseColor.x,
-						materialAsset.baseColor.y,
-						materialAsset.baseColor.z,
-						materialAsset.baseColor.w,
-					),
-				);
-
-				if (materialAsset.baseColorMap) {
-					const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
-					const texAsset = assetRecord.get(materialAsset.baseColorMap) as any;
-
-					TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
-					MaterialManager.SetTexture(
-						matHandle,
-						ShaderProperties.BaseMap,
-						texHandle,
-					);
-				}
-
-				if (materialAsset.normalMap) {
-					const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
-					const texAsset = assetRecord.get(materialAsset.normalMap) as any;
-
-					TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
-					MaterialManager.SetTexture(
-						matHandle,
-						ShaderProperties.DetailNormalMap,
-						texHandle,
-					);
-
-					MaterialManager.SetFloat(
-						matHandle,
-						ShaderProperties.DetailNormalMapScale,
-						materialAsset.normalScale,
-					);
-				}
-
-				MaterialManager.SetColor(
-					matHandle,
-					ShaderProperties.EmissionColor,
-					vec4.fromValues(
-						materialAsset.emissionColor.x,
-						materialAsset.emissionColor.y,
-						materialAsset.emissionColor.z,
-						1,
-					),
-				);
-				if (materialAsset.emissionMap) {
-					const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
-					const texAsset = assetRecord.get(materialAsset.emissionMap) as any;
-
-					TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
-					MaterialManager.SetTexture(
-						matHandle,
-						ShaderProperties.EmissionMap,
-						texHandle,
-					);
-				}
-
-				if (materialAsset.normalMap) {
-					const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
-					const texAsset = assetRecord.get(materialAsset.normalMap) as any;
-
-					TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
-					MaterialManager.SetTexture(
-						matHandle,
-						ShaderProperties.DetailNormalMap,
-						texHandle,
-					);
-
-					MaterialManager.SetFloat(
-						matHandle,
-						ShaderProperties.DetailNormalMapScale,
-						materialAsset.normalScale,
-					);
-				}
-
-				if (materialAsset.occlusionMap) {
-					const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
-					const texAsset = assetRecord.get(materialAsset.occlusionMap) as any;
-
-					TextureManager.LoadImageBase64(texHandle, texAsset.base64Image);
-					MaterialManager.SetTexture(
-						matHandle,
-						ShaderProperties.OcclusionMap,
-						texHandle,
-					);
-
-					MaterialManager.SetFloat(
-						matHandle,
-						ShaderProperties.OcclusionStrength,
-						materialAsset.occlusionStrength,
-					);
-				}
-
-				RenderableManager.SetMaterial(currEntity, matHandle);
-			}
+			renderable.materialList.forEach((m, idx) => {
+				const material = assetRecord.get(m) as any;
+				if (material) applyMaterial(material, idx);
+			});
 		}
 
 		const light = lights.get(entity);

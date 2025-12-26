@@ -6,67 +6,42 @@ export type MaterialHandle = number;
 
 export enum ShaderType {
 	URP_LIT = "Universal Render Pipeline/Lit",
+	UnityGLTF = "UnityGLTF/PBRGraph",
 }
 
 export enum ShaderProperties {
-	/** 2D Texture */
-	BaseMap = "_BaseMap",
 	/** vec4 [0.0, 1.0] */
-	BaseColor = "_BaseColor",
-
-	/** float [0.0, 1.0] */
-	Cutoff = "_Cutoff",
-
-	/** float [0.0, 1.0] */
-	Smoothness = "_Smoothness",
-	/** float */
-	SmoothnessTextureChannel = "_SmoothnessTextureChannel",
-
-	/** float [0.0, 1.0] */
-	Metallic = "_Metallic",
+	BaseColor = "baseColorFactor",
 	/** 2D Texture */
-	MetallicGlossMap = "_MetallicGlossMap",
+	BaseColorMap = "baseColorTexture",
+
+	/** float [0.0, 2.0] */
+	NormalScale = "normalScale",
+	/** 2D Texture */
+	NormalMap = "normalTexture",
 
 	/** vec3 [0.0, 1.0] */
-	SpecColor = "_SpecColor",
+	Emission = "emissiveFactor",
 	/** 2D Texture */
-	SpecGlossMap = "_SpecGlossMap",
-
-	/** float */
-	SpecularHighlights = "_SpecularHighlights",
-	/** float */
-	EnvironmentReflections = "_EnvironmentReflections",
-
-	/** float */
-	BumpScale = "_BumpScale",
-	/** 2D Texture */
-	BumpMap = "_BumpMap",
-
-	/** float [0.005, 0.08] */
-	Parallax = "_Parallax",
-	/** 2D Texture */
-	ParallaxMap = "_ParallaxMap",
+	EmissionMap = "emissiveTexture",
 
 	/** float [0.0, 1.0] */
-	OcclusionStrength = "_OcclusionStrength",
+	OcclusionStrength = "occlusionStrength",
 	/** 2D Texture */
-	OcclusionMap = "_OcclusionMap",
+	OcclusionMap = "occlusionTexture",
 
-	/** vec3 [0.0, 1.0] */
-	EmissionColor = "_EmissionColor",
-	/** 2D Texture */
-	EmissionMap = "_EmissionMap",
+	/** float [0.0, 1.0] */
+	Roughness = "roughnessFactor",
+	/** float */
+	RoughnessMap = "metallicRoughnessTexture",
 
+	/** float [0.0, 1.0] */
+	Metalness = "metallicFactor",
 	/** 2D Texture */
-	DetailMask = "_DetailMask",
-	/** float [0.0, 2.0] */
-	DetailAlbedoMapScale = "_DetailAlbedoMapScale",
-	/** 2D Texture */
-	DetailAlbedoMap = "_DetailAlbedoMap",
-	/** float [0.0, 2.0] */
-	DetailNormalMapScale = "_DetailNormalMapScale",
-	/** 2D Texture */
-	DetailNormalMap = "_DetailNormalMap",
+	MetalnessMap = "metallicRoughnessTexture",
+
+	/** float [0.0, 1.0] */
+	AlphaCutoff = "alphaCutoff",
 }
 
 export class MaterialManager {
