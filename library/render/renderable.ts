@@ -122,19 +122,4 @@ export class RenderableManager {
 			}),
 		);
 	}
-
-	/**
-	 * Enable or disable frustum‐culling on this Renderable.
-	 * @param entityHandle The entity with the renderable component
-	 * @param enabled Whether to enable culling
-	 * @returns boolean indicating success
-	 */
-	static SetCulling(entityHandle: Entity, enabled: boolean): boolean {
-		return Boolean(
-			RpcClient.Call("Renderable_SetCulling", {
-				entityHandle,
-				enabled,
-			}),
-		);
-	}
 }

@@ -18,6 +18,14 @@ import { GrabInteractableManager } from "./interaction/interaction";
 import { RpcClient } from "./rpc";
 import { UUID } from "crypto";
 
+const RAD2DEG = 180 / Math.PI;
+
+/**
+ *
+ * matelness and roughness share the same texture
+ * culling is on matieral
+ */
+
 type Properties = {
 	componentType: string;
 	name: string;
@@ -192,18 +200,29 @@ export const LoadProject = async (
 		return meshHandle;
 	};
 
-	const createTexture = (textureAsset: any): TextureHandle => {
+	const createTexture = (textureAsset: any, linear = false): TextureHandle => {
 		const cacheTexHandle = textureCache.get(textureAsset.uuid);
 		if (cacheTexHandle) return cacheTexHandle;
 
-		const texHandle = TextureManager.Create2D(1, 1, TextureFormat.RGBA32);
+		const texHandle = TextureManager.Create2D(
+			1,
+			1,
+			TextureFormat.RGBA32,
+			linear,
+		);
 		TextureManager.LoadImageBase64(texHandle, textureAsset.base64Image);
+		TextureManager.SetFilterMode(texHandle, textureAsset.filterMode);
+		TextureManager.SetWrapModeU(texHandle, textureAsset.wrapModeU);
+		TextureManager.SetWrapModeV(texHandle, textureAsset.wrapModeV);
 
 		textureCache.set(textureAsset.uuid, texHandle);
 		return texHandle;
 	};
 
-	const createMaterial = (materialAsset: any): MaterialHandle => {
+	const createMaterial = (
+		materialAsset: any,
+		culling: boolean,
+	): MaterialHandle => {
 		const cacheMatHandle = materialCache.get(materialAsset.uuid);
 		if (cacheMatHandle) return cacheMatHandle;
 
@@ -236,7 +255,7 @@ export const LoadProject = async (
 			const texAsset = assetRecord.get(materialAsset.normalMap);
 
 			if (texAsset) {
-				const texHandle = createTexture(texAsset);
+				const texHandle = createTexture(texAsset, true);
 				MaterialManager.SetTexture(
 					matHandle,
 					ShaderProperties.NormalMap,
@@ -321,15 +340,18 @@ export const LoadProject = async (
 			materialAsset.roughness,
 		);
 
-		setTimeout(() => {
-			console.log(`SetAlphaMode: ${materialAsset.name}`);
-			MaterialManager.SetAlphaMode(matHandle, materialAsset.alphaMode);
-			MaterialManager.SetFloat(
-				matHandle,
-				ShaderProperties.AlphaCutoff,
-				materialAsset.alphaCutoff,
-			);
-		}, 6000);
+		MaterialManager.SetAlphaMode(matHandle, materialAsset.alphaMode);
+		MaterialManager.SetFloat(
+			matHandle,
+			ShaderProperties.AlphaCutoff,
+			materialAsset.alphaCutoff,
+		);
+
+		MaterialManager.SetFloat(
+			matHandle,
+			ShaderProperties.Culling,
+			culling ? 2 : 0,
+		);
 
 		materialCache.set(materialAsset.uuid, matHandle);
 		return matHandle;
@@ -374,10 +396,10 @@ export const LoadProject = async (
 				currEntity,
 				quat.fromEuler(
 					[0, 0, 0, 0],
-					transform.localRotation.value.x,
-					transform.localRotation.value.y,
-					transform.localRotation.value.z,
-					"xyz", // TODO: needs to be tested
+					transform.localRotation.value.x * RAD2DEG,
+					transform.localRotation.value.y * RAD2DEG,
+					transform.localRotation.value.z * RAD2DEG,
+					"xyz",
 				),
 			);
 		} else {
@@ -403,7 +425,7 @@ export const LoadProject = async (
 					const material = assetRecord.get(m) as any;
 					if (material === undefined) return;
 
-					const matHandle = createMaterial(material);
+					const matHandle = createMaterial(material, renderable.culling);
 					RenderableManager.SetMaterial(currEntity, matHandle, idx);
 				});
 			}

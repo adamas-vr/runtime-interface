@@ -14,36 +14,12 @@ export enum TextureFormat {
 	Alpha8 = 1,
 	//
 	// Summary:
-	//     A 16 bits/pixel texture format. Texture stores color with an alpha channel.
-	ARGB4444 = 2,
-	//
-	// Summary:
 	//     Three channel (RGB) texture format, 8-bits unsigned integer per channel.
 	RGB24 = 3,
 	//
 	// Summary:
 	//     Four channel (RGBA) texture format, 8-bits unsigned integer per channel.
 	RGBA32 = 4,
-	//
-	// Summary:
-	//     Color with alpha texture format, 8-bits per channel.
-	ARGB32 = 5,
-	//
-	// Summary:
-	//     A 16 bit color texture format.
-	RGB565 = 7,
-	//
-	// Summary:
-	//     Single channel (R) texture format, 16-bits unsigned integer.
-	R16 = 9,
-	//
-	// Summary:
-	//     Compressed color texture format.
-	DXT1 = 10,
-	//
-	// Summary:
-	//     Compressed color with alpha channel texture format.
-	DXT5 = 12,
 }
 
 export class TextureManager {
@@ -52,18 +28,21 @@ export class TextureManager {
 	 * @param width The texture width
 	 * @param height The texture height
 	 * @param format The texture format
+	 * @param linear Whether the texture is color (sRGB) or raw data (linear)
 	 * @returns The texture handle
 	 */
 	static Create2D(
 		width: number,
 		height: number,
-		format: TextureFormat,
+		format: TextureFormat = TextureFormat.RGBA32,
+		linear: boolean = false,
 	): TextureHandle {
 		return Number(
 			RpcClient.Call("Texture_Create2D", {
 				width,
 				height,
 				format,
+				linear,
 				clientId: RpcClient.GetClientId(),
 			}),
 		);
@@ -213,17 +192,35 @@ export class TextureManager {
 	}
 
 	/**
-	 * Set the wrap mode for the texture
+	 * Set the U coordinate wrap mode for the texture
 	 * @param handle The texture handle
 	 * @param wrapMode The wrap mode
 	 * @returns boolean indicating success
 	 */
-	static SetWrapMode(
+	static SetWrapModeU(
 		handle: TextureHandle,
 		wrapMode: TextureWrapMode,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("Texture_SetWrapMode", {
+			RpcClient.Call("Texture_SetWrapModeU", {
+				textureHandle: handle,
+				wrapMode,
+			}),
+		);
+	}
+
+	/**
+	 * Set the V coordinate wrap mode for the texture
+	 * @param handle The texture handle
+	 * @param wrapMode The wrap mode
+	 * @returns boolean indicating success
+	 */
+	static SetWrapModeV(
+		handle: TextureHandle,
+		wrapMode: TextureWrapMode,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("Texture_SetWrapModeV", {
 				textureHandle: handle,
 				wrapMode,
 			}),

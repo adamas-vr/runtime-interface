@@ -42,6 +42,9 @@ export enum ShaderProperties {
 
 	/** float [0.0, 1.0] */
 	AlphaCutoff = "alphaCutoff",
+
+	/** float 0: Two Sides; 2: Front Only */
+	Culling = "_Cull",
 }
 
 export class MaterialManager {
