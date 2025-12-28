@@ -95,14 +95,10 @@ type Colliders = {
 				isTrigger: boolean;
 				colliderType: string;
 				center: {
-					x: number;
-					y: number;
-					z: number;
+					value: [number, number, number];
 				};
 				size: {
-					x: number;
-					y: number;
-					z: number;
+					value: [number, number, number];
 				};
 				radius?: undefined;
 				height?: undefined;
@@ -111,9 +107,7 @@ type Colliders = {
 				isTrigger: boolean;
 				colliderType: string;
 				center: {
-					x: number;
-					y: number;
-					z: number;
+					value: [number, number, number];
 				};
 				radius: number;
 				size?: undefined;
@@ -123,9 +117,7 @@ type Colliders = {
 				isTrigger: boolean;
 				colliderType: string;
 				center: {
-					x: number;
-					y: number;
-					z: number;
+					value: [number, number, number];
 				};
 				height: number;
 				radius: number;
@@ -489,11 +481,19 @@ export const LoadProject = async (
 						const handle = ColliderManager.CreateBox(currEntity);
 						ColliderManager.SetBoxColliderCenter(
 							handle,
-							vec3.fromValues(c.center.x, c.center.y, c.center.z),
+							vec3.fromValues(
+								c.center.value[0],
+								c.center.value[1],
+								c.center.value[2],
+							),
 						);
 						ColliderManager.SetBoxColliderSize(
 							handle,
-							vec3.fromValues(c.size!.x, c.size!.y, c.size!.z),
+							vec3.fromValues(
+								c.size!.value[0],
+								c.size!.value[1],
+								c.size!.value[2],
+							),
 						);
 						break;
 					}
@@ -501,7 +501,11 @@ export const LoadProject = async (
 						const handle = ColliderManager.CreateSphere(currEntity);
 						ColliderManager.SetSphereColliderCenter(
 							handle,
-							vec3.fromValues(c.center.x, c.center.y, c.center.z),
+							vec3.fromValues(
+								c.center.value[0],
+								c.center.value[1],
+								c.center.value[2],
+							),
 						);
 						ColliderManager.SetSphereColliderRadius(handle, c.radius!);
 						break;
@@ -510,7 +514,11 @@ export const LoadProject = async (
 						const handle = ColliderManager.CreateCapsule(currEntity);
 						ColliderManager.SetCapsuleColliderCenter(
 							handle,
-							vec3.fromValues(c.center.x, c.center.y, c.center.z),
+							vec3.fromValues(
+								c.center.value[0],
+								c.center.value[1],
+								c.center.value[2],
+							),
 						);
 						ColliderManager.SetCapsuleColliderRadius(handle, c.radius!);
 						ColliderManager.SetCapsuleColliderHeight(handle, c.height!);
