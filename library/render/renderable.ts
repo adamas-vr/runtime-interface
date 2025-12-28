@@ -78,6 +78,26 @@ export class RenderableManager {
 	}
 
 	/**
+	 * @param entityHandle
+	 * @param index The entity with the renderable component
+	 * @param weight [0, 1.0] The weight of the blend shape
+	 * @returns boolean indicating success
+	 */
+	static SetBlendShapeWeight(
+		entityHandle: Entity,
+		index: number,
+		weight: number,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("Renderable_SetBlendShapeWeight", {
+				entityHandle,
+				index,
+				weight,
+			}),
+		);
+	}
+
+	/**
 	 * Set the layer mask on this Renderable (bitmask of visible layers).
 	 * @param entityHandle The entity with the renderable component
 	 * @param layerMask The layer mask

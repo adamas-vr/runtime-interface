@@ -421,6 +421,13 @@ export const LoadProject = async (
 
 				RenderableManager.SetMesh(currEntity, meshHandle);
 
+				if (meshAsset.morphWeights) {
+					(meshAsset.morphWeights as number[]).forEach((weight, index) => {
+						if (weight != 0)
+							RenderableManager.SetBlendShapeWeight(currEntity, index, weight);
+					});
+				}
+
 				renderable.materialList.forEach((m, idx) => {
 					const material = assetRecord.get(m) as any;
 					if (material === undefined) return;
