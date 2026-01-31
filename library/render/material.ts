@@ -69,7 +69,7 @@ export class MaterialManager {
 	): MaterialHandle;
 
 	static Create(
-		shader: ShaderType = ShaderType.URP_LIT,
+		shader: ShaderType = ShaderType.UnityGLTF,
 		entity?: Entity,
 		submeshIndex: number = 0,
 	): MaterialHandle {
