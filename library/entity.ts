@@ -12,6 +12,7 @@ export class EntityManager {
 			RpcClient.Call("Entity_Create", {
 				name,
 				clientId: RpcClient.GetClientId(),
+				processId: process.pid,
 			}),
 		);
 	}

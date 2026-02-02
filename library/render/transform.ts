@@ -88,6 +88,7 @@ export class TransformManager {
 	static SetParent(entity: Entity, parent: Entity): boolean {
 		return Boolean(
 			RpcClient.Call("Transform_SetParent", {
+				processId: process.pid,
 				entityHandle: entity,
 				parentHandle: parent,
 			}),
