@@ -1,3 +1,5 @@
+import "../types/asset.d";
+
 export * from "./rpc";
 export * from "./debug";
 export * from "./device";
@@ -17,4 +19,4 @@ export * from "./render/scene";
 export * from "./render/texture";
 export * from "./render/transform";
 export * from "./utilities/base64";
-export * from "./project-loader";
+export * from "./project";

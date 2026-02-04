@@ -32,8 +32,8 @@ type Properties = {
 };
 type Transforms = {
 	componentType: string;
-	parent: string;
-	children: string[];
+	parent: UUID;
+	children: UUID[];
 	localScale: {
 		value: [number, number, number];
 	};
@@ -142,10 +142,76 @@ type Grabbles = {
 	attachEntity: string;
 };
 
-export const LoadProject = async (
+export interface SceneGraph {}
+
+function buildSceneGraphRuntime(
+	scene: any,
+	entityMap: Map<string, Entity>,
+	properties: Map<UUID, Properties>,
+	transforms: Map<UUID, Transforms>,
+) {
+	interface SceneGraphUUIDNode {
+		entityId: number;
+		children: Map<UUID, SceneGraphUUIDNode>;
+	}
+
+	function buildSceneGraphByName(
+		root: SceneGraphUUIDNode,
+		properties: Map<UUID, { name: string }>,
+	) {
+		const visit = (node: SceneGraphUUIDNode) => {
+			const out: any = { entityId: node.entityId };
+
+			for (const [childUUID, child] of node.children) {
+				const prop = properties.get(childUUID)!;
+				const name = `@${String(prop.name)}`;
+
+				// Duplicate names at same level: keep the first one
+				if (Object.prototype.hasOwnProperty.call(out, name)) continue;
+				out[name] = visit(child);
+			}
+
+			return out;
+		};
+
+		const retval = visit(root);
+		delete retval.entityId;
+		return retval;
+	}
+	const sceneGraphNodeMap = new Map<UUID, SceneGraphUUIDNode>();
+	const sceneGraphUUID: SceneGraphUUIDNode = {
+		entityId: -1,
+		children: new Map(),
+	};
+
+	for (const entity of scene.entities.value) {
+		sceneGraphNodeMap.set(entity, {
+			entityId: entityMap.get(entity)!,
+			children: new Map(),
+		});
+	}
+
+	for (const entity of scene.entities.value) {
+		const transform = transforms.get(entity)!;
+
+		if (transform.parent !== "00000000-0000-0000-0000-000000000000") {
+			sceneGraphNodeMap
+				.get(transform.parent as UUID)!
+				.children.set(entity, sceneGraphNodeMap.get(entity)!);
+		} else {
+			sceneGraphUUID.children.set(entity, sceneGraphNodeMap.get(entity)!);
+		}
+	}
+
+	const sceneGraph: any = {};
+	Object.assign(sceneGraph, buildSceneGraphByName(sceneGraphUUID, properties));
+	return sceneGraph;
+}
+
+export function LoadProject(
 	assetRecord: Map<string, object>,
 	projectFile: any,
-) => {
+): SceneGraph {
 	// type Properties = Exclude<(typeof scene.properties)[number][number], string>;
 	// type Transforms = Exclude<(typeof scene.transforms)[number][number], string>;
 	// type Renderables = Exclude<
@@ -162,18 +228,14 @@ export const LoadProject = async (
 	// type Grabbles = Exclude<(typeof scene.grabbles)[number][number], string>;
 
 	const scene = projectFile.scene;
-	const properties = new Map(scene.properties.value as [string, Properties][]);
-	const transforms = new Map(scene.transforms.value as [string, Transforms][]);
-	const renderables = new Map(
-		scene.renderables.value as [string, Renderables][],
-	);
-	const lights = new Map(scene.lights.value as [string, Lights][]);
-	const cameras = new Map(scene.cameras.value as [string, Cameras][]);
-	const colliders = new Map(scene.colliders.value as [string, Colliders][]);
-	const rigidbodies = new Map(
-		scene.rigidbodies.value as [string, Rigidbodies][],
-	);
-	const grabbles = new Map(scene.grabbles.value as [string, Grabbles][]);
+	const properties = new Map(scene.properties.value as [UUID, Properties][]);
+	const transforms = new Map(scene.transforms.value as [UUID, Transforms][]);
+	const renderables = new Map(scene.renderables.value as [UUID, Renderables][]);
+	const lights = new Map(scene.lights.value as [UUID, Lights][]);
+	const cameras = new Map(scene.cameras.value as [UUID, Cameras][]);
+	const colliders = new Map(scene.colliders.value as [UUID, Colliders][]);
+	const rigidbodies = new Map(scene.rigidbodies.value as [UUID, Rigidbodies][]);
+	const grabbles = new Map(scene.grabbles.value as [UUID, Grabbles][]);
 
 	const meshCache = new Map<UUID, MeshHandle>();
 	const materialCache = new Map<UUID, MaterialHandle>();
@@ -355,6 +417,13 @@ export const LoadProject = async (
 		const entityId = EntityManager.Create(property.name);
 		entityMap.set(entity, entityId);
 	}
+
+	const sceneGraph = buildSceneGraphRuntime(
+		scene,
+		entityMap,
+		properties,
+		transforms,
+	);
 
 	for (const entity of scene.entities.value) {
 		const currEntity = entityMap.get(entity)!;
@@ -564,4 +633,6 @@ export const LoadProject = async (
 			}
 		}
 	}
-};
+
+	return sceneGraph;
+}

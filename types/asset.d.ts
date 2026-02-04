@@ -1,5 +1,5 @@
 declare module "*.mat" {
-	type UUID = `${string}-${string}-${string}-${string}-${string}`;
+	import { UUID } from "crypto";
 	const value: {
 		assetType: "Material";
 
@@ -64,4 +64,10 @@ declare module "*.mesh" {
 		base64Uvs?: string;
 	};
 	export default value;
+}
+
+declare module "adamas:project" {
+	import { UUID } from "crypto";
+	export const assetRecord: Map<UUID, object>;
+	export const projectFile: any;
 }
