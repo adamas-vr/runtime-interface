@@ -1,4 +1,5 @@
 import { Entity } from "../entity";
+import { RigidbodyManager } from "../physics/rigidbody";
 import { RpcClient } from "../rpc";
 
 /**
@@ -14,6 +15,10 @@ export class GrabInteractableManager {
 	 * @returns A handle representing the newly created grab interactable.
 	 */
 	static Create(entityHandle: Entity): boolean {
+		if (!RigidbodyManager.HasComponent(entityHandle)) {
+			RigidbodyManager.Create(entityHandle);
+		}
+
 		return Boolean(
 			RpcClient.Call("GrabInteractableAPI_Create", {
 				entityHandle,
@@ -186,6 +191,52 @@ export class GrabInteractableManager {
 			RpcClient.Call("GrabInteractableAPI_SetAttachEntity", {
 				entityHandle,
 				attachEntityHandle,
+			}),
+		);
+	}
+
+	/**
+	 * Registers a callback to be invoked when the object is hovered.
+	 * @param entityHandle The entity to observe.
+	 * @param onHoverEntered Callback function to invoke on hover enter.
+	 * @returns True if the callback was registered successfully.
+	 */
+	static AddHoverEnteredCallback(
+		entityHandle: Entity,
+		onHoverEntered: (
+			interactableEntity: Entity,
+			interactorEntity: Entity,
+		) => void,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("GrabInteractableAPI_AddHoverEnteredCallback", {
+				entityHandle,
+				onHoverEntered: (args: any) => {
+					onHoverEntered(args.interactableEntity, args.interactorEntity);
+				},
+			}),
+		);
+	}
+
+	/**
+	 * Registers a callback to be invoked when the object is unhovered.
+	 * @param entityHandle The entity to observe.
+	 * @param onHoverExited Callback function to invoke on hover exit.
+	 * @returns True if the callback was registered successfully.
+	 */
+	static AddHoverExitedCallback(
+		entityHandle: Entity,
+		onHoverExited: (
+			interactableEntity: Entity,
+			interactorEntity: Entity,
+		) => void,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("GrabInteractableAPI_AddHoverExitedCallback", {
+				entityHandle,
+				onHoverExited: (args: any) => {
+					onHoverExited(args.interactableEntity, args.interactorEntity);
+				},
 			}),
 		);
 	}
