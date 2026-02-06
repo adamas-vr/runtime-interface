@@ -133,13 +133,15 @@ type Rigidbodies = {
 	mass: number;
 	useGravity: boolean;
 };
+
 type Grabbles = {
 	componentType: string;
-	throwOnDetach: boolean;
+	dynamicAttach: boolean;
+	attachEntity?: UUID;
+	allowHoverActivate: boolean;
 	trackPosition: boolean;
 	trackRotation: boolean;
-	trackScale: boolean;
-	attachEntity: string;
+	throwOnDetach: boolean;
 };
 
 export interface SceneGraph {}
@@ -611,10 +613,23 @@ export function LoadProject(
 		if (grabble) {
 			GrabInteractableManager.Create(currEntity);
 
-			GrabInteractableManager.SetThrowOnDetach(
+			GrabInteractableManager.SetDynamicAttach(
 				currEntity,
-				grabble.throwOnDetach,
+				grabble.dynamicAttach,
 			);
+
+			if (grabble.dynamicAttach && grabble.attachEntity) {
+				GrabInteractableManager.SetAttachEntity(
+					currEntity,
+					entityMap.get(grabble.attachEntity)!,
+				);
+			}
+
+			GrabInteractableManager.SetAllowHoverActivate(
+				currEntity,
+				grabble.allowHoverActivate,
+			);
+
 			GrabInteractableManager.SetTrackPosition(
 				currEntity,
 				grabble.trackPosition,
@@ -623,14 +638,10 @@ export function LoadProject(
 				currEntity,
 				grabble.trackRotation,
 			);
-			GrabInteractableManager.SetTrackScale(currEntity, grabble.trackScale);
-
-			if (grabble.attachEntity) {
-				GrabInteractableManager.SetAttachEntity(
-					currEntity,
-					entityMap.get(grabble.attachEntity)!,
-				);
-			}
+			GrabInteractableManager.SetThrowOnDetach(
+				currEntity,
+				grabble.throwOnDetach,
+			);
 		}
 	}
 

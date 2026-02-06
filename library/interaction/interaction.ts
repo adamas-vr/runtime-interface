@@ -109,34 +109,6 @@ export class GrabInteractableManager {
 	}
 
 	/**
-	 * Gets whether the grab interactable tracks scale.
-	 * @param entityHandle The target entity.
-	 * @returns True if scale tracking is enabled.
-	 */
-	static GetTrackScale(entityHandle: Entity): boolean {
-		return Boolean(
-			RpcClient.Call("GrabInteractableAPI_GetTrackScale", {
-				entityHandle,
-			}),
-		);
-	}
-
-	/**
-	 * Enables or disables scale tracking on the grab interactable.
-	 * @param entityHandle The target entity.
-	 * @param isTracking Whether to enable scale tracking.
-	 * @returns True if the change was applied.
-	 */
-	static SetTrackScale(entityHandle: Entity, isTracking: boolean): boolean {
-		return Boolean(
-			RpcClient.Call("GrabInteractableAPI_SetTrackScale", {
-				entityHandle,
-				isTracking,
-			}),
-		);
-	}
-
-	/**
 	 * Gets whether the object should apply physics-based throw on detach.
 	 * @param entityHandle The target entity.
 	 * @returns True if throw-on-detach is enabled.
@@ -191,6 +163,46 @@ export class GrabInteractableManager {
 			RpcClient.Call("GrabInteractableAPI_SetAttachEntity", {
 				entityHandle,
 				attachEntityHandle,
+			}),
+		);
+	}
+
+	static SetAllowHoverActivate(
+		entityHandle: Entity,
+		allowHoverActivate: boolean,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("GrabInteractableAPI_SetAllowHoverActivate", {
+				entityHandle,
+				allowHoverActivate,
+			}),
+		);
+	}
+
+	static GetAllowHoverActivate(entityHandle: Entity): boolean {
+		return Boolean(
+			RpcClient.Call("GrabInteractableAPI_GetAllowHoverActivate", {
+				entityHandle,
+			}),
+		);
+	}
+
+	static SetDynamicAttach(
+		entityHandle: Entity,
+		dynamicAttach: boolean,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("GrabInteractableAPI_SetDynamicAttach", {
+				entityHandle,
+				dynamicAttach,
+			}),
+		);
+	}
+
+	static GetDynamicAttach(entityHandle: Entity): boolean {
+		return Boolean(
+			RpcClient.Call("GrabInteractableAPI_GetDynamicAttach", {
+				entityHandle,
 			}),
 		);
 	}
