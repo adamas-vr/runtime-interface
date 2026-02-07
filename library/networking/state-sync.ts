@@ -50,7 +50,7 @@ export class Networking {
 					key: key,
 					payload: JSON.stringify({ [prop]: value }),
 				});
-				return value;
+				return true;
 			},
 		});
 
