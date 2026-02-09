@@ -1,8 +1,8 @@
-import { randomUUID } from "crypto";
 import { RpcClient } from "../rpc";
 import { Project } from "../project";
 
 export class Networking {
+	static #stateKey = 0;
 	static GetNetworkID(): string {
 		return Project.GetProjectId();
 	}
@@ -37,7 +37,7 @@ export class Networking {
 			typeof arg0 === "function" ? ({} as T) : (arg0 ?? ({} as T));
 		const internalState = structuredClone(initialState); // deep clone to decouple
 
-		const key = randomUUID();
+		const key = (Networking.#stateKey++).toString();
 		const proxy = new Proxy(internalState, {
 			get(target, prop) {
 				return Reflect.get(target, prop);
