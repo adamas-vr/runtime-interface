@@ -3,30 +3,103 @@ import { Project } from "../project";
 
 export type StateRef<T> = { value: T };
 
+//TODO: missing onPlayerJoined and onPlayerLeaving, network sync entity state authority
+
 export class Networking {
 	static #stateKey = 0;
 	static #KeyGen() {
-		return (Networking.#stateKey++).toString();
+		return Networking.#stateKey++;
 	}
+	static #channelNameMap = new Map<string, number>();
 
 	static GetNetworkID(): string {
 		return Project.GetProjectId();
 	}
 
-	/**
-	 * Does not call onChange after being initialized.
-	 * After function returns, state is always the latest value (or initial value?)
-	 * When no initial value is given, key's values are all undefined (TODO: follow react for typing)
-	 *
-	 * Right now: callback executed on the caller, late joiners triger CB
-	 * @param initial
-	 */
+	static GetPlayerId(): number {
+		return RpcClient.Call("Networking::GetPlayerId", {}) as number;
+	}
+
+	static IsStateAuthority(): boolean {
+		return RpcClient.Call("Networking::IsStateAuthority", {
+			networkId: Networking.GetNetworkID(),
+		}) as boolean;
+	}
+
+	static GetStateAuthorityPlayerId(): number {
+		return RpcClient.Call("Networking::GetStateAuthorityPlayerId", {
+			networkId: Networking.GetNetworkID(),
+		}) as number;
+	}
+
+	static #NewChannel(
+		channelId: number,
+		onReceived: (sender: number, payload: string) => void,
+	) {
+		RpcClient.Call("Networking::NewChannel", {
+			networkId: Networking.GetNetworkID(),
+			channelId,
+			onReceived: ({ sender, data }: { sender: number; data: string }) => {
+				onReceived(sender, data);
+			},
+		});
+	}
+
+	static #SendMessageTo(playerId: number, channelId: number, payload: string) {
+		RpcClient.Call("Networking::SendMessageTo", {
+			networkId: Networking.GetNetworkID(),
+			playerId,
+			channelId,
+			payload,
+		});
+	}
+
+	static #BroadcastMessage(channelId: number, payload: string) {
+		RpcClient.Call("Networking::BroadcastMessage", {
+			networkId: Networking.GetNetworkID(),
+			channelId,
+			payload,
+		});
+	}
+
+	static NewChannel(
+		channelName: string,
+		onReceived: (sender: number, payload: string) => void,
+	) {
+		if (this.#channelNameMap.has(channelName)) {
+			throw `Failed to create channel: Channel ${channelName} has already been created`;
+		}
+
+		const channelId = this.#KeyGen();
+		this.#channelNameMap.set(channelName, channelId);
+		this.#NewChannel(channelId, onReceived);
+	}
+
+	static SendMessageTo(playerId: number, channelName: string, payload: string) {
+		const channelId = this.#channelNameMap.get(channelName);
+		if (channelId === undefined) {
+			throw `Failed to send message: channel ${channelName} cannot be found`;
+		}
+
+		this.#SendMessageTo(playerId, channelId, payload);
+	}
+
+	static BroadcastMessage(channelName: string, payload: string) {
+		const channelId = this.#channelNameMap.get(channelName);
+		if (channelId === undefined) {
+			throw `Failed to broadcast message: channel ${channelName} cannot be found`;
+		}
+
+		this.#BroadcastMessage(channelId, payload);
+	}
+
 	static NewVariable<T>(
 		initialValue: T,
 		onStateChange?: (state: T) => void,
 	): StateRef<T> {
 		const internalState = { value: initialValue };
-		const key = Networking.#KeyGen();
+		const syncKey = Networking.#KeyGen();
+		const initKey = Networking.#KeyGen();
 
 		const proxy = new Proxy(internalState, {
 			get(target, prop) {
@@ -35,25 +108,33 @@ export class Networking {
 			set(target, prop, value) {
 				Reflect.set(target, prop, value);
 				onStateChange?.(internalState.value);
-				RpcClient.Call("_RPC::BroadcastState", {
-					networkId: Networking.GetNetworkID(),
-					key: key,
-					payload: JSON.stringify(value),
-				});
+				Networking.#BroadcastMessage(syncKey, JSON.stringify(value));
 				return true;
 			},
 		});
 
-		RpcClient.Call("_RPC::AddNewState", {
-			networkId: Networking.GetNetworkID(),
-			key: key,
-			onReceived: (jsonObject: any) => {
-				const received = JSON.parse(jsonObject.data);
-				internalState.value = received;
-				onStateChange?.(internalState.value);
-			},
+		Networking.#NewChannel(syncKey, (_, payload) => {
+			console.log("NewVariable onReceived: " + payload);
+			const received = JSON.parse(payload);
+			internalState.value = received;
+			onStateChange?.(internalState.value);
 		});
 
+		Networking.#NewChannel(initKey, (playerId) => {
+			if (Networking.IsStateAuthority()) {
+				Networking.#SendMessageTo(
+					playerId,
+					syncKey,
+					JSON.stringify(internalState.value),
+				);
+			}
+		});
+
+		if (!Networking.IsStateAuthority()) {
+			this.#SendMessageTo(this.GetStateAuthorityPlayerId(), initKey, "");
+		}
+
+		onStateChange?.(internalState.value);
 		return proxy;
 	}
 
@@ -62,34 +143,15 @@ export class Networking {
 
 		const callFunction = (...args: Parameters<F>) => {
 			func(...args);
-			RpcClient.Call("_RPC::BroadcastState", {
-				networkId: Networking.GetNetworkID(),
-				key: key,
-				payload: JSON.stringify(args),
-			});
+			Networking.#BroadcastMessage(key, JSON.stringify(args));
 		};
 
-		RpcClient.Call("_RPC::AddNewState", {
-			networkId: Networking.GetNetworkID(),
-			key: key,
-			onReceived: (jsonObject: any) => {
-				console.log("onReceived: " + jsonObject.data);
-
-				const received = JSON.parse(jsonObject.data) as Parameters<F>;
-				func(...received);
-			},
+		this.#NewChannel(key, (_, payload) => {
+			console.log("NewFuction onReceived: " + payload);
+			const received = JSON.parse(payload) as Parameters<F>;
+			func(...received);
 		});
 
 		return callFunction;
-	}
-
-	static IsStateAuthority(): boolean {
-		return RpcClient.Call("_RPC:IsStateAuthority", {
-			networkId: Networking.GetNetworkID(),
-		}) as boolean;
-	}
-
-	static GetPlayerId(): number {
-		return RpcClient.Call("Multiplayer_GetPlayerId", {}) as number;
 	}
 }
