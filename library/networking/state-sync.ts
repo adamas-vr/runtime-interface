@@ -1,12 +1,14 @@
 import { RpcClient } from "../rpc";
 import { Project } from "../project";
 
-export type Serializable = number | string | boolean | object | [];
-export type OnStateChange<T> = (state: T | null) => void;
-export type StateRef<T> = { value: T | null };
+export type StateRef<T> = { value: T };
 
 export class Networking {
 	static #stateKey = 0;
+	static #KeyGen() {
+		return (Networking.#stateKey++).toString();
+	}
+
 	static GetNetworkID(): string {
 		return Project.GetProjectId();
 	}
@@ -16,33 +18,16 @@ export class Networking {
 	 * After function returns, state is always the latest value (or initial value?)
 	 * When no initial value is given, key's values are all undefined (TODO: follow react for typing)
 	 *
-	 * maybe need mode.RPC and mode.variable ??
-	 * RPC: callback executed on the caller, late joiners trigger callback
-	 * Variable: callback not executed on the caller, late don't triger callback
-	 *
-	 * Right now: callback executed on the caller, late joiners dont triger CB
+	 * Right now: callback executed on the caller, late joiners triger CB
 	 * @param initial
 	 */
-	static NewState<T extends Serializable>(): [StateRef<T>, OnStateChange<T>];
-	static NewState<T extends Serializable>(
-		initialState: T,
-	): [StateRef<T>, OnStateChange<T>];
-	static NewState<T extends Serializable>(
-		onStateChange: OnStateChange<T>,
-	): [StateRef<T>, OnStateChange<T>];
-	static NewState<T extends Serializable>(
-		initialState: T,
-		onStateChange: OnStateChange<T>,
-	): [StateRef<T>, OnStateChange<T>];
-	static NewState<T extends Serializable>(
-		arg0?: T | OnStateChange<T>,
-		arg1?: OnStateChange<T>,
-	): [StateRef<T>, OnStateChange<T>] {
-		const onStateChange = typeof arg0 === "function" ? arg0 : arg1;
-		const initialValue = typeof arg0 === "function" ? null : (arg0 ?? null);
-		const internalState = { value: initialValue }; // deep clone to decouple
+	static NewVariable<T>(
+		initialValue: T,
+		onStateChange?: (state: T) => void,
+	): StateRef<T> {
+		const internalState = { value: initialValue };
+		const key = Networking.#KeyGen();
 
-		const key = (Networking.#stateKey++).toString();
 		const proxy = new Proxy(internalState, {
 			get(target, prop) {
 				return Reflect.get(target, prop);
@@ -53,36 +38,49 @@ export class Networking {
 				RpcClient.Call("_RPC::BroadcastState", {
 					networkId: Networking.GetNetworkID(),
 					key: key,
-					payload: JSON.stringify({ [prop]: value }),
+					payload: JSON.stringify(value),
 				});
 				return true;
 			},
 		});
 
-		const setState = (newState: T | null) => {
-			Object.assign(internalState, newState);
-			onStateChange?.(internalState.value);
+		RpcClient.Call("_RPC::AddNewState", {
+			networkId: Networking.GetNetworkID(),
+			key: key,
+			onReceived: (jsonObject: any) => {
+				const received = JSON.parse(jsonObject.data);
+				internalState.value = received;
+				onStateChange?.(internalState.value);
+			},
+		});
+
+		return proxy;
+	}
+
+	static NewFunction<F extends (...args: any[]) => any>(func: F) {
+		const key = Networking.#KeyGen();
+
+		const callFunction = (...args: Parameters<F>) => {
+			func(...args);
 			RpcClient.Call("_RPC::BroadcastState", {
 				networkId: Networking.GetNetworkID(),
 				key: key,
-				payload: JSON.stringify(internalState),
+				payload: JSON.stringify(args),
 			});
 		};
 
-		// Subscribe to external changes
 		RpcClient.Call("_RPC::AddNewState", {
 			networkId: Networking.GetNetworkID(),
 			key: key,
 			onReceived: (jsonObject: any) => {
 				console.log("onReceived: " + jsonObject.data);
 
-				const received = JSON.parse(jsonObject.data);
-				Object.assign(internalState, received);
-				onStateChange?.(internalState.value);
+				const received = JSON.parse(jsonObject.data) as Parameters<F>;
+				func(...received);
 			},
 		});
 
-		return [proxy, setState];
+		return callFunction;
 	}
 
 	static IsStateAuthority(): boolean {
