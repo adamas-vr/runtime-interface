@@ -100,6 +100,7 @@ export class Networking {
 		const internalState = { value: initialValue };
 		const syncKey = Networking.#KeyGen();
 		const initKey = Networking.#KeyGen();
+		let initialized = false;
 
 		const proxy = new Proxy(internalState, {
 			get(target, prop) {
@@ -120,21 +121,38 @@ export class Networking {
 			onStateChange?.(internalState.value);
 		});
 
-		Networking.#NewChannel(initKey, (playerId) => {
-			if (Networking.IsStateAuthority()) {
+		Networking.#NewChannel(initKey, (playerId, payload) => {
+			const { msgType, msg } = JSON.parse(payload);
+			if (msgType === "req" && initialized) {
 				Networking.#SendMessageTo(
 					playerId,
-					syncKey,
-					JSON.stringify(internalState.value),
+					initKey,
+					JSON.stringify({ msgType: "rsp", msg: internalState.value }),
 				);
+			} else if (msgType === "rsp" && !initialized) {
+				internalState.value = msg;
+				initialized = true;
+				onStateChange?.(internalState.value);
 			}
 		});
 
-		if (!Networking.IsStateAuthority()) {
-			this.#SendMessageTo(this.GetStateAuthorityPlayerId(), initKey, "");
+		if (Networking.IsStateAuthority()) {
+			initialized = true;
+			onStateChange?.(internalState.value);
+		} else {
+			// FIXME: not very efficient
+			this.#BroadcastMessage(
+				initKey,
+				JSON.stringify({ msgType: "req", msg: "" }),
+			);
+			setTimeout(() => {
+				if (!initialized) {
+					initialized = true;
+					onStateChange?.(internalState.value);
+				}
+			}, 2000);
 		}
 
-		onStateChange?.(internalState.value);
 		return proxy;
 	}
 
