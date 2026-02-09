@@ -6,6 +6,8 @@ import { Entity } from "../entity";
 // - RenderableBuilder.Material(index,materialInstance)
 // - BoundingBox(...), SetBlendOrderAt
 
+// TODO: @zekailin00 missing getter: mesh, material...
+
 export class RenderableManager {
 	/**
 	 * Create a renderable component and attach it to the specified entity

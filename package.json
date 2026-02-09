@@ -28,7 +28,7 @@
 		"gl-matrix": "^3.4.4"
 	},
 	"devDependencies": {
-		"@types/node": "^24.0.3",
+		"@types/node": "^24.10.12",
 		"cmake-js": "^8.0.0",
 		"node-addon-api": "^8.4.0",
 		"ts-node": "^10.0.0",

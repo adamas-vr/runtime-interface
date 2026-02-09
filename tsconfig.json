@@ -8,6 +8,7 @@
 		"sourceMap": true,
 		"declarationMap": true,
 		"typeRoots": ["./node_modules/@types", "./types"], // prevent typechecking in parent node_modules
+		"types": ["node"],
 		"outDir": "dist",
 		"rootDir": "library",
 		"strict": true,
