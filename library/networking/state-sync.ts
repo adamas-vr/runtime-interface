@@ -1,6 +1,10 @@
 import { RpcClient } from "../rpc";
 import { Project } from "../project";
 
+export type Serializable = number | string | boolean | object | [];
+export type OnStateChange<T> = (state: T | null) => void;
+export type StateRef<T> = { value: T | null };
+
 export class Networking {
 	static #stateKey = 0;
 	static GetNetworkID(): string {
@@ -19,23 +23,24 @@ export class Networking {
 	 * Right now: callback executed on the caller, late joiners dont triger CB
 	 * @param initial
 	 */
-	static NewState<T extends object>(): [T, (state: T) => void];
-	static NewState<T extends object>(initialState: T): [T, (state: T) => void];
-	static NewState<T extends object>(
-		onStateChange: (state: T) => void,
-	): [T, (state: T) => void];
-	static NewState<T extends object>(
+	static NewState<T extends Serializable>(): [StateRef<T>, OnStateChange<T>];
+	static NewState<T extends Serializable>(
 		initialState: T,
-		onStateChange: (state: T) => void,
-	): [T, (state: T) => void];
-	static NewState<T extends object>(
-		arg0?: T | ((state: T) => void),
-		arg1?: (state: T) => void,
-	): [T, (state: T) => void] {
+	): [StateRef<T>, OnStateChange<T>];
+	static NewState<T extends Serializable>(
+		onStateChange: OnStateChange<T>,
+	): [StateRef<T>, OnStateChange<T>];
+	static NewState<T extends Serializable>(
+		initialState: T,
+		onStateChange: OnStateChange<T>,
+	): [StateRef<T>, OnStateChange<T>];
+	static NewState<T extends Serializable>(
+		arg0?: T | OnStateChange<T>,
+		arg1?: OnStateChange<T>,
+	): [StateRef<T>, OnStateChange<T>] {
 		const onStateChange = typeof arg0 === "function" ? arg0 : arg1;
-		const initialState =
-			typeof arg0 === "function" ? ({} as T) : (arg0 ?? ({} as T));
-		const internalState = structuredClone(initialState); // deep clone to decouple
+		const initialValue = typeof arg0 === "function" ? null : (arg0 ?? null);
+		const internalState = { value: initialValue }; // deep clone to decouple
 
 		const key = (Networking.#stateKey++).toString();
 		const proxy = new Proxy(internalState, {
@@ -44,7 +49,7 @@ export class Networking {
 			},
 			set(target, prop, value) {
 				Reflect.set(target, prop, value);
-				onStateChange?.(internalState);
+				onStateChange?.(internalState.value);
 				RpcClient.Call("_RPC::BroadcastState", {
 					networkId: Networking.GetNetworkID(),
 					key: key,
@@ -54,9 +59,9 @@ export class Networking {
 			},
 		});
 
-		const setState = (newState: T) => {
+		const setState = (newState: T | null) => {
 			Object.assign(internalState, newState);
-			onStateChange?.(internalState);
+			onStateChange?.(internalState.value);
 			RpcClient.Call("_RPC::BroadcastState", {
 				networkId: Networking.GetNetworkID(),
 				key: key,
@@ -73,11 +78,11 @@ export class Networking {
 
 				const received = JSON.parse(jsonObject.data);
 				Object.assign(internalState, received);
-				onStateChange?.(internalState);
+				onStateChange?.(internalState.value);
 			},
 		});
 
-		return [proxy as T, setState];
+		return [proxy, setState];
 	}
 
 	static IsStateAuthority(): boolean {
