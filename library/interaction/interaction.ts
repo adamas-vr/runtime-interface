@@ -207,6 +207,14 @@ export class GrabInteractableManager {
 		);
 	}
 
+	static CancelSelect(entityHandle: Entity): boolean {
+		return Boolean(
+			RpcClient.Call("GrabInteractableAPI_CancelSelect", {
+				entityHandle,
+			}),
+		);
+	}
+
 	/**
 	 * Registers a callback to be invoked when the object is hovered.
 	 * @param entityHandle The entity to observe.
