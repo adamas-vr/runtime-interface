@@ -28,7 +28,10 @@ export class GrabInteractableManager {
 	}
 
 	static MakeNetworkGrabble(entityHandle: Entity): void {
-		if (!Networking.IsNetworkTransform(entityHandle)) {
+		if (
+			!Networking.IsLocalMode() &&
+			!Networking.IsNetworkTransform(entityHandle)
+		) {
 			const name = EntityManager.GetName(entityHandle);
 			throw `Entity ${name} must have network transform to make network grabble`;
 		}

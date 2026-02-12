@@ -49,6 +49,10 @@ export class Networking {
 		return Project.GetProjectId();
 	}
 
+	static IsLocalMode(): boolean {
+		return RpcClient.Call("Networking::IsLocalMode", {}) as boolean;
+	}
+
 	static GetPlayerId(): number {
 		return RpcClient.Call("Networking::GetPlayerId", {}) as number;
 	}
