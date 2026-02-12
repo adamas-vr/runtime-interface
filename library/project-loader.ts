@@ -648,6 +648,10 @@ export function LoadProject(
 				currEntity,
 				grabble.throwOnDetach,
 			);
+
+			if (transform.isTransformSync) {
+				GrabInteractableManager.MakeNetworkGrabble(currEntity);
+			}
 		}
 	}
 

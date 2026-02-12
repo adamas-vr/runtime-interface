@@ -4,7 +4,9 @@ import { Entity } from "../entity";
 
 export type StateRef<T> = { value: T };
 
-//TODO: missing onPlayerJoined and onPlayerLeaving, network sync entity state authority
+//TODO: missing onPlayerJoined and onPlayerLeaving
+// network sync entity state authority
+// API call OnSetup check
 
 export class Networking {
 	static #stateKey = 0;
@@ -12,41 +14,6 @@ export class Networking {
 		return Networking.#stateKey++;
 	}
 	static #channelNameMap = new Map<string, number>();
-
-	static GetNetworkID(): string {
-		return Project.GetProjectId();
-	}
-
-	static GetPlayerId(): number {
-		return RpcClient.Call("Networking::GetPlayerId", {}) as number;
-	}
-
-	static #IsStateAuthority(): boolean {
-		return RpcClient.Call("Networking::IsStateAuthority", {
-			networkId: Networking.GetNetworkID(),
-		}) as boolean;
-	}
-
-	static GetStateAuthorityPlayerId(): number {
-		return RpcClient.Call("Networking::GetStateAuthorityPlayerId", {
-			networkId: Networking.GetNetworkID(),
-		}) as number;
-	}
-
-	static MakeNetworkTransform(entityHandle: Entity) {
-		return RpcClient.Call("Networking::MakeNetworkTransform", {
-			networkId: Networking.GetNetworkID(),
-			entityHandle,
-			syncKey: this.#KeyGen(),
-		}) as boolean;
-	}
-
-	static SyncLocalTransform(entityHandle: Entity) {
-		return RpcClient.Call("Networking::SyncLocalTransform", {
-			networkId: Networking.GetNetworkID(),
-			entityHandle,
-		}) as boolean;
-	}
 
 	static #NewChannel(
 		channelId: number,
@@ -76,6 +43,48 @@ export class Networking {
 			channelId,
 			payload,
 		});
+	}
+
+	static GetNetworkID(): string {
+		return Project.GetProjectId();
+	}
+
+	static GetPlayerId(): number {
+		return RpcClient.Call("Networking::GetPlayerId", {}) as number;
+	}
+
+	static IsStateAuthority(): boolean {
+		return RpcClient.Call("Networking::IsStateAuthority", {
+			networkId: Networking.GetNetworkID(),
+		}) as boolean;
+	}
+
+	static GetStateAuthorityPlayerId(): number {
+		return RpcClient.Call("Networking::GetStateAuthorityPlayerId", {
+			networkId: Networking.GetNetworkID(),
+		}) as number;
+	}
+
+	static MakeNetworkTransform(entityHandle: Entity) {
+		return RpcClient.Call("Networking::MakeNetworkTransform", {
+			networkId: Networking.GetNetworkID(),
+			entityHandle,
+			syncKey: this.#KeyGen(),
+		}) as boolean;
+	}
+
+	static IsNetworkTransform(entityHandle: Entity) {
+		return RpcClient.Call("Networking::IsNetworkTransform", {
+			networkId: Networking.GetNetworkID(),
+			entityHandle,
+		}) as boolean;
+	}
+
+	static SyncLocalTransform(entityHandle: Entity) {
+		return RpcClient.Call("Networking::SyncLocalTransform", {
+			networkId: Networking.GetNetworkID(),
+			entityHandle,
+		}) as boolean;
 	}
 
 	static NewChannel(
@@ -152,11 +161,11 @@ export class Networking {
 			}
 		});
 
-		if (Networking.#IsStateAuthority()) {
+		if (Networking.IsStateAuthority()) {
 			initialized = true;
 			onStateChange?.(internalState.value);
 		} else {
-			// FIXME: not very efficient
+			// Not very efficient
 			this.#BroadcastMessage(
 				initKey,
 				JSON.stringify({ msgType: "req", msg: "" }),

@@ -1,4 +1,5 @@
-import { Entity } from "../entity";
+import { Entity, EntityManager } from "../entity";
+import { Networking } from "../networking/state-sync";
 import { RigidbodyManager } from "../physics/rigidbody";
 import { RpcClient } from "../rpc";
 
@@ -24,6 +25,31 @@ export class GrabInteractableManager {
 				entityHandle,
 			}),
 		);
+	}
+
+	static MakeNetworkGrabble(entityHandle: Entity): void {
+		if (!Networking.IsNetworkTransform(entityHandle)) {
+			const name = EntityManager.GetName(entityHandle);
+			throw `Entity ${name} must have network transform to make network grabble`;
+		}
+
+		const networkValue = Networking.NewVariable(
+			Networking.GetStateAuthorityPlayerId(),
+			(playerId) => {
+				if (playerId == Networking.GetPlayerId()) {
+					Networking.SyncLocalTransform(entityHandle);
+				} else {
+					GrabInteractableManager.CancelSelect(entityHandle);
+				}
+			},
+		);
+
+		GrabInteractableManager.AddSelectEnteredCallback(entityHandle, () => {
+			networkValue.value = Networking.GetPlayerId();
+		});
+		GrabInteractableManager.AddSelectExitedCallback(entityHandle, () => {
+			networkValue.value = -1;
+		});
 	}
 
 	/**
