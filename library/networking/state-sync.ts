@@ -1,5 +1,6 @@
 import { RpcClient } from "../rpc";
 import { Project } from "../project";
+import { Entity } from "../entity";
 
 export type StateRef<T> = { value: T };
 
@@ -30,6 +31,14 @@ export class Networking {
 		return RpcClient.Call("Networking::GetStateAuthorityPlayerId", {
 			networkId: Networking.GetNetworkID(),
 		}) as number;
+	}
+
+	static MakeNetworkTransform(entityHandle: Entity) {
+		return RpcClient.Call("Networking::MakeNetworkTransform", {
+			networkId: Networking.GetNetworkID(),
+			entityHandle,
+			syncKey: this.#KeyGen(),
+		}) as boolean;
 	}
 
 	static #NewChannel(

@@ -5,7 +5,8 @@ export type Entity = number;
 export class EntityManager {
 	/**
 	 * Create a new Entity
-	 * @returns {Entity}
+	 * @param name Name of the entity
+	 * @returns entity handle
 	 */
 	static Create(name: string): Entity {
 		return Number(

@@ -17,6 +17,7 @@ import { RigidbodyManager } from "./physics/rigidbody";
 import { GrabInteractableManager } from "./interaction/interaction";
 import { RpcClient } from "./rpc";
 import { UUID } from "crypto";
+import { Networking } from "./networking/state-sync";
 
 const RAD2DEG = 180 / Math.PI;
 
@@ -32,6 +33,7 @@ type Properties = {
 };
 type Transforms = {
 	componentType: string;
+	isTransformSync: boolean;
 	parent: UUID;
 	children: UUID[];
 	localScale: {
@@ -465,6 +467,10 @@ export function LoadProject(
 					"xyz",
 				),
 			);
+
+			if (transform.isTransformSync) {
+				Networking.MakeNetworkTransform(currEntity);
+			}
 		} else {
 			throw Error(`Data corrupted. Entity ${entity} has no transform`);
 		}
