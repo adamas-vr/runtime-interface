@@ -21,7 +21,7 @@ export class Networking {
 		return RpcClient.Call("Networking::GetPlayerId", {}) as number;
 	}
 
-	static IsStateAuthority(): boolean {
+	static #IsStateAuthority(): boolean {
 		return RpcClient.Call("Networking::IsStateAuthority", {
 			networkId: Networking.GetNetworkID(),
 		}) as boolean;
@@ -38,6 +38,13 @@ export class Networking {
 			networkId: Networking.GetNetworkID(),
 			entityHandle,
 			syncKey: this.#KeyGen(),
+		}) as boolean;
+	}
+
+	static SyncLocalTransform(entityHandle: Entity) {
+		return RpcClient.Call("Networking::SyncLocalTransform", {
+			networkId: Networking.GetNetworkID(),
+			entityHandle,
 		}) as boolean;
 	}
 
@@ -145,7 +152,7 @@ export class Networking {
 			}
 		});
 
-		if (Networking.IsStateAuthority()) {
+		if (Networking.#IsStateAuthority()) {
 			initialized = true;
 			onStateChange?.(internalState.value);
 		} else {
