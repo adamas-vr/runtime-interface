@@ -216,36 +216,81 @@ export class ColliderManager {
 
 	static AddTriggerEnterCallback(
 		entityHandle: Entity,
-		onTriggerEnter: () => void,
+		onTriggerEnter: (entity: Entity, collider: ColliderHandle) => void,
 	): boolean {
 		return Boolean(
 			RpcClient.Call("ColliderAPI_AddTriggerEnterCallback", {
 				entityHandle,
-				onTriggerEnter,
+				onTriggerEnter: (args: any) =>
+					onTriggerEnter(args.entityHandle, args.colliderHandle),
 			}),
 		);
 	}
 
 	static AddTriggerExitCallback(
 		entityHandle: Entity,
-		onTriggerExit: () => void,
+		onTriggerExit: (entity: Entity, collider: ColliderHandle) => void,
 	): boolean {
 		return Boolean(
 			RpcClient.Call("ColliderAPI_AddTriggerExitCallback", {
 				entityHandle,
-				onTriggerExit,
+				onTriggerExit: (args: any) =>
+					onTriggerExit(args.entityHandle, args.colliderHandle),
 			}),
 		);
 	}
 
 	static AddTriggerStayCallback(
 		entityHandle: Entity,
-		onTriggerStay: () => void,
+		onTriggerStay: (entity: Entity, collider: ColliderHandle) => void,
 	): boolean {
 		return Boolean(
 			RpcClient.Call("ColliderAPI_AddTriggerStayCallback", {
 				entityHandle,
-				onTriggerStay,
+				onTriggerStay: (args: any) =>
+					onTriggerStay(args.entityHandle, args.colliderHandle),
+			}),
+		);
+	}
+
+	static AddCollisionEnterCallback(
+		entityHandle: Entity,
+		onCollisionEnter: (entity: Entity, collider: ColliderHandle) => void,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("ColliderAPI_AddCollisionEnterCallback", {
+				entityHandle,
+				onCollisionEnter: (args: any) => {
+					onCollisionEnter(args.entityHandle, args.colliderHandle);
+				},
+			}),
+		);
+	}
+
+	static AddCollisionExitCallback(
+		entityHandle: Entity,
+		onCollisionExit: (entity: Entity, collider: ColliderHandle) => void,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("ColliderAPI_AddCollisionExitCallback", {
+				entityHandle,
+				onCollisionExit: (args: any) => {
+					onCollisionExit(args.entityHandle, args.colliderHandle);
+				},
+			}),
+		);
+	}
+
+	static AddCollisionStayCallback(
+		entityHandle: Entity,
+		onCollisionStay: (entity: Entity, collider: ColliderHandle) => void,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("ColliderAPI_AddCollisionStayCallback", {
+				entityHandle,
+				onCollisionStay: (args: any) => {
+					onCollisionStay(args.entityHandle, args.colliderHandle);
+				},
 			}),
 		);
 	}
