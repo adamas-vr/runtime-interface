@@ -1,5 +1,17 @@
+import { vec3 } from "gl-matrix";
 import { Entity } from "../entity";
 import { RpcClient } from "../rpc";
+
+export enum ForceMode {
+	/** Add a continuous force to the rigidbody, using its mass. */
+	Force = 0,
+	/** Add a continuous acceleration to the rigidbody, ignoring its mass. */
+	Acceleration = 5,
+	/** Add an instant force impulse to the rigidbody, using its mass. */
+	Impulse = 1,
+	/** Add an instant velocity change to the rigidbody, ignoring its mass. */
+	VelocityChange = 2,
+}
 
 export class RigidbodyManager {
 	static Create(entityHandle: Entity): boolean {
@@ -22,6 +34,76 @@ export class RigidbodyManager {
 		return Boolean(
 			RpcClient.Call("RidigbodyAPI_HasComponent", {
 				entityHandle,
+			}),
+		);
+	}
+
+	static GetLinearVelocity(entityHandle: Entity): vec3 {
+		const [x, y, z] = JSON.parse(
+			RpcClient.Call("RidigbodyAPI_GetLinearVelocity", {
+				entityHandle,
+			}),
+		);
+		return vec3.fromValues(x, y, z);
+	}
+
+	static GetAngularVelocity(entityHandle: Entity): vec3 {
+		const [x, y, z] = JSON.parse(
+			RpcClient.Call("RidigbodyAPI_GetAngularVelocity", {
+				entityHandle,
+			}),
+		);
+		return vec3.fromValues(x, y, z);
+	}
+
+	static AddForce(
+		entityHandle: Entity,
+		force: vec3,
+		forceMode: ForceMode,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("RidigbodyAPI_AddForce", {
+				entityHandle,
+				fx: force[0],
+				fy: force[1],
+				fz: force[2],
+				forceMode,
+			}),
+		);
+	}
+
+	static AddForceAtPosition(
+		entityHandle: Entity,
+		force: vec3,
+		position: vec3,
+		forceMode: ForceMode,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("RidigbodyAPI_AddForceAtPosition", {
+				entityHandle,
+				fx: force[0],
+				fy: force[1],
+				fz: force[2],
+				px: position[0],
+				py: position[1],
+				pz: position[2],
+				forceMode,
+			}),
+		);
+	}
+
+	static AddTorque(
+		entityHandle: Entity,
+		torque: vec3,
+		forceMode: ForceMode,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("RidigbodyAPI_AddTorque", {
+				entityHandle,
+				tx: torque[0],
+				ty: torque[1],
+				tz: torque[2],
+				forceMode,
 			}),
 		);
 	}
