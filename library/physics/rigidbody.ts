@@ -59,7 +59,7 @@ export class RigidbodyManager {
 	static AddForce(
 		entityHandle: Entity,
 		force: vec3,
-		forceMode: ForceMode,
+		forceMode: ForceMode = ForceMode.Force,
 	): boolean {
 		return Boolean(
 			RpcClient.Call("RidigbodyAPI_AddForce", {
@@ -76,7 +76,7 @@ export class RigidbodyManager {
 		entityHandle: Entity,
 		force: vec3,
 		position: vec3,
-		forceMode: ForceMode,
+		forceMode: ForceMode = ForceMode.Force,
 	): boolean {
 		return Boolean(
 			RpcClient.Call("RidigbodyAPI_AddForceAtPosition", {
@@ -95,7 +95,7 @@ export class RigidbodyManager {
 	static AddTorque(
 		entityHandle: Entity,
 		torque: vec3,
-		forceMode: ForceMode,
+		forceMode: ForceMode = ForceMode.Force,
 	): boolean {
 		return Boolean(
 			RpcClient.Call("RidigbodyAPI_AddTorque", {
