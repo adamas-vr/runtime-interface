@@ -3,6 +3,12 @@ import { Networking } from "../networking/state-sync";
 import { RigidbodyManager } from "../physics/rigidbody";
 import { RpcClient } from "../rpc";
 
+export enum MovementType {
+	VelocityTracking = 0,
+	Kinematic = 1,
+	Instantaneous = 2,
+}
+
 /**
  * Provides a static interface for managing XR grab interactable components
  * on entities via RPC. This includes lifecycle management, configuration of
@@ -231,6 +237,26 @@ export class GrabInteractableManager {
 	static GetDynamicAttach(entityHandle: Entity): boolean {
 		return Boolean(
 			RpcClient.Call("GrabInteractableAPI_GetDynamicAttach", {
+				entityHandle,
+			}),
+		);
+	}
+
+	static SetMovementType(
+		entityHandle: Entity,
+		movementType: MovementType,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("GrabInteractableAPI_SetMovementType", {
+				entityHandle,
+				movementType,
+			}),
+		);
+	}
+
+	static GetMovementType(entityHandle: Entity): MovementType {
+		return Number(
+			RpcClient.Call("GrabInteractableAPI_GetMovementType", {
 				entityHandle,
 			}),
 		);

@@ -14,7 +14,10 @@ import { LightManager, LightType } from "./render/light";
 import { ColliderManager } from "./physics/collider";
 import { CameraManager } from "./render/camera";
 import { RigidbodyManager } from "./physics/rigidbody";
-import { GrabInteractableManager } from "./interaction/interaction";
+import {
+	GrabInteractableManager,
+	MovementType,
+} from "./interaction/interaction";
 import { RpcClient } from "./rpc";
 import { UUID } from "crypto";
 import { Networking } from "./networking/state-sync";
@@ -141,6 +144,7 @@ type Grabbles = {
 	dynamicAttach: boolean;
 	attachEntity?: UUID;
 	allowHoverActivate: boolean;
+	movementType: MovementType;
 	trackPosition: boolean;
 	trackRotation: boolean;
 	throwOnDetach: boolean;
@@ -621,6 +625,8 @@ export function LoadProject(
 		const grabble = grabbles.get(entity);
 		if (grabble) {
 			GrabInteractableManager.Create(currEntity);
+
+			GrabInteractableManager.SetMovementType(currEntity, grabble.movementType);
 
 			GrabInteractableManager.SetDynamicAttach(
 				currEntity,
