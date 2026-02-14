@@ -572,6 +572,7 @@ export function LoadProject(
 								c.size!.value[2],
 							),
 						);
+						ColliderManager.SetIsTrigger(handle, c.isTrigger);
 						break;
 					}
 					case "Sphere": {
@@ -585,6 +586,7 @@ export function LoadProject(
 							),
 						);
 						ColliderManager.SetSphereColliderRadius(handle, c.radius!);
+						ColliderManager.SetIsTrigger(handle, c.isTrigger);
 						break;
 					}
 					case "Capsule": {
@@ -599,6 +601,7 @@ export function LoadProject(
 						);
 						ColliderManager.SetCapsuleColliderRadius(handle, c.radius!);
 						ColliderManager.SetCapsuleColliderHeight(handle, c.height!);
+						ColliderManager.SetIsTrigger(handle, c.isTrigger);
 						break;
 					}
 				}
@@ -608,10 +611,10 @@ export function LoadProject(
 		const rigidbody = rigidbodies.get(entity);
 		if (rigidbody) {
 			RigidbodyManager.Create(currEntity);
-			RigidbodyManager.SetAngularDamping(currEntity, rigidbody.angularDamping);
-			RigidbodyManager.SetIsKinematic(currEntity, rigidbody.isKinematic);
 			RigidbodyManager.SetLinearDamping(currEntity, rigidbody.linearDamping);
+			RigidbodyManager.SetAngularDamping(currEntity, rigidbody.angularDamping);
 			RigidbodyManager.SetMass(currEntity, rigidbody.mass);
+			RigidbodyManager.SetIsKinematic(currEntity, rigidbody.isKinematic);
 			RigidbodyManager.SetUseGravity(currEntity, rigidbody.useGravity);
 		}
 
