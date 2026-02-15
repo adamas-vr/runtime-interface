@@ -13,7 +13,7 @@ import { TextureFormat, TextureHandle, TextureManager } from "./render/texture";
 import { LightManager, LightType } from "./render/light";
 import { ColliderManager } from "./physics/collider";
 import { CameraManager } from "./render/camera";
-import { RigidbodyManager } from "./physics/rigidbody";
+import { RigidbodyConstraints, RigidbodyManager } from "./physics/rigidbody";
 import {
 	GrabInteractableManager,
 	MovementType,
@@ -132,6 +132,7 @@ type Colliders = {
 };
 type Rigidbodies = {
 	componentType: string;
+	constraints: number;
 	angularDamping: number;
 	isKinematic: boolean;
 	linearDamping: number;
@@ -615,6 +616,7 @@ export function LoadProject(
 		const rigidbody = rigidbodies.get(entity);
 		if (rigidbody) {
 			RigidbodyManager.Create(currEntity);
+			// RigidbodyManager.SetConstraints(currEntity, rigidbody.constraints);
 			RigidbodyManager.SetLinearDamping(currEntity, rigidbody.linearDamping);
 			RigidbodyManager.SetAngularDamping(currEntity, rigidbody.angularDamping);
 			RigidbodyManager.SetMass(currEntity, rigidbody.mass);
