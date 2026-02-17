@@ -175,7 +175,7 @@ export class TextureManager {
 	}
 
 	/**
-	 * Loads PNG/JPG image byte array into a texture.
+	 * Loads PNG, JPG, and EXR image byte array into a texture.
 	 * @param handle The texture handle
 	 * @param imageDataJson JSON string with comma-separated RGBA values
 	 * @returns boolean indicating success
@@ -192,7 +192,7 @@ export class TextureManager {
 	}
 
 	/**
-	 * Loads PNG/JPG image byte array into a texture.
+	 * Loads PNG, JPG, and EXR image byte array into a texture.
 	 * @param handle The texture handle
 	 * @param imageDataJson JSON string with comma-separated RGBA values
 	 * @returns boolean indicating success
