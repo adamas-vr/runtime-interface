@@ -5,7 +5,6 @@ import { vec4 } from "gl-matrix";
 export type MaterialHandle = number;
 
 export enum ShaderType {
-	URP_LIT = "Universal Render Pipeline/Lit",
 	UnityGLTF = "UnityGLTF/PBRGraph",
 }
 

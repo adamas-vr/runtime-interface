@@ -49,7 +49,8 @@ declare module "*.tex" {
 		base64Image: string;
 		mineType: string;
 		filterMode: number;
-		wrapMode: number;
+		wrapModeU: number;
+		wrapModeV: number;
 	};
 	export default value;
 }

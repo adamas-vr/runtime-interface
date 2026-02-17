@@ -23,32 +23,23 @@ export class RendererManager {
 	}
 
 	/**
-	 * Set ambient light
-	 * @param r Red component (0-1)
-	 * @param g Green component (0-1)
-	 * @param b Blue component (0-1)
-	 * @param intensity The ambient light intensity
-	 * @returns boolean indicating success
+	 * Set ambient light.
+	 * @param color HDR color. Each component's range is [0, +10]
+	 * @returns
 	 */
-	static SetAmbientLight(
-		r: number,
-		g: number,
-		b: number,
-		intensity: number,
-	): boolean {
+	static SetAmbientLight(color: vec3): boolean {
 		return Boolean(
 			RpcClient.Call("Renderer::SetAmbientLight", {
-				r,
-				g,
-				b,
-				intensity,
+				r: color[0],
+				g: color[1],
+				b: color[2],
 			}),
 		);
 	}
 
-	static GetAmbientLight(): [vec3, number] {
+	static GetAmbientLight(): vec3 {
 		const val = JSON.parse(RpcClient.Call("Renderer::GetAmbientLight", {}));
-		return [vec3.fromValues(val.x, val.y, val.z), val.w];
+		return vec3.fromValues(val[0], val[1], val[2]);
 	}
 
 	static RenderCubemap(
@@ -79,6 +70,11 @@ export class RendererManager {
 		return Number(RpcClient.Call("Renderer::GetReflectionCubemap", {}));
 	}
 
+	/**
+	 *
+	 * @param intensity [0, 10] floating point. No reflection is 0
+	 * @returns
+	 */
 	static SetReflectionIntensity(intensity: number): boolean {
 		return Boolean(
 			RpcClient.Call("Renderer::SetReflectionIntensity", {
@@ -87,7 +83,7 @@ export class RendererManager {
 		);
 	}
 
-	static GetReflectionIntensity(): Number {
+	static GetReflectionIntensity(): number {
 		return Number(RpcClient.Call("Renderer::GetReflectionIntensity", {}));
 	}
 }
