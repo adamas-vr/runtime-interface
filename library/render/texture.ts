@@ -22,6 +22,38 @@ export enum TextureFormat {
 	RGBA32 = 4,
 }
 
+export enum RenderTextureFormat {
+	//
+	// Summary:
+	//     A depth render texture format.
+	Depth = 1,
+	//
+	// Summary:
+	//     A native shadowmap render texture format.
+	Shadowmap = 3,
+	//
+	// Summary:
+	//     Default color render texture format: will be chosen accordingly to Frame Buffer
+	//     format and Platform.
+	Default = 7,
+	//
+	// Summary:
+	//     Default HDR color render texture format: will be chosen accordingly to Frame
+	//     Buffer format and Platform.
+	DefaultHDR = 9,
+}
+
+export enum TextureDimension {
+	//
+	// Summary:
+	//     2D texture (Texture2D).
+	Tex2D = 2,
+	//
+	// Summary:
+	//     Cubemap texture.
+	Cube = 4,
+}
+
 export class TextureManager {
 	/**
 	 * Create a 2D texture
@@ -79,7 +111,6 @@ export class TextureManager {
 		});
 		return textureHandle;
 	}
-
 	/**
 	 * Create a render texture
 	 * @param width The texture width
@@ -92,13 +123,15 @@ export class TextureManager {
 		width: number,
 		height: number,
 		depth: number,
-		format: TextureFormat,
+		dimension: TextureDimension = TextureDimension.Tex2D,
+		format: RenderTextureFormat = RenderTextureFormat.Default,
 	): TextureHandle {
 		return Number(
 			RpcClient.Call("Texture_CreateRenderTexture", {
 				width,
 				height,
 				depth,
+				dimension,
 				format,
 				clientId: RpcClient.GetClientId(),
 			}),
