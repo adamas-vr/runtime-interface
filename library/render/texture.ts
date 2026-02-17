@@ -120,9 +120,9 @@ export class TextureManager {
 	 * @returns The texture handle
 	 */
 	static CreateRenderTexture(
-		width: number,
-		height: number,
-		depth: number,
+		width: number = 512,
+		height: number = 512,
+		depth: number = 16,
 		dimension: TextureDimension = TextureDimension.Tex2D,
 		format: RenderTextureFormat = RenderTextureFormat.Default,
 	): TextureHandle {
