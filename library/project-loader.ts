@@ -65,9 +65,7 @@ type Renderables = {
 type Lights = {
 	componentType: string;
 	color: {
-		x: number;
-		y: number;
-		z: number;
+		value: [number, number, number];
 	};
 	cullingMask: number;
 	intensity: number;
@@ -515,17 +513,20 @@ export function LoadProject(
 		const light = lights.get(entity);
 		if (light) {
 			LightManager.Create(currEntity, light.lightType);
+			LightManager.SetIntensity(currEntity, light.intensity);
 			LightManager.SetColor(
 				currEntity,
-				vec3.fromValues(light.color.x, light.color.y, light.color.z),
+				vec3.fromValues(
+					light.color.value[0],
+					light.color.value[1],
+					light.color.value[2],
+				),
 			);
-			LightManager.SetCullingMask(currEntity, light.cullingMask);
-			LightManager.SetIntensity(currEntity, light.intensity);
-			LightManager.SetRange(currEntity, light.range);
-			LightManager.SetShadows(currEntity, light.shadows);
 
-			if (light.lightType == LightType.Spot)
-				LightManager.SetSpotAngle(currEntity, light.spotAngle);
+			LightManager.SetRange(currEntity, light.range);
+			LightManager.SetSpotAngle(currEntity, light.spotAngle);
+			LightManager.SetShadows(currEntity, light.shadows);
+			// LightManager.SetCullingMask(currEntity, light.cullingMask);
 		}
 
 		const camera = cameras.get(entity);

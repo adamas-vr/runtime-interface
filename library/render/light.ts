@@ -2,6 +2,18 @@ import { RpcClient } from "../rpc";
 import { Entity } from "../entity";
 import { vec3 } from "gl-matrix";
 
+export enum LightShadowMode {
+	NoShadows = 0,
+	Hard = 1,
+	Soft = 2,
+}
+
+export enum LightType {
+	Spot = 0,
+	Directional = 1,
+	Point = 2,
+}
+
 export class LightManager {
 	/**
 	 * Create a Light component and attach it to the specified entity
@@ -11,9 +23,9 @@ export class LightManager {
 	 */
 	static Create(entity: Entity, type: LightType): boolean {
 		return Boolean(
-			RpcClient.Call("Light_Create", {
+			RpcClient.Call("Light::Create", {
 				entityHandle: entity,
-				lightType: type, // 0=Spot,1=Directional,2=Point,3=Area
+				lightType: type, // 0=Spot,1=Directional,2=Point
 			}),
 		);
 	}
@@ -24,7 +36,7 @@ export class LightManager {
 	 * @returns boolean indicating success
 	 */
 	static Destroy(entity: Entity): boolean {
-		return Boolean(RpcClient.Call("Light_Destroy", { entityHandle: entity }));
+		return Boolean(RpcClient.Call("Light::Destroy", { entityHandle: entity }));
 	}
 
 	/**
@@ -34,7 +46,7 @@ export class LightManager {
 	 */
 	static HasComponent(entity: Entity): boolean {
 		return Boolean(
-			RpcClient.Call("Light_HasComponent", { entityHandle: entity }),
+			RpcClient.Call("Light::HasComponent", { entityHandle: entity }),
 		);
 	}
 
@@ -46,9 +58,17 @@ export class LightManager {
 	 */
 	static SetType(entity: Entity, type: LightType): boolean {
 		return Boolean(
-			RpcClient.Call("Light_SetType", {
+			RpcClient.Call("Light::SetType", {
 				entityHandle: entity,
-				lightType: type, // 0=Spot,1=Directional,2=Point,3=Area
+				lightType: type, // 0=Spot,1=Directional,2=Point
+			}),
+		);
+	}
+
+	static GetType(entity: Entity): LightType {
+		return Number(
+			RpcClient.Call("Light::GetType", {
+				entityHandle: entity,
 			}),
 		);
 	}
@@ -56,20 +76,25 @@ export class LightManager {
 	/**
 	 * Set the color of the light
 	 * @param entity The entity with the light component
-	 * @param r Red component (0-1)
-	 * @param g Green component (0-1)
-	 * @param b Blue component (0-1)
+	 * @param rgb color in range [0, 1]
 	 * @returns boolean indicating success
 	 */
 	static SetColor(entity: Entity, rgb: vec3): boolean {
 		return Boolean(
-			RpcClient.Call("Light_SetColor", {
+			RpcClient.Call("Light::SetColor", {
 				entityHandle: entity,
 				r: rgb[0],
 				g: rgb[1],
 				b: rgb[2],
 			}),
 		);
+	}
+
+	static GetColor(entity: Entity): vec3 {
+		const val = JSON.parse(
+			RpcClient.Call("Light::GetColor", { entityHandle: entity }),
+		);
+		return vec3.fromValues(val[0], val[1], val[2]);
 	}
 
 	/**
@@ -80,9 +105,17 @@ export class LightManager {
 	 */
 	static SetIntensity(entity: Entity, intensity: number): boolean {
 		return Boolean(
-			RpcClient.Call("Light_SetIntensity", {
+			RpcClient.Call("Light::SetIntensity", {
 				entityHandle: entity,
 				intensity,
+			}),
+		);
+	}
+
+	static GetIntensity(entity: Entity): number {
+		return Number(
+			RpcClient.Call("Light::GetIntensity", {
+				entityHandle: entity,
 			}),
 		);
 	}
@@ -95,9 +128,17 @@ export class LightManager {
 	 */
 	static SetRange(entity: Entity, range: number): boolean {
 		return Boolean(
-			RpcClient.Call("Light_SetRange", {
+			RpcClient.Call("Light::SetRange", {
 				entityHandle: entity,
 				range,
+			}),
+		);
+	}
+
+	static GetRange(entity: Entity): number {
+		return Number(
+			RpcClient.Call("Light::GetRange", {
+				entityHandle: entity,
 			}),
 		);
 	}
@@ -105,21 +146,22 @@ export class LightManager {
 	/**
 	 * Set the spot angle for spot lights
 	 * @param entity The entity with the light component
-	 * @param angle The spot angle
-	 * @param asDegrees Whether the angle is in degrees (default: true)
+	 * @param angle The spot angle in degree
 	 * @returns boolean indicating success
 	 */
-	static SetSpotAngle(
-		entity: Entity,
-		angle: number,
-		asDegrees = true,
-	): boolean {
+	static SetSpotAngle(entity: Entity, angle: number): boolean {
 		return Boolean(
-			RpcClient.Call("Light_SetSpotAngle", {
+			RpcClient.Call("Light::SetSpotAngle", {
 				entityHandle: entity,
 				angle,
-				// third param "bool" unused in bridge—always true
-				value: asDegrees,
+			}),
+		);
+	}
+
+	static GetSpotAngle(entity: Entity): number {
+		return Number(
+			RpcClient.Call("Light::GetSpotAngle", {
+				entityHandle: entity,
 			}),
 		);
 	}
@@ -132,9 +174,17 @@ export class LightManager {
 	 */
 	static SetShadows(entity: Entity, mode: LightShadowMode): boolean {
 		return Boolean(
-			RpcClient.Call("Light_SetShadows", {
+			RpcClient.Call("Light::SetShadows", {
 				entityHandle: entity,
 				shadowType: mode, // 0=NoShadows,1=Hard,2=Soft
+			}),
+		);
+	}
+
+	static GetShadows(entity: Entity): LightShadowMode {
+		return Number(
+			RpcClient.Call("Light:GetShadows", {
+				entityHandle: entity,
 			}),
 		);
 	}
@@ -147,23 +197,10 @@ export class LightManager {
 	 */
 	static SetCullingMask(entity: Entity, mask: number): boolean {
 		return Boolean(
-			RpcClient.Call("Light_SetCullingMask", {
+			RpcClient.Call("Light::SetCullingMask", {
 				entityHandle: entity,
 				mask,
 			}),
 		);
 	}
-}
-
-export enum LightShadowMode {
-	NoShadows = 0,
-	Hard = 1,
-	Soft = 2,
-}
-
-export enum LightType {
-	Spot = 0,
-	Directional = 1,
-	Point = 2,
-	Area = 3,
 }
