@@ -124,7 +124,7 @@ export class TextureManager {
 		height: number = 512,
 		depth: number = 16,
 		dimension: TextureDimension = TextureDimension.Tex2D,
-		format: RenderTextureFormat = RenderTextureFormat.Default,
+		format: RenderTextureFormat = RenderTextureFormat.DefaultHDR,
 	): TextureHandle {
 		return Number(
 			RpcClient.Call("Texture_CreateRenderTexture", {

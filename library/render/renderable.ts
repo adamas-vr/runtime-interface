@@ -1,5 +1,6 @@
 import { RpcClient } from "../rpc";
 import { Entity } from "../entity";
+import { MaterialHandle } from "./material";
 
 // NOTE: the following are not supported compared to legacy code:
 // - Filament's RenderableBuilder.Geometry(index,type,vertices,indices,offset,count)
@@ -62,18 +63,33 @@ export class RenderableManager {
 	 * Set the material for the renderable component
 	 * @param entityHandle The entity with the renderable component
 	 * @param materialHandle The material handle to attach
-	 * @param index The submesh index (default: 0)
+	 * @param index The material index (default: 0)
 	 * @returns boolean indicating success
 	 */
 	static SetMaterial(
 		entityHandle: Entity,
-		materialHandle: number,
+		materialHandle: MaterialHandle,
 		index: number = 0,
 	): boolean {
 		return Boolean(
 			RpcClient.Call("Renderable_SetMaterial", {
 				entityHandle,
 				materialHandle,
+				index,
+			}),
+		);
+	}
+
+	/**
+	 * Get the material for the renderable component
+	 * @param entityHandle The entity with the renderable component
+	 * @param index The material index (default: 0)
+	 * @returns MaterialHandle
+	 */
+	static GetMaterial(entityHandle: Entity, index: number = 0): MaterialHandle {
+		return Number(
+			RpcClient.Call("Renderable_GetMaterial", {
+				entityHandle,
 				index,
 			}),
 		);

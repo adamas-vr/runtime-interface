@@ -77,19 +77,12 @@ type Lights = {
 };
 type Cameras = {
 	componentType: string;
-	cullingMask: number;
 	projectionType: number;
-	projectionFov: number;
-	projectionAspectRatio: number;
-	projectionNear: number;
-	projectionFar: number;
-	renderTexture: string;
-	orthoLeft: number;
-	orthoRight: number;
-	orthoBottom: number;
-	orthoTop: number;
-	orthoNear: number;
-	orthoFar: number;
+	perspectiveFov: number;
+	orthographicSize: number;
+	clippingNear: number;
+	clippingFar: number;
+	cullingMask: number;
 };
 type Colliders = {
 	componentType: string;
@@ -532,28 +525,13 @@ export function LoadProject(
 		const camera = cameras.get(entity);
 		if (camera) {
 			CameraManager.Create(currEntity);
-			CameraManager.SetCullingMask(currEntity, camera.cullingMask);
 
-			if (camera.projectionType == 0) {
-				CameraManager.SetProjection(
-					currEntity,
-					0,
-					camera.projectionFov,
-					camera.projectionAspectRatio,
-					camera.projectionNear,
-					camera.projectionFar,
-				);
-			} else {
-				CameraManager.SetOrthographic(
-					currEntity,
-					camera.orthoLeft,
-					camera.orthoRight,
-					camera.orthoBottom,
-					camera.orthoTop,
-					camera.orthoNear,
-					camera.orthoFar,
-				);
-			}
+			CameraManager.SetProjectionType(currEntity, camera.projectionType);
+			CameraManager.SetFieldOfView(currEntity, camera.perspectiveFov);
+			CameraManager.SetOrthographicSize(currEntity, camera.orthographicSize);
+			CameraManager.SetFarClipPlane(currEntity, camera.clippingFar);
+			CameraManager.SetNearClipPlane(currEntity, camera.clippingNear);
+			// CameraManager.SetCullingMask(currEntity, camera.cullingMask);
 		}
 
 		const collider = colliders.get(entity);

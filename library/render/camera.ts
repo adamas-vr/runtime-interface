@@ -2,6 +2,11 @@ import { RpcClient } from "../rpc";
 import { Entity } from "../entity";
 import { TextureHandle } from "./texture";
 
+export enum ProjectionType {
+	Perspective = 0,
+	Orthographic = 1,
+}
+
 export class CameraManager {
 	/**
 	 * Create a Camera component and attach it to the specified entity
@@ -9,7 +14,7 @@ export class CameraManager {
 	 * @returns boolean indicating success
 	 */
 	static Create(entity: Entity): boolean {
-		return Boolean(RpcClient.Call("Camera_Create", { entityHandle: entity }));
+		return Boolean(RpcClient.Call("Camera::Create", { entityHandle: entity }));
 	}
 
 	/**
@@ -18,7 +23,7 @@ export class CameraManager {
 	 * @returns boolean indicating success
 	 */
 	static Destroy(entity: Entity): boolean {
-		return Boolean(RpcClient.Call("Camera_Destroy", { entityHandle: entity }));
+		return Boolean(RpcClient.Call("Camera::Destroy", { entityHandle: entity }));
 	}
 
 	/**
@@ -28,144 +33,187 @@ export class CameraManager {
 	 */
 	static HasComponent(entity: Entity): boolean {
 		return Boolean(
-			RpcClient.Call("Camera_HasComponent", { entityHandle: entity }),
+			RpcClient.Call("Camera::HasComponent", { entityHandle: entity }),
 		);
 	}
 
 	/**
-	 * Set the projection parameters for the camera
-	 * @param entity The entity with the camera component
-	 * @param projectionType Type of projection
-	 * @param fov Field of view
-	 * @param aspect Aspect ratio
-	 * @param near Near plane
-	 * @param far Far plane
-	 * @returns boolean indicating success
-	 */
-	static SetProjection(
-		entity: Entity,
-		projectionType: number,
-		fov: number,
-		aspect: number,
-		near: number,
-		far: number,
-	): boolean {
-		return Boolean(
-			RpcClient.Call("Camera_SetProjection", {
-				entityHandle: entity,
-				projectionType,
-				fov,
-				aspect,
-				near,
-				far,
-			}),
-		);
-	}
-
-	/**
-	 * Set orthographic projection parameters
-	 * @param entity The entity with the camera component
-	 * @param left Left plane
-	 * @param right Right plane
-	 * @param bottom Bottom plane
-	 * @param top Top plane
-	 * @param near Near plane
-	 * @param far Far plane
-	 * @returns boolean indicating success
-	 */
-	static SetOrthographic(
-		entity: Entity,
-		left: number,
-		right: number,
-		bottom: number,
-		top: number,
-		near: number,
-		far: number,
-	): boolean {
-		return Boolean(
-			RpcClient.Call("Camera_SetOrthographic", {
-				entityHandle: entity,
-				left,
-				right,
-				bottom,
-				top,
-				near,
-				far,
-			}),
-		);
-	}
-
-	/**
-	 * Make the camera look at a target point
-	 * @param entity The entity with the camera component
-	 * @param targetX Target X coordinate
-	 * @param targetY Target Y coordinate
-	 * @param targetZ Target Z coordinate
-	 * @param upX Up vector X
-	 * @param upY Up vector Y
-	 * @param upZ Up vector Z
-	 * @param worldUpX World up X
-	 * @param worldUpY World up Y
-	 * @param worldUpZ World up Z
-	 * @returns boolean indicating success
-	 */
-	static LookAt(
-		entity: Entity,
-		targetX: number,
-		targetY: number,
-		targetZ: number,
-		upX: number,
-		upY: number,
-		upZ: number,
-		worldUpX: number,
-		worldUpY: number,
-		worldUpZ: number,
-	): boolean {
-		return Boolean(
-			RpcClient.Call("Camera_LookAt", {
-				entityHandle: entity,
-				targetX,
-				targetY,
-				targetZ,
-				upX,
-				upY,
-				upZ,
-				worldUpX,
-				worldUpY,
-				worldUpZ,
-			}),
-		);
-	}
-
-	/**
-	 * Set the culling mask for the camera
-	 * @param entity The entity with the camera component
-	 * @param mask The culling mask
-	 * @returns boolean indicating success
-	 */
-	static SetCullingMask(entity: Entity, mask: number): boolean {
-		return Boolean(
-			RpcClient.Call("Camera_SetCullingMask", {
-				entityHandle: entity,
-				mask,
-			}),
-		);
-	}
-
-	/**
-	 * Set the render texture for the camera
-	 * @param entity The entity with the camera component
-	 * @param textureHandle The render texture handle
+	 * Set the camera render target (targetTexture)
+	 * @param entity The entity that owns the camera
+	 * @param renderTexture RenderTexture handle
 	 * @returns boolean indicating success
 	 */
 	static SetRenderTexture(
 		entity: Entity,
-		textureHandle: TextureHandle,
+		renderTexture: TextureHandle,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("Camera_SetRenderTexture", {
+			RpcClient.Call("Camera::SetRenderTexture", {
 				entityHandle: entity,
-				renderTextureHandle: textureHandle,
+				renderTextureHandle: renderTexture,
+			}),
+		);
+	}
+
+	/**
+	 * Get the camera render target (targetTexture)
+	 * @param entity The entity that owns the camera
+	 * @returns RenderTexture handle, or -1 on failure
+	 */
+	static GetRenderTexture(entity: Entity): TextureHandle {
+		return Number(
+			RpcClient.Call("Camera::GetRenderTexture", { entityHandle: entity }),
+		);
+	}
+
+	/**
+	 * Set the camera projection type
+	 * @param entity The entity that owns the camera
+	 * @param projectionType Projection type flag
+	 * @returns boolean indicating success
+	 */
+	static SetProjectionType(
+		entity: Entity,
+		projectionType: ProjectionType,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("Camera::SetProjectionType", {
+				entityHandle: entity,
+				projectionType,
+			}),
+		);
+	}
+
+	/**
+	 * Get the camera projection type
+	 * @param entity The entity that owns the camera
+	 * @returns projection type flag: 0 = perspective, 1 = orthographic, -1 = failure
+	 */
+	static GetProjectionType(entity: Entity): ProjectionType {
+		return Number(
+			RpcClient.Call("Camera::GetProjectionType", { entityHandle: entity }),
+		);
+	}
+
+	/**
+	 * Set the camera field of view (degrees)
+	 * @param entity The entity that owns the camera
+	 * @param fov Field of view in degrees
+	 * @returns boolean indicating success
+	 */
+	static SetFieldOfView(entity: Entity, fov: number): boolean {
+		return Boolean(
+			RpcClient.Call("Camera::SetFieldOfView", {
+				entityHandle: entity,
+				fov: fov,
+			}),
+		);
+	}
+
+	/**
+	 * Get the camera field of view (degrees)
+	 * @param entity The entity that owns the camera
+	 * @returns field of view in degrees, or -1 on failure
+	 */
+	static GetFieldOfView(entity: Entity): number {
+		return Number(
+			RpcClient.Call("Camera::GetFieldOfView", { entityHandle: entity }),
+		);
+	}
+
+	/**
+	 * Set the camera orthographic size
+	 * Only meaningful when the camera is orthographic
+	 * @param entity The entity that owns the camera
+	 * @param orthographicSize Orthographic size value
+	 * @returns boolean indicating success
+	 */
+	static SetOrthographicSize(
+		entity: Entity,
+		orthographicSize: number,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("Camera::SetOrthographicSize", {
+				entityHandle: entity,
+				orthographicSize: orthographicSize,
+			}),
+		);
+	}
+
+	/**
+	 * Get the camera orthographic size
+	 * @param entity The entity that owns the camera
+	 * @returns orthographic size, or -1 on failure
+	 */
+	static GetOrthographicSize(entity: Entity): number {
+		return Number(
+			RpcClient.Call("Camera::GetOrthographicSize", { entityHandle: entity }),
+		);
+	}
+
+	/**
+	 * Set the camera near clip plane
+	 * @param entity The entity that owns the camera
+	 * @param nearClipPlane Near clip plane distance
+	 * @returns boolean indicating success
+	 */
+	static SetNearClipPlane(entity: Entity, nearClipPlane: number): boolean {
+		return Boolean(
+			RpcClient.Call("Camera::SetNearClipPlane", {
+				entityHandle: entity,
+				nearClipPlane: nearClipPlane,
+			}),
+		);
+	}
+
+	/**
+	 * Get the camera near clip plane
+	 * @param entity The entity that owns the camera
+	 * @returns near clip plane distance, or -1 on failure
+	 */
+	static GetNearClipPlane(entity: Entity): number {
+		return Number(
+			RpcClient.Call("Camera::GetNearClipPlane", { entityHandle: entity }),
+		);
+	}
+
+	/**
+	 * Set the camera far clip plane
+	 * @param entity The entity that owns the camera
+	 * @param farClipPlane Far clip plane distance
+	 * @returns boolean indicating success
+	 */
+	static SetFarClipPlane(entity: Entity, farClipPlane: number): boolean {
+		return Boolean(
+			RpcClient.Call("Camera::SetFarClipPlane", {
+				entityHandle: entity,
+				farClipPlane: farClipPlane,
+			}),
+		);
+	}
+
+	/**
+	 * Get the camera far clip plane
+	 * @param entity The entity that owns the camera
+	 * @returns far clip plane distance, or -1 on failure
+	 */
+	static GetFarClipPlane(entity: Entity): number {
+		return Number(
+			RpcClient.Call("Camera::GetFarClipPlane", { entityHandle: entity }),
+		);
+	}
+
+	/**
+	 * Set the camera culling mask
+	 * @param entity The entity that owns the camera
+	 * @param mask Unity layer mask bitfield
+	 * @returns boolean indicating success
+	 */
+	static SetCullingMask(entity: Entity, mask: number): boolean {
+		return Boolean(
+			RpcClient.Call("Camera::SetCullingMask", {
+				entityHandle: entity,
+				mask: mask,
 			}),
 		);
 	}
