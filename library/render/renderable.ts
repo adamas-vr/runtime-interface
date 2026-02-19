@@ -1,13 +1,18 @@
 import { RpcClient } from "../rpc";
 import { Entity } from "../entity";
 import { MaterialHandle } from "./material";
+import { MeshHandle } from "./mesh";
 
-// NOTE: the following are not supported compared to legacy code:
-// - Filament's RenderableBuilder.Geometry(index,type,vertices,indices,offset,count)
-// - RenderableBuilder.Material(index,materialInstance)
-// - BoundingBox(...), SetBlendOrderAt
-
-// TODO: @zekailin00 missing getter: mesh, material...
+export enum ShadowCastingMode {
+	/** No shadows are cast from this object. */
+	Off = 0,
+	/** Shadows are cast from this object. */
+	On = 1,
+	/** Shadows are cast from this object, treating it as two-sided. */
+	TwoSided = 2,
+	/** Object casts shadows, but is otherwise invisible in the Scene. */
+	ShadowsOnly = 3,
+}
 
 export class RenderableManager {
 	/**
@@ -17,7 +22,7 @@ export class RenderableManager {
 	 */
 	static Create(entity: Entity, isSkinnedMesh: boolean = false): boolean {
 		return Boolean(
-			RpcClient.Call("Renderable_Create", {
+			RpcClient.Call("Renderable::Create", {
 				entityHandle: entity,
 				isSkinnedMesh,
 			}),
@@ -30,7 +35,7 @@ export class RenderableManager {
 	 * @returns boolean indicating success
 	 */
 	static Destroy(entityHandle: Entity): boolean {
-		return Boolean(RpcClient.Call("Renderable_Destroy", { entityHandle }));
+		return Boolean(RpcClient.Call("Renderable::Destroy", { entityHandle }));
 	}
 
 	/**
@@ -39,7 +44,9 @@ export class RenderableManager {
 	 * @returns boolean indicating if renderable component exists
 	 */
 	static HasComponent(entityHandle: Entity): boolean {
-		return Boolean(RpcClient.Call("Renderable_HasComponent", { entityHandle }));
+		return Boolean(
+			RpcClient.Call("Renderable::HasComponent", { entityHandle }),
+		);
 	}
 
 	/**
@@ -48,49 +55,19 @@ export class RenderableManager {
 	 * @param meshHandle The mesh handle to attach
 	 * @returns boolean indicating success
 	 */
-	static SetMesh(entityHandle: Entity, meshHandle: number): boolean {
-		if (RenderableManager.HasComponent(entityHandle)) {
-			return Boolean(
-				RpcClient.Call("Renderable_SetMesh", {
-					entityHandle,
-					meshHandle,
-				}),
-			);
-		} else return false;
-	}
-
-	/**
-	 * Set the material for the renderable component
-	 * @param entityHandle The entity with the renderable component
-	 * @param materialHandle The material handle to attach
-	 * @param index The material index (default: 0)
-	 * @returns boolean indicating success
-	 */
-	static SetMaterial(
-		entityHandle: Entity,
-		materialHandle: MaterialHandle,
-		index: number = 0,
-	): boolean {
+	static SetMesh(entityHandle: Entity, meshHandle: MeshHandle): boolean {
 		return Boolean(
-			RpcClient.Call("Renderable_SetMaterial", {
+			RpcClient.Call("Renderable::SetMesh", {
 				entityHandle,
-				materialHandle,
-				index,
+				meshHandle,
 			}),
 		);
 	}
 
-	/**
-	 * Get the material for the renderable component
-	 * @param entityHandle The entity with the renderable component
-	 * @param index The material index (default: 0)
-	 * @returns MaterialHandle
-	 */
-	static GetMaterial(entityHandle: Entity, index: number = 0): MaterialHandle {
+	static GetMesh(entityHandle: Entity): MeshHandle {
 		return Number(
-			RpcClient.Call("Renderable_GetMaterial", {
+			RpcClient.Call("Renderable::GetMesh", {
 				entityHandle,
-				index,
 			}),
 		);
 	}
@@ -107,10 +84,61 @@ export class RenderableManager {
 		weight: number,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("Renderable_SetBlendShapeWeight", {
+			RpcClient.Call("Renderable::SetBlendShapeWeight", {
 				entityHandle,
 				index,
 				weight,
+			}),
+		);
+	}
+
+	/**
+	 * Get blend shape weight at the given index
+	 * @param entityHandle
+	 * @param index The entity with the renderable component
+	 * @returns boolean indicating success
+	 */
+	static GetBlendShapeWeight(entityHandle: Entity, index: number): number {
+		return Number(
+			RpcClient.Call("Renderable::GetBlendShapeWeight", {
+				entityHandle,
+				index,
+			}),
+		);
+	}
+
+	/**
+	 * Set the material for the renderable component
+	 * @param entityHandle The entity with the renderable component
+	 * @param materialHandle The material handle to attach
+	 * @param index The material index (default: 0)
+	 * @returns boolean indicating success
+	 */
+	static SetMaterial(
+		entityHandle: Entity,
+		materialHandle: MaterialHandle,
+		index: number = 0,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("Renderable::SetMaterial", {
+				entityHandle,
+				materialHandle,
+				index,
+			}),
+		);
+	}
+
+	/**
+	 * Get the material for the renderable component
+	 * @param entityHandle The entity with the renderable component
+	 * @param index The material index (default: 0)
+	 * @returns MaterialHandle
+	 */
+	static GetMaterial(entityHandle: Entity, index: number = 0): MaterialHandle {
+		return Number(
+			RpcClient.Call("Renderable::GetMaterial", {
+				entityHandle,
+				index,
 			}),
 		);
 	}
@@ -123,7 +151,16 @@ export class RenderableManager {
 	 */
 	static SetReceiveShadows(entityHandle: Entity, receive: boolean): boolean {
 		return Boolean(
-			RpcClient.Call("Renderable_SetReceiveShadows", {
+			RpcClient.Call("Renderable::SetReceiveShadows", {
+				entityHandle,
+				receive,
+			}),
+		);
+	}
+
+	static GetReceiveShadows(entityHandle: Entity, receive: boolean): boolean {
+		return Boolean(
+			RpcClient.Call("Renderable::GetReceiveShadows", {
 				entityHandle,
 				receive,
 			}),
@@ -131,17 +168,32 @@ export class RenderableManager {
 	}
 
 	/**
-	 * Control shadow‐casting mode.
-	 *   0 = Off, 1 = On, 2 = TwoSided, 3 = ShadowsOnly
+	 * Set shadow‐casting mode.
 	 * @param entityHandle The entity with the renderable component
 	 * @param shadowMode The shadow casting mode
 	 * @returns boolean indicating success
 	 */
-	static SetCastShadows(entityHandle: Entity, shadowMode: number): boolean {
+	static SetShadowMode(
+		entityHandle: Entity,
+		shadowMode: ShadowCastingMode,
+	): boolean {
 		return Boolean(
-			RpcClient.Call("Renderable_SetCastShadows", {
+			RpcClient.Call("Renderable::SetShadowMode", {
 				entityHandle,
 				shadowMode,
+			}),
+		);
+	}
+
+	/**
+	 * Get shadow‐casting mode.
+	 * @param entityHandle The entity with the renderable component
+	 * @returns boolean indicating success
+	 */
+	static GetShadowMode(entityHandle: Entity): ShadowCastingMode {
+		return Number(
+			RpcClient.Call("Renderable::GetShadowMode", {
+				entityHandle,
 			}),
 		);
 	}

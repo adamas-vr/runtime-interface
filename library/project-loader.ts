@@ -485,6 +485,11 @@ export function LoadProject(
 				}
 
 				RenderableManager.SetMesh(currEntity, meshHandle);
+				RenderableManager.SetShadowMode(currEntity, renderable.castShadows);
+				RenderableManager.SetReceiveShadows(
+					currEntity,
+					renderable.receiveShadows,
+				);
 
 				if (meshAsset.morphWeights) {
 					(meshAsset.morphWeights as number[]).forEach((weight, index) => {
