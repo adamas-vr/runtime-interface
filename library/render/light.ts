@@ -188,19 +188,4 @@ export class LightManager {
 			}),
 		);
 	}
-
-	/**
-	 * Set the culling mask for the light
-	 * @param entity The entity with the light component
-	 * @param mask The culling mask
-	 * @returns boolean indicating success
-	 */
-	static SetCullingMask(entity: Entity, mask: number): boolean {
-		return Boolean(
-			RpcClient.Call("Light::SetCullingMask", {
-				entityHandle: entity,
-				mask,
-			}),
-		);
-	}
 }

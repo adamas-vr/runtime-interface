@@ -202,19 +202,4 @@ export class CameraManager {
 			RpcClient.Call("Camera::GetFarClipPlane", { entityHandle: entity }),
 		);
 	}
-
-	/**
-	 * Set the camera culling mask
-	 * @param entity The entity that owns the camera
-	 * @param mask Unity layer mask bitfield
-	 * @returns boolean indicating success
-	 */
-	static SetCullingMask(entity: Entity, mask: number): boolean {
-		return Boolean(
-			RpcClient.Call("Camera::SetCullingMask", {
-				entityHandle: entity,
-				mask: mask,
-			}),
-		);
-	}
 }

@@ -116,21 +116,6 @@ export class RenderableManager {
 	}
 
 	/**
-	 * Set the layer mask on this Renderable (bitmask of visible layers).
-	 * @param entityHandle The entity with the renderable component
-	 * @param layerMask The layer mask
-	 * @returns boolean indicating success
-	 */
-	static SetLayerMask(entityHandle: Entity, layerMask: number): boolean {
-		return Boolean(
-			RpcClient.Call("Renderable_SetLayerMask", {
-				entityHandle,
-				layerMask,
-			}),
-		);
-	}
-
-	/**
 	 * Enable or disable receiving shadows on this Renderable.
 	 * @param entityHandle The entity with the renderable component
 	 * @param receive Whether to receive shadows
