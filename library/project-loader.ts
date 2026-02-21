@@ -302,6 +302,21 @@ export function LoadProject(
 					ShaderProperties.BaseColorMap,
 					texHandle,
 				);
+				MaterialManager.SetFloat(
+					matHandle,
+					ShaderProperties.BaseColorMapRotation,
+					materialAsset.baseColorTransform.rotation,
+				);
+				MaterialManager.SetVector(
+					matHandle,
+					ShaderProperties.BaseColorMapScaleOffset,
+					vec4.fromValues(
+						materialAsset.baseColorTransform.scale.value[0],
+						materialAsset.baseColorTransform.scale.value[1],
+						materialAsset.baseColorTransform.offset.value[0],
+						materialAsset.baseColorTransform.offset.value[1],
+					),
+				);
 			}
 		}
 
@@ -314,6 +329,21 @@ export function LoadProject(
 					matHandle,
 					ShaderProperties.NormalMap,
 					texHandle,
+				);
+				MaterialManager.SetFloat(
+					matHandle,
+					ShaderProperties.NormalMapRotation,
+					materialAsset.normalTransform.rotation,
+				);
+				MaterialManager.SetVector(
+					matHandle,
+					ShaderProperties.NormalMapScaleOffset,
+					vec4.fromValues(
+						materialAsset.normalTransform.scale.value[0],
+						materialAsset.normalTransform.scale.value[1],
+						materialAsset.normalTransform.offset.value[0],
+						materialAsset.normalTransform.offset.value[1],
+					),
 				);
 
 				MaterialManager.SetFloat(
@@ -345,6 +375,21 @@ export function LoadProject(
 					ShaderProperties.EmissionMap,
 					texHandle,
 				);
+				MaterialManager.SetFloat(
+					matHandle,
+					ShaderProperties.EmissionMapRotation,
+					materialAsset.emissionTransform.rotation,
+				);
+				MaterialManager.SetVector(
+					matHandle,
+					ShaderProperties.EmissionMapScaleOffset,
+					vec4.fromValues(
+						materialAsset.emissionTransform.scale.value[0],
+						materialAsset.emissionTransform.scale.value[1],
+						materialAsset.emissionTransform.offset.value[0],
+						materialAsset.emissionTransform.offset.value[1],
+					),
+				);
 			}
 		}
 
@@ -357,6 +402,21 @@ export function LoadProject(
 					matHandle,
 					ShaderProperties.OcclusionMap,
 					texHandle,
+				);
+				MaterialManager.SetFloat(
+					matHandle,
+					ShaderProperties.OcclusionMapRotation,
+					materialAsset.occlusionTransform.rotation,
+				);
+				MaterialManager.SetVector(
+					matHandle,
+					ShaderProperties.OcclusionMapScaleOffset,
+					vec4.fromValues(
+						materialAsset.occlusionTransform.scale.value[0],
+						materialAsset.occlusionTransform.scale.value[1],
+						materialAsset.occlusionTransform.offset.value[0],
+						materialAsset.occlusionTransform.offset.value[1],
+					),
 				);
 
 				MaterialManager.SetFloat(
@@ -378,6 +438,21 @@ export function LoadProject(
 					matHandle,
 					ShaderProperties.RoughnessMap,
 					texHandle,
+				);
+				MaterialManager.SetFloat(
+					matHandle,
+					ShaderProperties.RoughnessMapRotation,
+					materialAsset.roughnessTransform.rotation,
+				);
+				MaterialManager.SetVector(
+					matHandle,
+					ShaderProperties.RoughnessMapScaleOffset,
+					vec4.fromValues(
+						materialAsset.roughnessTransform.scale.value[0],
+						materialAsset.roughnessTransform.scale.value[1],
+						materialAsset.roughnessTransform.offset.value[0],
+						materialAsset.roughnessTransform.offset.value[1],
+					),
 				);
 			}
 		}

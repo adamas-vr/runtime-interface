@@ -13,31 +13,55 @@ export enum ShaderProperties {
 	BaseColor = "baseColorFactor",
 	/** 2D Texture */
 	BaseColorMap = "baseColorTexture",
+	/** vec4 */
+	BaseColorMapScaleOffset = "baseColorTexture_ST",
+	/** float [0, +inf] */
+	BaseColorMapRotation = "baseColorTextureRotation",
 
 	/** float [0.0, 2.0] */
 	NormalScale = "normalScale",
 	/** 2D Texture */
 	NormalMap = "normalTexture",
+	/** vec4 */
+	NormalMapScaleOffset = "normalTexture_ST",
+	/** float [0, +inf] */
+	NormalMapRotation = "normalTextureRotation",
 
 	/** vec3 [0.0, 1.0] */
 	Emission = "emissiveFactor",
 	/** 2D Texture */
 	EmissionMap = "emissiveTexture",
+	/** vec4 */
+	EmissionMapScaleOffset = "emissiveTexture_ST",
+	/** float [0, +inf] */
+	EmissionMapRotation = "emissiveTextureRotation",
 
 	/** float [0.0, 1.0] */
 	OcclusionStrength = "occlusionStrength",
 	/** 2D Texture */
 	OcclusionMap = "occlusionTexture",
+	/** vec4 */
+	OcclusionMapScaleOffset = "occlusionTexture_ST",
+	/** float [0, +inf] */
+	OcclusionMapRotation = "occlusionTextureRotation",
 
 	/** float [0.0, 1.0] */
 	Roughness = "roughnessFactor",
 	/** float */
 	RoughnessMap = "metallicRoughnessTexture",
+	/** vec4 */
+	RoughnessMapScaleOffset = "metallicRoughnessTexture_ST",
+	/** float [0, +inf] */
+	RoughnessMapRotation = "metallicRoughnessTextureRotation",
 
 	/** float [0.0, 1.0] */
 	Metalness = "metallicFactor",
 	/** 2D Texture */
 	MetalnessMap = "metallicRoughnessTexture",
+	/** vec4 */
+	MetalnessMapScaleOffset = "metallicRoughnessTexture_ST",
+	/** float [0, +inf] */
+	MetalnessMapRotation = "metallicRoughnessTextureRotation",
 
 	/** float [0.0, 1.0] */
 	AlphaCutoff = "alphaCutoff",
@@ -102,20 +126,6 @@ export class MaterialManager {
 	}
 
 	/**
-	 * Create a material instance
-	 * @param handle The material handle to create an instance from
-	 * @returns The material instance handle
-	 */
-	static CreateInstance(handle: MaterialHandle): MaterialHandle {
-		return Number(
-			RpcClient.Call("Material_CreateInstance", {
-				materialHandle: handle,
-				clientId: RpcClient.GetClientId(),
-			}),
-		);
-	}
-
-	/**
 	 * Set a float property on the material
 	 * @param handle The material handle
 	 * @param prop The property name
@@ -148,6 +158,12 @@ export class MaterialManager {
 		prop: ShaderProperties,
 		value: vec4,
 	): boolean {
+		//FIXME: maybe move to the runtime side
+		let newW = value[3];
+		if (prop.includes("Texture_ST")) {
+			newW = 1 - value[1] - newW;
+		}
+
 		return Boolean(
 			RpcClient.Call("Material_SetVector", {
 				materialHandle: handle,
@@ -155,7 +171,7 @@ export class MaterialManager {
 				x: value[0],
 				y: value[1],
 				z: value[2],
-				w: value[3],
+				w: newW,
 			}),
 		);
 	}
