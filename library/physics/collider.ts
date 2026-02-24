@@ -53,6 +53,7 @@ export class ColliderManager {
 		);
 	}
 
+	// FIXME:
 	static GetGameObject(entityHandle: Entity): ColliderHandle {
 		return Number(
 			RpcClient.Call("ColliderAPI_GetGameObject", {

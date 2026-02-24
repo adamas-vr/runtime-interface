@@ -38,6 +38,29 @@ export class CameraManager {
 	}
 
 	/**
+	 * Set if the camera component is enabled
+	 * @param entityHandle The entity with the renderable component
+	 * @param enabled If the camera component is enabled
+	 * @returns boolean indicating success
+	 */
+	static SetEnabled(entityHandle: Entity, enabled: boolean): boolean {
+		return Boolean(
+			RpcClient.Call("Camera::SetEnabled", {
+				entityHandle,
+				enabled,
+			}),
+		);
+	}
+
+	static GetEnabled(entityHandle: Entity): boolean {
+		return Boolean(
+			RpcClient.Call("Camera::GetEnabled", {
+				entityHandle,
+			}),
+		);
+	}
+
+	/**
 	 * Set the camera render target (targetTexture)
 	 * @param entity The entity that owns the camera
 	 * @param renderTexture RenderTexture handle

@@ -46,22 +46,15 @@ export enum ShaderProperties {
 	OcclusionMapRotation = "occlusionTextureRotation",
 
 	/** float [0.0, 1.0] */
+	Metalness = "metallicFactor",
+	/** float [0.0, 1.0] */
 	Roughness = "roughnessFactor",
 	/** float */
-	RoughnessMap = "metallicRoughnessTexture",
+	MetallicRoughnessMap = "metallicRoughnessTexture",
 	/** vec4 */
-	RoughnessMapScaleOffset = "metallicRoughnessTexture_ST",
+	MetallicRoughnessMapScaleOffset = "metallicRoughnessTexture_ST",
 	/** float [0, +inf] */
-	RoughnessMapRotation = "metallicRoughnessTextureRotation",
-
-	/** float [0.0, 1.0] */
-	Metalness = "metallicFactor",
-	/** 2D Texture */
-	MetalnessMap = "metallicRoughnessTexture",
-	/** vec4 */
-	MetalnessMapScaleOffset = "metallicRoughnessTexture_ST",
-	/** float [0, +inf] */
-	MetalnessMapRotation = "metallicRoughnessTextureRotation",
+	MetallicRoughnessMapRotation = "metallicRoughnessTextureRotation",
 
 	/** float [0.0, 1.0] */
 	AlphaCutoff = "alphaCutoff",

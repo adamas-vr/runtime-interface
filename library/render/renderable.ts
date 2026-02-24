@@ -50,6 +50,29 @@ export class RenderableManager {
 	}
 
 	/**
+	 * Set if the renderable component is enabled
+	 * @param entityHandle The entity with the renderable component
+	 * @param enabled If the renderable component is enabled
+	 * @returns boolean indicating success
+	 */
+	static SetEnabled(entityHandle: Entity, enabled: boolean): boolean {
+		return Boolean(
+			RpcClient.Call("Renderable::SetEnabled", {
+				entityHandle,
+				enabled,
+			}),
+		);
+	}
+
+	static GetEnabled(entityHandle: Entity): boolean {
+		return Boolean(
+			RpcClient.Call("Renderable::GetEnabled", {
+				entityHandle,
+			}),
+		);
+	}
+
+	/**
 	 * Set the mesh for the renderable component
 	 * @param entityHandle The entity with the renderable component
 	 * @param meshHandle The mesh handle to attach

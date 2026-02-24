@@ -9,11 +9,6 @@ export enum MovementType {
 	Instantaneous = 2,
 }
 
-/**
- * Provides a static interface for managing XR grab interactable components
- * on entities via RPC. This includes lifecycle management, configuration of
- * grab behaviors (position, rotation, scale), and interaction event callbacks.
- */
 export class GrabInteractableManager {
 	/**
 	 * Creates a grab interactable component for the specified entity.
@@ -82,6 +77,29 @@ export class GrabInteractableManager {
 	static HasComponent(entityHandle: Entity): boolean {
 		return Boolean(
 			RpcClient.Call("GrabInteractableAPI_HasComponent", {
+				entityHandle,
+			}),
+		);
+	}
+
+	/**
+	 * Set if the GrabInteractable component is enabled
+	 * @param entityHandle The entity with the renderable component
+	 * @param enabled If the GrabInteractable component is enabled
+	 * @returns boolean indicating success
+	 */
+	static SetEnabled(entityHandle: Entity, enabled: boolean): boolean {
+		return Boolean(
+			RpcClient.Call("GrabInteractableAPI_SetEnabled", {
+				entityHandle,
+				enabled,
+			}),
+		);
+	}
+
+	static GetEnabled(entityHandle: Entity): boolean {
+		return Boolean(
+			RpcClient.Call("GrabInteractableAPI_GetEnabled", {
 				entityHandle,
 			}),
 		);

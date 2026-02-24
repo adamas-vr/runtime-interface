@@ -51,6 +51,29 @@ export class LightManager {
 	}
 
 	/**
+	 * Set if the light component is enabled
+	 * @param entityHandle The entity with the renderable component
+	 * @param enabled If the light component is enabled
+	 * @returns boolean indicating success
+	 */
+	static SetEnabled(entityHandle: Entity, enabled: boolean): boolean {
+		return Boolean(
+			RpcClient.Call("Light::SetEnabled", {
+				entityHandle,
+				enabled,
+			}),
+		);
+	}
+
+	static GetEnabled(entityHandle: Entity): boolean {
+		return Boolean(
+			RpcClient.Call("Light::GetEnabled", {
+				entityHandle,
+			}),
+		);
+	}
+
+	/**
 	 * Set the type of light
 	 * @param entity The entity with the light component
 	 * @param type The light type

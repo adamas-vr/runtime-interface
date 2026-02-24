@@ -33,6 +33,7 @@ const RAD2DEG = 180 / Math.PI;
 type Properties = {
 	componentType: string;
 	name: string;
+	activeEntity: boolean;
 };
 type Transforms = {
 	componentType: string;
@@ -55,6 +56,7 @@ type Transforms = {
 };
 type Renderables = {
 	componentType: string;
+	enabled: boolean;
 	layerMask: number;
 	receiveShadows: boolean;
 	castShadows: number;
@@ -64,6 +66,7 @@ type Renderables = {
 };
 type Lights = {
 	componentType: string;
+	enabled: boolean;
 	color: {
 		value: [number, number, number];
 	};
@@ -77,6 +80,7 @@ type Lights = {
 };
 type Cameras = {
 	componentType: string;
+	enabled: boolean;
 	projectionType: number;
 	perspectiveFov: number;
 	orthographicSize: number;
@@ -133,6 +137,7 @@ type Rigidbodies = {
 
 type Grabbles = {
 	componentType: string;
+	enabled: boolean;
 	dynamicAttach: boolean;
 	attachEntity?: UUID;
 	allowHoverActivate: boolean;
@@ -358,9 +363,9 @@ export function LoadProject(
 			matHandle,
 			ShaderProperties.Emission,
 			vec4.fromValues(
-				materialAsset.emission.value[0],
-				materialAsset.emission.value[1],
-				materialAsset.emission.value[2],
+				materialAsset.emission.value[0] * materialAsset.emissionIntensity,
+				materialAsset.emission.value[1] * materialAsset.emissionIntensity,
+				materialAsset.emission.value[2] * materialAsset.emissionIntensity,
 				1,
 			),
 		);
@@ -427,31 +432,31 @@ export function LoadProject(
 			}
 		}
 
-		if (materialAsset.roughnessMap || materialAsset.metalnessMap) {
+		if (materialAsset.metallicRoughnessMap) {
 			const texAsset = assetRecord.get(
-				materialAsset.roughnessMap || materialAsset.metalnessMap,
+				materialAsset.metallicRoughnessMap,
 			) as any;
 
 			if (texAsset) {
 				const texHandle = createTexture(texAsset);
 				MaterialManager.SetTexture(
 					matHandle,
-					ShaderProperties.RoughnessMap,
+					ShaderProperties.MetallicRoughnessMap,
 					texHandle,
 				);
 				MaterialManager.SetFloat(
 					matHandle,
-					ShaderProperties.RoughnessMapRotation,
-					materialAsset.roughnessTransform.rotation,
+					ShaderProperties.MetallicRoughnessMapRotation,
+					materialAsset.metallicRoughnessTransform.rotation,
 				);
 				MaterialManager.SetVector(
 					matHandle,
-					ShaderProperties.RoughnessMapScaleOffset,
+					ShaderProperties.MetallicRoughnessMapScaleOffset,
 					vec4.fromValues(
-						materialAsset.roughnessTransform.scale.value[0],
-						materialAsset.roughnessTransform.scale.value[1],
-						materialAsset.roughnessTransform.offset.value[0],
-						materialAsset.roughnessTransform.offset.value[1],
+						materialAsset.metallicRoughnessTransform.scale.value[0],
+						materialAsset.metallicRoughnessTransform.scale.value[1],
+						materialAsset.metallicRoughnessTransform.offset.value[0],
+						materialAsset.metallicRoughnessTransform.offset.value[1],
 					),
 				);
 			}
@@ -502,6 +507,7 @@ export function LoadProject(
 
 	for (const entity of scene.entities.value) {
 		const currEntity = entityMap.get(entity)!;
+		EntityManager.SetActive(currEntity, false);
 
 		const transform = transforms.get(entity);
 		if (transform) {
@@ -558,6 +564,7 @@ export function LoadProject(
 				} else {
 					RenderableManager.Create(currEntity);
 				}
+				RenderableManager.SetEnabled(currEntity, false);
 
 				RenderableManager.SetMesh(currEntity, meshHandle);
 				RenderableManager.SetShadowMode(currEntity, renderable.castShadows);
@@ -580,12 +587,18 @@ export function LoadProject(
 					const matHandle = createMaterial(material, renderable.culling);
 					RenderableManager.SetMaterial(currEntity, matHandle, idx);
 				});
+
+				if (renderable.enabled) {
+					RenderableManager.SetEnabled(currEntity, true);
+				}
 			}
 		}
 
 		const light = lights.get(entity);
 		if (light) {
 			LightManager.Create(currEntity, light.lightType);
+			LightManager.SetEnabled(currEntity, false);
+
 			LightManager.SetIntensity(currEntity, light.intensity);
 			LightManager.SetColor(
 				currEntity,
@@ -600,11 +613,16 @@ export function LoadProject(
 			LightManager.SetSpotAngle(currEntity, light.spotAngle);
 			LightManager.SetShadows(currEntity, light.shadows);
 			// LightManager.SetCullingMask(currEntity, light.cullingMask);
+
+			if (light.enabled) {
+				LightManager.SetEnabled(currEntity, true);
+			}
 		}
 
 		const camera = cameras.get(entity);
 		if (camera) {
 			CameraManager.Create(currEntity);
+			CameraManager.SetEnabled(currEntity, false);
 
 			CameraManager.SetProjectionType(currEntity, camera.projectionType);
 			CameraManager.SetFieldOfView(currEntity, camera.perspectiveFov);
@@ -612,6 +630,10 @@ export function LoadProject(
 			CameraManager.SetFarClipPlane(currEntity, camera.clippingFar);
 			CameraManager.SetNearClipPlane(currEntity, camera.clippingNear);
 			// CameraManager.SetCullingMask(currEntity, camera.cullingMask);
+
+			if (camera.enabled) {
+				CameraManager.SetEnabled(currEntity, true);
+			}
 		}
 
 		const collider = colliders.get(entity);
@@ -686,6 +708,7 @@ export function LoadProject(
 		const grabble = grabbles.get(entity);
 		if (grabble) {
 			GrabInteractableManager.Create(currEntity);
+			GrabInteractableManager.SetEnabled(currEntity, false);
 
 			GrabInteractableManager.SetMovementType(currEntity, grabble.movementType);
 
@@ -719,9 +742,18 @@ export function LoadProject(
 				grabble.throwOnDetach,
 			);
 
+			if (grabble.enabled) {
+				GrabInteractableManager.SetEnabled(currEntity, true);
+			}
+
 			if (transform.isTransformSync) {
 				GrabInteractableManager.MakeNetworkGrabble(currEntity);
 			}
+		}
+
+		const property = properties.get(entity)!;
+		if (property.activeEntity) {
+			EntityManager.SetActive(currEntity, property.activeEntity);
 		}
 	}
 

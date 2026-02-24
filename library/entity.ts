@@ -27,6 +27,16 @@ export class EntityManager {
 		return Boolean(RpcClient.Call("Entity::Destroy", { entityHandle }));
 	}
 
+	static SetActive(entityHandle: Entity, active: boolean): boolean {
+		return Boolean(
+			RpcClient.Call("Entity::SetActive", { entityHandle, active }),
+		);
+	}
+
+	static GetActive(entityHandle: Entity): boolean {
+		return Boolean(RpcClient.Call("Entity::GetActive", { entityHandle }));
+	}
+
 	static SetName(entityHandle: Entity, name: string): boolean {
 		return Boolean(RpcClient.Call("Entity::SetName", { entityHandle, name }));
 	}
