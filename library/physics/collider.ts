@@ -53,13 +53,22 @@ export class ColliderManager {
 		);
 	}
 
-	// FIXME:
-	static GetGameObject(entityHandle: Entity): ColliderHandle {
+	static GetEntity(colliderHandle: ColliderHandle): Entity {
 		return Number(
-			RpcClient.Call("ColliderAPI_GetGameObject", {
+			RpcClient.Call("ColliderAPI_GetEntity", {
+				colliderHandle,
+			}),
+		);
+	}
+
+	static GetAllColliders(entityHandle: Entity): ColliderHandle[] {
+		const json = String(
+			RpcClient.Call("ColliderAPI_GetAllColliders", {
 				entityHandle,
 			}),
 		);
+
+		return JSON.parse(json) as ColliderHandle[];
 	}
 
 	static GetBoxColliderCenter(colliderHandle: ColliderHandle): vec3 {
