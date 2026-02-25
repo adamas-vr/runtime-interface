@@ -6,7 +6,7 @@ import { RenderableManager } from "./render/renderable";
 import {
 	MaterialHandle,
 	MaterialManager,
-	ShaderProperties,
+	MaterialProperty,
 } from "./render/material";
 import { TextureFormat, TextureHandle, TextureManager } from "./render/texture";
 import { LightManager, LightType } from "./render/light";
@@ -287,7 +287,7 @@ export function LoadProject(
 		const matHandle = MaterialManager.Create();
 		MaterialManager.SetColor(
 			matHandle,
-			ShaderProperties.BaseColor,
+			MaterialProperty.BaseColor,
 			vec4.fromValues(
 				materialAsset.baseColor.x,
 				materialAsset.baseColor.y,
@@ -303,17 +303,17 @@ export function LoadProject(
 				const texHandle = createTexture(texAsset);
 				MaterialManager.SetTexture(
 					matHandle,
-					ShaderProperties.BaseColorMap,
+					MaterialProperty.BaseColorMap,
 					texHandle,
 				);
 				MaterialManager.SetFloat(
 					matHandle,
-					ShaderProperties.BaseColorMapRotation,
+					MaterialProperty.BaseColorMapRotation,
 					materialAsset.baseColorTransform.rotation,
 				);
 				MaterialManager.SetVector(
 					matHandle,
-					ShaderProperties.BaseColorMapScaleOffset,
+					MaterialProperty.BaseColorMapScaleOffset,
 					vec4.fromValues(
 						materialAsset.baseColorTransform.scale.value[0],
 						materialAsset.baseColorTransform.scale.value[1],
@@ -331,17 +331,17 @@ export function LoadProject(
 				const texHandle = createTexture(texAsset, true);
 				MaterialManager.SetTexture(
 					matHandle,
-					ShaderProperties.NormalMap,
+					MaterialProperty.NormalMap,
 					texHandle,
 				);
 				MaterialManager.SetFloat(
 					matHandle,
-					ShaderProperties.NormalMapRotation,
+					MaterialProperty.NormalMapRotation,
 					materialAsset.normalTransform.rotation,
 				);
 				MaterialManager.SetVector(
 					matHandle,
-					ShaderProperties.NormalMapScaleOffset,
+					MaterialProperty.NormalMapScaleOffset,
 					vec4.fromValues(
 						materialAsset.normalTransform.scale.value[0],
 						materialAsset.normalTransform.scale.value[1],
@@ -352,7 +352,7 @@ export function LoadProject(
 
 				MaterialManager.SetFloat(
 					matHandle,
-					ShaderProperties.NormalScale,
+					MaterialProperty.NormalScale,
 					materialAsset.normalScale,
 				);
 			}
@@ -360,7 +360,7 @@ export function LoadProject(
 
 		MaterialManager.SetColor(
 			matHandle,
-			ShaderProperties.Emission,
+			MaterialProperty.Emission,
 			vec4.fromValues(
 				materialAsset.emission.value[0] * materialAsset.emissionIntensity,
 				materialAsset.emission.value[1] * materialAsset.emissionIntensity,
@@ -376,17 +376,17 @@ export function LoadProject(
 				const texHandle = createTexture(texAsset);
 				MaterialManager.SetTexture(
 					matHandle,
-					ShaderProperties.EmissionMap,
+					MaterialProperty.EmissionMap,
 					texHandle,
 				);
 				MaterialManager.SetFloat(
 					matHandle,
-					ShaderProperties.EmissionMapRotation,
+					MaterialProperty.EmissionMapRotation,
 					materialAsset.emissionTransform.rotation,
 				);
 				MaterialManager.SetVector(
 					matHandle,
-					ShaderProperties.EmissionMapScaleOffset,
+					MaterialProperty.EmissionMapScaleOffset,
 					vec4.fromValues(
 						materialAsset.emissionTransform.scale.value[0],
 						materialAsset.emissionTransform.scale.value[1],
@@ -404,17 +404,17 @@ export function LoadProject(
 				const texHandle = createTexture(texAsset);
 				MaterialManager.SetTexture(
 					matHandle,
-					ShaderProperties.OcclusionMap,
+					MaterialProperty.OcclusionMap,
 					texHandle,
 				);
 				MaterialManager.SetFloat(
 					matHandle,
-					ShaderProperties.OcclusionMapRotation,
+					MaterialProperty.OcclusionMapRotation,
 					materialAsset.occlusionTransform.rotation,
 				);
 				MaterialManager.SetVector(
 					matHandle,
-					ShaderProperties.OcclusionMapScaleOffset,
+					MaterialProperty.OcclusionMapScaleOffset,
 					vec4.fromValues(
 						materialAsset.occlusionTransform.scale.value[0],
 						materialAsset.occlusionTransform.scale.value[1],
@@ -425,7 +425,7 @@ export function LoadProject(
 
 				MaterialManager.SetFloat(
 					matHandle,
-					ShaderProperties.OcclusionStrength,
+					MaterialProperty.OcclusionStrength,
 					materialAsset.occlusionStrength,
 				);
 			}
@@ -440,17 +440,17 @@ export function LoadProject(
 				const texHandle = createTexture(texAsset);
 				MaterialManager.SetTexture(
 					matHandle,
-					ShaderProperties.MetallicRoughnessMap,
+					MaterialProperty.MetallicRoughnessMap,
 					texHandle,
 				);
 				MaterialManager.SetFloat(
 					matHandle,
-					ShaderProperties.MetallicRoughnessMapRotation,
+					MaterialProperty.MetallicRoughnessMapRotation,
 					materialAsset.metallicRoughnessTransform.rotation,
 				);
 				MaterialManager.SetVector(
 					matHandle,
-					ShaderProperties.MetallicRoughnessMapScaleOffset,
+					MaterialProperty.MetallicRoughnessMapScaleOffset,
 					vec4.fromValues(
 						materialAsset.metallicRoughnessTransform.scale.value[0],
 						materialAsset.metallicRoughnessTransform.scale.value[1],
@@ -463,26 +463,26 @@ export function LoadProject(
 
 		MaterialManager.SetFloat(
 			matHandle,
-			ShaderProperties.Metalness,
+			MaterialProperty.Metalness,
 			materialAsset.metalness,
 		);
 
 		MaterialManager.SetFloat(
 			matHandle,
-			ShaderProperties.Roughness,
+			MaterialProperty.Roughness,
 			materialAsset.roughness,
 		);
 
 		MaterialManager.SetAlphaMode(matHandle, materialAsset.alphaMode);
 		MaterialManager.SetFloat(
 			matHandle,
-			ShaderProperties.AlphaCutoff,
+			MaterialProperty.AlphaCutoff,
 			materialAsset.alphaCutoff,
 		);
 
 		MaterialManager.SetFloat(
 			matHandle,
-			ShaderProperties.Culling,
+			MaterialProperty.Culling,
 			culling ? 2 : 0,
 		);
 

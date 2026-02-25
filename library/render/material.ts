@@ -5,7 +5,7 @@ import { TextureHandle } from "./texture";
 
 export type MaterialHandle = number;
 
-export enum ShaderProperties {
+export enum MaterialProperty {
 	/** vec4 [0.0, 1.0] */
 	BaseColor = "baseColorFactor",
 	/** 2D Texture */
@@ -62,11 +62,10 @@ export enum ShaderProperties {
 
 export class MaterialManager {
 	/**
-	 * Create a new material with the specified shader
+	 * Create a new material
 	 * @returns The material handle
 	 */
 	static Create(): MaterialHandle;
-
 	/**
 	 * Create a new material and attach it to a renderable component
 	 * @param entity The entity with the renderable component
@@ -76,13 +75,13 @@ export class MaterialManager {
 	static Create(entity: Entity, submeshIndex?: number): MaterialHandle;
 	static Create(entity?: Entity, submeshIndex: number = 0): MaterialHandle {
 		const matHandle = Number(
-			RpcClient.Call("Material_Create", {
+			RpcClient.Call("Material::Create", {
 				clientId: RpcClient.GetClientId(),
 			}),
 		);
 
 		if (entity !== undefined) {
-			RpcClient.Call("Renderable_SetMaterial", {
+			RpcClient.Call("Renderable::SetMaterial", {
 				entityHandle: entity,
 				materialHandle: matHandle,
 				index: submeshIndex,
@@ -99,7 +98,7 @@ export class MaterialManager {
 	 */
 	static Destroy(handle: MaterialHandle): boolean {
 		return Boolean(
-			RpcClient.Call("Material_Destroy", { materialHandle: handle }),
+			RpcClient.Call("Material::Destroy", { materialHandle: handle }),
 		);
 	}
 
@@ -112,11 +111,11 @@ export class MaterialManager {
 	 */
 	static SetFloat(
 		handle: MaterialHandle,
-		property: ShaderProperties,
+		property: MaterialProperty,
 		value: number,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("Material_SetFloat", {
+			RpcClient.Call("Material::SetFloat", {
 				materialHandle: handle,
 				propertyName: property,
 				value,
@@ -130,9 +129,9 @@ export class MaterialManager {
 	 * @param prop The property name
 	 * @returns The float value
 	 */
-	static GetFloat(handle: MaterialHandle, property: ShaderProperties): number {
+	static GetFloat(handle: MaterialHandle, property: MaterialProperty): number {
 		return Number(
-			RpcClient.Call("Material_GetFloat", {
+			RpcClient.Call("Material::GetFloat", {
 				materialHandle: handle,
 				propertyName: property,
 			}),
@@ -148,7 +147,7 @@ export class MaterialManager {
 	 */
 	static SetVector(
 		handle: MaterialHandle,
-		property: ShaderProperties,
+		property: MaterialProperty,
 		value: vec4,
 	): boolean {
 		let newW = value[3];
@@ -157,7 +156,7 @@ export class MaterialManager {
 		}
 
 		return Boolean(
-			RpcClient.Call("Material_SetVector", {
+			RpcClient.Call("Material::SetVector", {
 				materialHandle: handle,
 				propertyName: property,
 				x: value[0],
@@ -174,7 +173,7 @@ export class MaterialManager {
 	 * @param prop The property name
 	 * @returns vec4 value
 	 */
-	static GetVector(handle: MaterialHandle, property: ShaderProperties): vec4 {
+	static GetVector(handle: MaterialHandle, property: MaterialProperty): vec4 {
 		const arr = JSON.parse(
 			RpcClient.Call("Material::GetVector", {
 				materialHandle: handle,
@@ -200,7 +199,7 @@ export class MaterialManager {
 	 */
 	static SetColor(
 		handle: MaterialHandle,
-		property: ShaderProperties,
+		property: MaterialProperty,
 		rgba: vec4,
 	): boolean {
 		return Boolean(
@@ -221,7 +220,7 @@ export class MaterialManager {
 	 * @param prop The property name
 	 * @returns Color
 	 */
-	static GetColor(handle: MaterialHandle, property: ShaderProperties): vec4 {
+	static GetColor(handle: MaterialHandle, property: MaterialProperty): vec4 {
 		const arr = JSON.parse(
 			RpcClient.Call("Material::GetColor", {
 				materialHandle: handle,
@@ -242,11 +241,11 @@ export class MaterialManager {
 	 */
 	static SetTexture(
 		handle: MaterialHandle,
-		property: ShaderProperties,
+		property: MaterialProperty,
 		texture: TextureHandle,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("Material_SetTexture", {
+			RpcClient.Call("Material::SetTexture", {
 				materialHandle: handle,
 				propertyName: property,
 				textureHandle: texture,
@@ -262,7 +261,7 @@ export class MaterialManager {
 	 */
 	static GetTexture(
 		handle: MaterialHandle,
-		property: ShaderProperties,
+		property: MaterialProperty,
 	): TextureHandle {
 		return Number(
 			RpcClient.Call("Material::GetTexture", {
