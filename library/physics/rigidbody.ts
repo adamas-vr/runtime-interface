@@ -13,28 +13,28 @@ export enum ForceMode {
 	VelocityChange = 2,
 }
 
-export enum RigidbodyConstraints {
-	/** No constraints. */
-	None = 0,
-	/** Freeze motion along the X-axis. */
-	FreezePositionX = 2,
-	/** Freeze motion along the Y-axis. */
-	FreezePositionY = 4,
-	/** Freeze motion along the Z-axis. */
-	FreezePositionZ = 8,
-	/** Freeze rotation along the X-axis. */
-	FreezeRotationX = 16,
-	/** Freeze rotation along the Y-axis. */
-	FreezeRotationY = 32,
-	/** Freeze rotation along the Z-axis. */
-	FreezeRotationZ = 64,
-	/** Freeze motion along all axes. */
-	FreezePosition = 14,
-	/** Freeze rotation along all axes. */
-	FreezeRotation = 112,
-	/** Freeze rotation and motion along all axes. */
-	FreezeAll = 126,
-}
+// export enum RigidbodyConstraints {
+// 	/** No constraints. */
+// 	None = 0,
+// 	/** Freeze motion along the X-axis. */
+// 	FreezePositionX = 2,
+// 	/** Freeze motion along the Y-axis. */
+// 	FreezePositionY = 4,
+// 	/** Freeze motion along the Z-axis. */
+// 	FreezePositionZ = 8,
+// 	/** Freeze rotation along the X-axis. */
+// 	FreezeRotationX = 16,
+// 	/** Freeze rotation along the Y-axis. */
+// 	FreezeRotationY = 32,
+// 	/** Freeze rotation along the Z-axis. */
+// 	FreezeRotationZ = 64,
+// 	/** Freeze motion along all axes. */
+// 	FreezePosition = 14,
+// 	/** Freeze rotation along all axes. */
+// 	FreezeRotation = 112,
+// 	/** Freeze rotation and motion along all axes. */
+// 	FreezeAll = 126,
+// }
 
 export class RigidbodyManager {
 	static Create(entityHandle: Entity): boolean {
@@ -131,25 +131,25 @@ export class RigidbodyManager {
 		);
 	}
 
-	static GetConstraints(entityHandle: Entity): RigidbodyConstraints {
-		return Number(
-			RpcClient.Call("RidigbodyAPI_GetConstraints", {
-				entityHandle,
-			}),
-		);
-	}
+	// static GetConstraints(entityHandle: Entity): RigidbodyConstraints {
+	// 	return Number(
+	// 		RpcClient.Call("RidigbodyAPI_GetConstraints", {
+	// 			entityHandle,
+	// 		}),
+	// 	);
+	// }
 
-	static SetConstraints(
-		entityHandle: Entity,
-		constraints: RigidbodyConstraints,
-	): boolean {
-		return Boolean(
-			RpcClient.Call("RidigbodyAPI_SetConstraints", {
-				entityHandle,
-				constraints,
-			}),
-		);
-	}
+	// static SetConstraints(
+	// 	entityHandle: Entity,
+	// 	constraints: RigidbodyConstraints,
+	// ): boolean {
+	// 	return Boolean(
+	// 		RpcClient.Call("RidigbodyAPI_SetConstraints", {
+	// 			entityHandle,
+	// 			constraints,
+	// 		}),
+	// 	);
+	// }
 
 	static GetIsKinematic(entityHandle: Entity): boolean {
 		return Boolean(
