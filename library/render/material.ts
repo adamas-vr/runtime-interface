@@ -27,7 +27,7 @@ export enum ShaderProperties {
 	/** float [0, +inf] */
 	NormalMapRotation = "normalTextureRotation",
 
-	/** vec3 [0.0, 1.0] */
+	/** vec3 [0.0, +inf] HDR supported */
 	Emission = "emissiveFactor",
 	/** 2D Texture */
 	EmissionMap = "emissiveTexture",

@@ -5,11 +5,6 @@ import { base64Encode } from "../utilities/base64";
 
 export type MeshHandle = number;
 
-// NOTE: the following are not supported compared to legacy code:
-// - Filament's VertexBufferBuilder / IndexBufferBuilder (Unity meshes are atomic)
-// - Filament's Attribute, Normalized, AdvancedSkinning on a raw VB/IB
-
-// We don't expose VertexBuffer/IndexBuffer builders in Unity; instead use Mesh RPCs directly
 export class MeshManager {
 	/**
 	 * Create a new mesh
