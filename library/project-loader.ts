@@ -7,13 +7,12 @@ import {
 	MaterialHandle,
 	MaterialManager,
 	ShaderProperties,
-	ShaderType,
 } from "./render/material";
 import { TextureFormat, TextureHandle, TextureManager } from "./render/texture";
 import { LightManager, LightType } from "./render/light";
 import { ColliderManager } from "./physics/collider";
 import { CameraManager } from "./render/camera";
-import { RigidbodyConstraints, RigidbodyManager } from "./physics/rigidbody";
+import { RigidbodyManager } from "./physics/rigidbody";
 import {
 	GrabInteractableManager,
 	MovementType,
@@ -285,7 +284,7 @@ export function LoadProject(
 		const cacheMatHandle = materialCache.get(materialAsset.uuid);
 		if (cacheMatHandle) return cacheMatHandle;
 
-		const matHandle = MaterialManager.Create(ShaderType.UnityGLTF);
+		const matHandle = MaterialManager.Create();
 		MaterialManager.SetColor(
 			matHandle,
 			ShaderProperties.BaseColor,

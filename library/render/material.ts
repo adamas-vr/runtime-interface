@@ -1,12 +1,9 @@
 import { RpcClient } from "../rpc";
 import { Entity } from "../entity";
 import { vec4 } from "gl-matrix";
+import { TextureHandle } from "./texture";
 
 export type MaterialHandle = number;
-
-export enum ShaderType {
-	UnityGLTF = "UnityGLTF/PBRGraph",
-}
 
 export enum ShaderProperties {
 	/** vec4 [0.0, 1.0] */
@@ -66,32 +63,20 @@ export enum ShaderProperties {
 export class MaterialManager {
 	/**
 	 * Create a new material with the specified shader
-	 * @param shader The name of the shader to use
 	 * @returns The material handle
 	 */
-	static Create(shader: ShaderType): MaterialHandle;
+	static Create(): MaterialHandle;
 
 	/**
 	 * Create a new material and attach it to a renderable component
-	 * @param shader The name of the shader to use
 	 * @param entity The entity with the renderable component
 	 * @param submeshIndex The submesh index to attach to (default: 0)
 	 * @returns The material handle
 	 */
-	static Create(
-		shader: ShaderType,
-		entity: Entity,
-		submeshIndex?: number,
-	): MaterialHandle;
-
-	static Create(
-		shader: ShaderType = ShaderType.UnityGLTF,
-		entity?: Entity,
-		submeshIndex: number = 0,
-	): MaterialHandle {
+	static Create(entity: Entity, submeshIndex?: number): MaterialHandle;
+	static Create(entity?: Entity, submeshIndex: number = 0): MaterialHandle {
 		const matHandle = Number(
 			RpcClient.Call("Material_Create", {
-				shaderName: shader,
 				clientId: RpcClient.GetClientId(),
 			}),
 		);
@@ -127,14 +112,29 @@ export class MaterialManager {
 	 */
 	static SetFloat(
 		handle: MaterialHandle,
-		prop: ShaderProperties,
+		property: ShaderProperties,
 		value: number,
 	): boolean {
 		return Boolean(
 			RpcClient.Call("Material_SetFloat", {
 				materialHandle: handle,
-				propertyName: prop,
+				propertyName: property,
 				value,
+			}),
+		);
+	}
+
+	/**
+	 * Get a float property from the material
+	 * @param handle The material handle
+	 * @param prop The property name
+	 * @returns The float value
+	 */
+	static GetFloat(handle: MaterialHandle, property: ShaderProperties): number {
+		return Number(
+			RpcClient.Call("Material_GetFloat", {
+				materialHandle: handle,
+				propertyName: property,
 			}),
 		);
 	}
@@ -148,25 +148,47 @@ export class MaterialManager {
 	 */
 	static SetVector(
 		handle: MaterialHandle,
-		prop: ShaderProperties,
+		property: ShaderProperties,
 		value: vec4,
 	): boolean {
-		//FIXME: maybe move to the runtime side
 		let newW = value[3];
-		if (prop.includes("Texture_ST")) {
+		if (property.includes("Texture_ST")) {
 			newW = 1 - value[1] - newW;
 		}
 
 		return Boolean(
 			RpcClient.Call("Material_SetVector", {
 				materialHandle: handle,
-				propertyName: prop,
+				propertyName: property,
 				x: value[0],
 				y: value[1],
 				z: value[2],
 				w: newW,
 			}),
 		);
+	}
+
+	/**
+	 * Get a vector property on the material
+	 * @param handle The material handle
+	 * @param prop The property name
+	 * @returns vec4 value
+	 */
+	static GetVector(handle: MaterialHandle, property: ShaderProperties): vec4 {
+		const arr = JSON.parse(
+			RpcClient.Call("Material::GetVector", {
+				materialHandle: handle,
+				propertyName: property,
+			}),
+		);
+
+		if (arr.length != 4) throw `Property ${property} does not exist.`;
+
+		let newW = arr[3];
+		if (property.includes("Texture_ST")) {
+			newW = 1 - arr[1] - newW;
+		}
+		return vec4.fromValues(arr[0], arr[1], arr[2], newW);
 	}
 
 	/**
@@ -178,19 +200,37 @@ export class MaterialManager {
 	 */
 	static SetColor(
 		handle: MaterialHandle,
-		prop: ShaderProperties,
+		property: ShaderProperties,
 		rgba: vec4,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("Material_SetColor", {
+			RpcClient.Call("Material::SetColor", {
 				materialHandle: handle,
-				propertyName: prop,
+				propertyName: property,
 				r: rgba[0],
 				g: rgba[1],
 				b: rgba[2],
 				a: rgba[3],
 			}),
 		);
+	}
+
+	/**
+	 * Get a color property from the material
+	 * @param handle The material handle
+	 * @param prop The property name
+	 * @returns Color
+	 */
+	static GetColor(handle: MaterialHandle, property: ShaderProperties): vec4 {
+		const arr = JSON.parse(
+			RpcClient.Call("Material::GetColor", {
+				materialHandle: handle,
+				propertyName: property,
+			}),
+		);
+
+		if (arr.length != 4) throw `Property ${property} does not exist.`;
+		return vec4.fromValues(arr[0], arr[1], arr[2], arr[3]);
 	}
 
 	/**
@@ -202,44 +242,34 @@ export class MaterialManager {
 	 */
 	static SetTexture(
 		handle: MaterialHandle,
-		prop: ShaderProperties,
-		tex: number,
+		property: ShaderProperties,
+		texture: TextureHandle,
 	): boolean {
 		return Boolean(
 			RpcClient.Call("Material_SetTexture", {
 				materialHandle: handle,
-				propertyName: prop,
-				textureHandle: tex,
+				propertyName: property,
+				textureHandle: texture,
 			}),
 		);
 	}
 
 	/**
-	 * Get a float property from the material
+	 * Get a texture property on the material
 	 * @param handle The material handle
 	 * @param prop The property name
-	 * @returns The float value
+	 * @returns The texture handle
 	 */
-	static GetFloat(handle: MaterialHandle, prop: ShaderProperties): number {
+	static GetTexture(
+		handle: MaterialHandle,
+		property: ShaderProperties,
+	): TextureHandle {
 		return Number(
-			RpcClient.Call("Material_GetFloat", {
+			RpcClient.Call("Material::GetTexture", {
 				materialHandle: handle,
-				propertyName: prop,
+				propertyName: property,
 			}),
 		);
-	}
-
-	/**
-	 * Get a color property from the material
-	 * @param handle The material handle
-	 * @param prop The property name
-	 * @returns The color as a string
-	 */
-	static GetColor(handle: MaterialHandle, prop: ShaderProperties): string {
-		return RpcClient.Call("Material_GetColor", {
-			materialHandle: handle,
-			propertyName: prop,
-		});
 	}
 
 	static SetAlphaMode(
@@ -247,10 +277,23 @@ export class MaterialManager {
 		alphaMode: "Blend" | "Mask" | "Opaque" = "Opaque",
 	) {
 		return Boolean(
-			RpcClient.Call("Material_SetAlphaMode", {
+			RpcClient.Call("Material::SetAlphaMode", {
 				materialHandle: handle,
 				alphaMode,
 			}),
 		);
+	}
+
+	static GetAlphaMode(
+		handle: MaterialHandle,
+	): "Blend" | "Mask" | "Opaque" | undefined {
+		const val = String(
+			RpcClient.Call("Material::GetAlphaMode", {
+				materialHandle: handle,
+			}),
+		);
+
+		if (val == "") return undefined;
+		return val as "Blend" | "Mask" | "Opaque";
 	}
 }
