@@ -54,6 +54,22 @@ export enum TextureDimension {
 	Cube = 4,
 }
 
+export interface ImageReadbackResult {
+	ok: boolean;
+	error: string;
+
+	width: number;
+	height: number;
+
+	kind: "rgba" | "png" | "jpeg";
+
+	// For raw-rgba: bytesPerPixel is typically 4 for RGBA32
+	bytesPerPixel: number;
+
+	// Base64 of payload (raw bytes or encoded bytes)
+	base64: string;
+}
+
 export class TextureManager {
 	/**
 	 * Create a 2D texture
@@ -152,22 +168,48 @@ export class TextureManager {
 	/**
 	 * Set raw RGBA iamge for the texture
 	 * @param handle The texture handle
-	 * @param rgbaDataJson RGBA values
+	 * @param rgbaData RGBA values in array buffer, each element is 1 byte in R, G, B, A order
 	 * @param width The texture width
 	 * @param height The texture height
 	 * @returns boolean indicating success
 	 */
-	static LoadRawTextureData(
+	static LoadRGBAData(
 		handle: TextureHandle,
-		base64Rgba: ArrayBufferLike,
+		rgbaData: ArrayBufferLike,
+		width: number,
+		height: number,
+	): boolean;
+	/**
+	 * Set raw RGBA iamge for the texture
+	 * @param handle The texture handle
+	 * @param rgbaData RGBA values in base64 string encoding
+	 * @param width The texture width
+	 * @param height The texture height
+	 * @returns boolean indicating success
+	 */
+	static LoadRGBAData(
+		handle: TextureHandle,
+		rgbaData: string,
+		width: number,
+		height: number,
+	): boolean;
+	static LoadRGBAData(
+		handle: TextureHandle,
+		rgbaData: ArrayBufferLike | string,
 		width: number,
 		height: number,
 	): boolean {
-		const base64String = base64Encode(base64Rgba);
+		let base64Rgba;
+		if (typeof rgbaData !== "string") {
+			base64Rgba = base64Encode(rgbaData);
+		} else {
+			base64Rgba = rgbaData;
+		}
+
 		return Boolean(
 			RpcClient.Call("Texture_LoadRawTextureData", {
 				textureHandle: handle,
-				base64Rgba: base64String,
+				base64Rgba,
 				width,
 				height,
 			}),
@@ -177,11 +219,27 @@ export class TextureManager {
 	/**
 	 * Loads PNG, JPG, and EXR image byte array into a texture.
 	 * @param handle The texture handle
-	 * @param imageDataJson JSON string with comma-separated RGBA values
+	 * @param image PNG, JPG, or EXR image data in arraybuffer
 	 * @returns boolean indicating success
 	 */
-	static LoadImage(handle: TextureHandle, image: ArrayBufferLike): boolean {
-		const base64Image = base64Encode(image);
+	static LoadImage(handle: TextureHandle, image: ArrayBufferLike): boolean;
+	/**
+	 * Loads PNG, JPG, and EXR image byte array into a texture.
+	 * @param handle The texture handle
+	 * @param image PNG, JPG, or EXR image data in base64 string encoding
+	 * @returns boolean indicating success
+	 */
+	static LoadImage(handle: TextureHandle, image: string): boolean;
+	static LoadImage(
+		handle: TextureHandle,
+		image: ArrayBufferLike | string,
+	): boolean {
+		let base64Image;
+		if (typeof image !== "string") {
+			base64Image = base64Encode(image);
+		} else {
+			base64Image = image;
+		}
 
 		return Boolean(
 			RpcClient.Call("Texture_LoadImage", {
@@ -192,18 +250,43 @@ export class TextureManager {
 	}
 
 	/**
-	 * Loads PNG, JPG, and EXR image byte array into a texture.
+	 * Read back image data in RGBA format
 	 * @param handle The texture handle
-	 * @param imageDataJson JSON string with comma-separated RGBA values
-	 * @returns boolean indicating success
+	 * @returns image readback result
 	 */
-	static LoadImageBase64(handle: TextureHandle, base64Image: string): boolean {
-		return Boolean(
-			RpcClient.Call("Texture_LoadImage", {
-				textureHandle: handle,
-				base64Image,
-			}),
-		);
+	static ReadbackRGBAImage(handle: TextureHandle): ImageReadbackResult {
+		return RpcClient.Call("Texture_ReadbackRGBAImage", {
+			textureHandle: handle,
+			mipLevel: 0,
+		}) as ImageReadbackResult;
+	}
+
+	/**
+	 * Read back image data in jpg format
+	 * @param handle The texture handle
+	 * @returns image readback result
+	 */
+	static ReadbackJPGImage(
+		handle: TextureHandle,
+		quality: number = 75,
+	): ImageReadbackResult {
+		return RpcClient.Call("Texture_ReadbackJPGImage", {
+			textureHandle: handle,
+			quality,
+			mipLevel: 0,
+		}) as ImageReadbackResult;
+	}
+
+	/**
+	 * Read back image data in png format
+	 * @param handle The texture handle
+	 * @returns image readback result
+	 */
+	static ReadbackPNGImage(handle: TextureHandle): ImageReadbackResult {
+		return RpcClient.Call("Texture_ReadbackPNGImage", {
+			textureHandle: handle,
+			mipLevel: 0,
+		}) as ImageReadbackResult;
 	}
 
 	/**

@@ -268,7 +268,7 @@ export function LoadProject(
 			TextureFormat.RGBA32,
 			linear,
 		);
-		TextureManager.LoadImageBase64(texHandle, textureAsset.base64Image);
+		TextureManager.LoadImage(texHandle, textureAsset.base64Image);
 		TextureManager.SetFilterMode(texHandle, textureAsset.filterMode);
 		TextureManager.SetWrapModeU(texHandle, textureAsset.wrapModeU);
 		TextureManager.SetWrapModeV(texHandle, textureAsset.wrapModeV);
