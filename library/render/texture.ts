@@ -4,54 +4,46 @@ import { MaterialHandle } from "./material";
 
 export type TextureHandle = number;
 
-// NOTE: the following are not supported compared to legacy code:
-// - Filament's TextureBuilder, Swizzle, GenerateMipmaps, PixelBufferDescriptor
-
 export enum TextureFormat {
-	//
-	// Summary:
-	//     Alpha-only texture format, 8 bit integer.
+	/**  Alpha-only texture format, 8 bit integer. */
 	Alpha8 = 1,
-	//
-	// Summary:
-	//     Three channel (RGB) texture format, 8-bits unsigned integer per channel.
+	/** Three channel (RGB) texture format, 8-bits unsigned integer per channel. */
 	RGB24 = 3,
-	//
-	// Summary:
-	//     Four channel (RGBA) texture format, 8-bits unsigned integer per channel.
+	/** Four channel (RGBA) texture format, 8-bits unsigned integer per channel. */
 	RGBA32 = 4,
 }
 
 export enum RenderTextureFormat {
-	//
-	// Summary:
-	//     A depth render texture format.
+	/** A depth render texture format. */
 	Depth = 1,
-	//
-	// Summary:
-	//     A native shadowmap render texture format.
+	/** A native shadowmap render texture format. */
 	Shadowmap = 3,
-	//
-	// Summary:
-	//     Default color render texture format: will be chosen accordingly to Frame Buffer
-	//     format and Platform.
+	/** Default color render texture format: will be chosen accordingly to Frame Buffer format and Platform. */
 	Default = 7,
-	//
-	// Summary:
-	//     Default HDR color render texture format: will be chosen accordingly to Frame
-	//     Buffer format and Platform.
+	/** Default HDR color render texture format: will be chosen accordingly to Frame Buffer format and Platform. */
 	DefaultHDR = 9,
 }
 
 export enum TextureDimension {
-	//
-	// Summary:
-	//     2D texture (Texture2D).
+	/** 2D texture (Texture2D). */
 	Tex2D = 2,
-	//
-	// Summary:
-	//     Cubemap texture.
+	/** Cubemap texture.  */
 	Cube = 4,
+}
+
+export enum TextureFilterMode {
+	NEAREST = 0,
+	LINEAR = 1,
+	NEAREST_MIPMAP_NEAREST = 2,
+	LINEAR_MIPMAP_NEAREST = 3,
+	NEAREST_MIPMAP_LINEAR = 4,
+	LINEAR_MIPMAP_LINEAR = 5,
+}
+
+export enum TextureWrapMode {
+	CLAMP_TO_EDGE = 0,
+	REPEAT = 1,
+	MIRRORED_REPEAT = 2,
 }
 
 export interface ImageReadbackResult {
@@ -63,10 +55,10 @@ export interface ImageReadbackResult {
 
 	kind: "rgba" | "png" | "jpeg";
 
-	// For raw-rgba: bytesPerPixel is typically 4 for RGBA32
+	/** bytesPerPixel is typically 4 for RGBA32 */
 	bytesPerPixel: number;
 
-	// Base64 of payload (raw bytes or encoded bytes)
+	/**  Base64 of payload (raw bytes or encoded bytes) */
 	base64: string;
 }
 
@@ -173,7 +165,7 @@ export class TextureManager {
 	 * @param height The texture height
 	 * @returns boolean indicating success
 	 */
-	static LoadRGBAData(
+	static LoadRGBAImage(
 		handle: TextureHandle,
 		rgbaData: ArrayBufferLike,
 		width: number,
@@ -187,13 +179,13 @@ export class TextureManager {
 	 * @param height The texture height
 	 * @returns boolean indicating success
 	 */
-	static LoadRGBAData(
+	static LoadRGBAImage(
 		handle: TextureHandle,
 		rgbaData: string,
 		width: number,
 		height: number,
 	): boolean;
-	static LoadRGBAData(
+	static LoadRGBAImage(
 		handle: TextureHandle,
 		rgbaData: ArrayBufferLike | string,
 		width: number,
@@ -342,19 +334,4 @@ export class TextureManager {
 			}),
 		);
 	}
-}
-
-export enum TextureFilterMode {
-	NEAREST = 0,
-	LINEAR = 1,
-	NEAREST_MIPMAP_NEAREST = 2,
-	LINEAR_MIPMAP_NEAREST = 3,
-	NEAREST_MIPMAP_LINEAR = 4,
-	LINEAR_MIPMAP_LINEAR = 5,
-}
-
-export enum TextureWrapMode {
-	CLAMP_TO_EDGE = 0,
-	REPEAT = 1,
-	MIRRORED_REPEAT = 2,
 }
