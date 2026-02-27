@@ -1,3 +1,4 @@
+import { vec2 } from "gl-matrix";
 import { RpcClient } from "../rpc";
 import { base64Encode } from "../utilities/base64";
 import { MaterialHandle } from "./material";
@@ -47,16 +48,9 @@ export enum TextureWrapMode {
 }
 
 export interface ImageReadbackResult {
-	ok: boolean;
-	error: string;
-
 	width: number;
 	height: number;
-
 	kind: "rgba" | "png" | "jpeg";
-
-	/** bytesPerPixel is typically 4 for RGBA32 */
-	bytesPerPixel: number;
 
 	/**  Base64 of payload (raw bytes or encoded bytes) */
 	base64: string;
@@ -78,7 +72,7 @@ export class TextureManager {
 		linear: boolean = false,
 	): TextureHandle {
 		return Number(
-			RpcClient.Call("Texture_Create2D", {
+			RpcClient.Call("Texture::Create2D", {
 				width,
 				height,
 				format,
@@ -88,37 +82,6 @@ export class TextureManager {
 		);
 	}
 
-	/**
-	 * Create a 2D texture and attach it to a material
-	 * @param width The texture width
-	 * @param height The texture height
-	 * @param format The texture format
-	 * @param materialHandle The material handle to attach to
-	 * @param propertyName The material property name
-	 * @returns The texture handle
-	 */
-	static Create2DForMaterial(
-		width: number,
-		height: number,
-		format: TextureFormat,
-		materialHandle: MaterialHandle,
-		propertyName: string,
-	): TextureHandle {
-		const textureHandle = Number(
-			RpcClient.Call("Texture_Create2D", {
-				width,
-				height,
-				format,
-				clientId: RpcClient.GetClientId(),
-			}),
-		);
-		RpcClient.Call("Material_SetTexture", {
-			materialHandle: materialHandle,
-			propertyName: propertyName,
-			textureHandle: textureHandle,
-		});
-		return textureHandle;
-	}
 	/**
 	 * Create a render texture
 	 * @param width The texture width
@@ -135,7 +98,7 @@ export class TextureManager {
 		format: RenderTextureFormat = RenderTextureFormat.DefaultHDR,
 	): TextureHandle {
 		return Number(
-			RpcClient.Call("Texture_CreateRenderTexture", {
+			RpcClient.Call("Texture::CreateRenderTexture", {
 				width,
 				height,
 				depth,
@@ -153,8 +116,20 @@ export class TextureManager {
 	 */
 	static Destroy(handle: TextureHandle): boolean {
 		return Boolean(
-			RpcClient.Call("Texture_Destroy", { textureHandle: handle }),
+			RpcClient.Call("Texture::Destroy", { textureHandle: handle }),
 		);
+	}
+
+	static GetTextureSize(handle: TextureHandle): vec2 {
+		const retval = RpcClient.Call("Texture::GetTextureSize", {
+			textureHandle: handle,
+		});
+
+		if (Array.isArray(retval) && retval.length == 2) {
+			return vec2.fromValues(retval[0], retval[1]);
+		}
+
+		throw "GetTextureSize failed";
 	}
 
 	/**
@@ -199,7 +174,7 @@ export class TextureManager {
 		}
 
 		return Boolean(
-			RpcClient.Call("Texture_LoadRawTextureData", {
+			RpcClient.Call("Texture::LoadRawTextureData", {
 				textureHandle: handle,
 				base64Rgba,
 				width,
@@ -234,7 +209,7 @@ export class TextureManager {
 		}
 
 		return Boolean(
-			RpcClient.Call("Texture_LoadImage", {
+			RpcClient.Call("Texture::LoadImage", {
 				textureHandle: handle,
 				base64Image,
 			}),
@@ -247,10 +222,16 @@ export class TextureManager {
 	 * @returns image readback result
 	 */
 	static ReadbackRGBAImage(handle: TextureHandle): ImageReadbackResult {
-		return RpcClient.Call("Texture_ReadbackRGBAImage", {
+		const retval = RpcClient.Call("Texture::ReadbackRGBAImage", {
 			textureHandle: handle,
 			mipLevel: 0,
-		}) as ImageReadbackResult;
+		});
+
+		if (retval.ok) {
+			return retval as ImageReadbackResult;
+		} else {
+			throw "Image readback error";
+		}
 	}
 
 	/**
@@ -262,11 +243,17 @@ export class TextureManager {
 		handle: TextureHandle,
 		quality: number = 75,
 	): ImageReadbackResult {
-		return RpcClient.Call("Texture_ReadbackJPGImage", {
+		const retval = RpcClient.Call("Texture::ReadbackJPGImage", {
 			textureHandle: handle,
 			quality,
 			mipLevel: 0,
-		}) as ImageReadbackResult;
+		});
+
+		if (retval.ok) {
+			return retval as ImageReadbackResult;
+		} else {
+			throw "Image readback error";
+		}
 	}
 
 	/**
@@ -275,10 +262,16 @@ export class TextureManager {
 	 * @returns image readback result
 	 */
 	static ReadbackPNGImage(handle: TextureHandle): ImageReadbackResult {
-		return RpcClient.Call("Texture_ReadbackPNGImage", {
+		const retval = RpcClient.Call("Texture::ReadbackPNGImage", {
 			textureHandle: handle,
 			mipLevel: 0,
-		}) as ImageReadbackResult;
+		});
+
+		if (retval.ok) {
+			return retval as ImageReadbackResult;
+		} else {
+			throw "Image readback error";
+		}
 	}
 
 	/**
@@ -292,7 +285,7 @@ export class TextureManager {
 		mode: TextureFilterMode,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("Texture_SetFilterMode", {
+			RpcClient.Call("Texture::SetFilterMode", {
 				textureHandle: handle,
 				filterMode: mode,
 			}),
@@ -310,7 +303,7 @@ export class TextureManager {
 		wrapMode: TextureWrapMode,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("Texture_SetWrapModeU", {
+			RpcClient.Call("Texture::SetWrapModeU", {
 				textureHandle: handle,
 				wrapMode,
 			}),
@@ -328,7 +321,7 @@ export class TextureManager {
 		wrapMode: TextureWrapMode,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("Texture_SetWrapModeV", {
+			RpcClient.Call("Texture::SetWrapModeV", {
 				textureHandle: handle,
 				wrapMode,
 			}),
