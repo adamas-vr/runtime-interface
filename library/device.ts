@@ -7,16 +7,16 @@ export const DevicePath = {
 	LEFT_GRIP: "XRI Left Interaction/Select Value",
 	LEFT_TRIGGER: "XRI Left Interaction/Activate Value",
 	LEFT_PRIMARY_2D_AXIS: "XRI Left/Thumbstick",
-	LEFT_PRIMARY_2D_AXIS_BUTTON: "",
-	LEFT_PRIMARY_BUTTON: "",
-	LEFT_SECONDARY_BUTTON: "",
+	LEFT_PRIMARY_2D_AXIS_BUTTON: "KBM/Left Primary 2DAxis Button",
+	LEFT_PRIMARY_BUTTON: "KBM/Left Primary Button",
+	LEFT_SECONDARY_BUTTON: "KBM/Left Secondary Button",
 
 	RIGHT_GRIP: "XRI Right Interaction/Select Value",
 	RIGHT_TRIGGER: "XRI Right Interaction/Activate Value",
 	RIGHT_PRIMARY_2D_AXIS: "XRI Right/Thumbstick",
-	RIGHT_PRIMARY_2D_AXIS_BUTTON: "",
-	RIGHT_PRIMARY_BUTTON: "",
-	RIGHT_SECONDARY_BUTTON: "",
+	RIGHT_PRIMARY_2D_AXIS_BUTTON: "KBM/Right Primary 2DAxis Button",
+	RIGHT_PRIMARY_BUTTON: "KBM/Right Primary Button",
+	RIGHT_SECONDARY_BUTTON: "KBM/Right Secondary Button",
 };
 
 export class Device {
