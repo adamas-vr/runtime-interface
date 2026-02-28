@@ -1,7 +1,7 @@
 import { vec2 } from "gl-matrix";
 import { RpcClient } from "./rpc";
 
-export type ValueChangeHandler = number;
+export type SubscriptionHandle = number;
 
 export const DevicePath = {
 	/** float, range [0.0, 1.0] */
@@ -28,105 +28,26 @@ export const DevicePath = {
 export class Device {
 	static GetValue(devicePath: string): number | vec2 | undefined {
 		return RpcClient.Call("Device::GetValue", {
-			clientId: RpcClient.GetClientId(),
 			devicePath,
 		});
 	}
 
 	static SubscribeValueChange(
 		devicePath: string,
-		callback: (value: number | vec2 | undefined) => void,
-	): ValueChangeHandler {
+		callback: (value: number | vec2) => void,
+	): SubscriptionHandle {
 		return RpcClient.Call("Device::SubscribeValueChange", {
 			clientId: RpcClient.GetClientId(),
 			devicePath,
-			callback: (args: any) => callback(args),
+			callback: (value: { change: string }) =>
+				callback(JSON.parse(value.change)),
 		});
 	}
 
-	static UnsubscribeValueChange(handle: ValueChangeHandler): boolean {
-		return false;
-	}
-
-	static PublishValueChange(devicePath: string, value: number | vec2): boolean {
-		return false;
-	}
-}
-
-export class VRDevice {
-	static GetLeftPrimaryButton(): boolean {
-		return false;
-	}
-	static GetLeftSecondaryButton(): boolean {
-		return false;
-	}
-	static GetLeftPrimary2DAxis(): vec2 {
-		return vec2.fromValues(0, 0);
-	}
-	static GetLeftPrimary2DAxisButton(): boolean {
-		return false;
-	}
-	static GetLeftGrip(): number {
-		return 0;
-	}
-	static GetLeftTrigger(): number {
-		return 0;
-	}
-
-	static GetRightPrimaryButton(): boolean {
-		return false;
-	}
-	static GetRightSecondaryButton(): boolean {
-		return false;
-	}
-	static GetRightPrimary2DAxis(): vec2 {
-		return vec2.fromValues(0, 0);
-	}
-	static GetRightPrimary2DAxisButton(): boolean {
-		return false;
-	}
-	static GetRightGrip(): number {
-		return 0;
-	}
-	static GetRightTrigger(): number {
-		return 0;
-	}
-
-	static OnLeftPrimaryButtonChange(): boolean {
-		return false;
-	}
-	static OnLeftSecondaryButtonChange(): boolean {
-		return false;
-	}
-	static OnLeftPrimary2DAxisChange(): vec2 {
-		return vec2.fromValues(0, 0);
-	}
-	static OnLeftPrimary2DAxisButtonChange(): boolean {
-		return false;
-	}
-	static OnLeftGripChange(): number {
-		return 0;
-	}
-	static OnLeftTriggerChange(): number {
-		return 0;
-	}
-
-	static OnRightPrimaryButtonChange(): boolean {
-		return false;
-	}
-	static OnRightSecondaryButtonChange(): boolean {
-		return false;
-	}
-	static OnRightPrimary2DAxisChange(): vec2 {
-		return vec2.fromValues(0, 0);
-	}
-	static OnRightPrimary2DAxisButtonChange(): boolean {
-		return false;
-	}
-	static OnRightGripChange(): number {
-		return 0;
-	}
-	static OnRightTriggerChange(): number {
-		return 0;
+	static UnsubscribeValueChange(handle: SubscriptionHandle): boolean {
+		return RpcClient.Call("Device::UnsubscribeValueChange", {
+			clientId: RpcClient.GetClientId(),
+			handle,
+		});
 	}
 }
