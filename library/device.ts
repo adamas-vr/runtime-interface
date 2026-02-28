@@ -4,11 +4,17 @@ import { RpcClient } from "./rpc";
 export type ValueChangeHandler = number;
 
 export const DevicePath = {
+	/** float, range [0.0, 1.0] */
 	LEFT_GRIP: "XRI Left Interaction/Select Value",
+	/** float, range [0.0, 1.0] */
 	LEFT_TRIGGER: "XRI Left Interaction/Activate Value",
+	/** vec2 [x-axis, y-axis], range: [-1, 1] */
 	LEFT_PRIMARY_2D_AXIS: "XRI Left/Thumbstick",
+	/** float, 0 or 1 */
 	LEFT_PRIMARY_2D_AXIS_BUTTON: "KBM/Left Primary 2DAxis Button",
+	/** float, 0 or 1 */
 	LEFT_PRIMARY_BUTTON: "KBM/Left Primary Button",
+	/** float, 0 or 1 */
 	LEFT_SECONDARY_BUTTON: "KBM/Left Secondary Button",
 
 	RIGHT_GRIP: "XRI Right Interaction/Select Value",
@@ -20,7 +26,7 @@ export const DevicePath = {
 };
 
 export class Device {
-	static GetValue(devicePath: string): number | vec2 | boolean | undefined {
+	static GetValue(devicePath: string): number | vec2 | undefined {
 		return RpcClient.Call("Device::GetValue", {
 			clientId: RpcClient.GetClientId(),
 			devicePath,
@@ -29,7 +35,7 @@ export class Device {
 
 	static SubscribeValueChange(
 		devicePath: string,
-		callback: (value: number | vec2 | boolean | undefined) => void,
+		callback: (value: number | vec2 | undefined) => void,
 	): ValueChangeHandler {
 		return RpcClient.Call("Device::SubscribeValueChange", {
 			clientId: RpcClient.GetClientId(),
@@ -42,10 +48,7 @@ export class Device {
 		return false;
 	}
 
-	static PublishValueChange(
-		devicePath: string,
-		value: number | vec2 | boolean,
-	): boolean {
+	static PublishValueChange(devicePath: string, value: number | vec2): boolean {
 		return false;
 	}
 }
