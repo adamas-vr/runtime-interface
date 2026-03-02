@@ -30,12 +30,25 @@ export class Player {
 		return quat.fromValues(0, 0, 0, 0);
 	}
 
-	IsPlayerGrounded(): boolean {
+	IsValid(): boolean {
 		return false;
 	}
-	IsPlayerFlying(): boolean {
+	IsLocal(): boolean {
+		return true;
+	}
+	IsUserInVR(): boolean {
 		return false;
 	}
+	IsMenuOpen(): boolean {
+		return false;
+	}
+	IsGrounded(): boolean {
+		return false;
+	}
+	IsFlying(): boolean {
+		return false;
+	}
+
 	SetEnableFly(value: boolean) {}
 	GetEnableFly(): boolean {
 		return false;
@@ -62,27 +75,14 @@ export class Player {
 	}
 	SetGravityStrength(strength: number) {}
 
-	OnPlayerTriggerEnter() {}
-	OnPlayerTriggerStay() {}
-	OnPlayerTriggerExit() {}
-
-	IsValid(): boolean {
-		return false;
-	}
-	IsLocal(): boolean {
-		return true;
-	}
-	IsUserInVR(): boolean {
-		return false;
-	}
-	IsMenuOpen(): boolean {
-		return false;
-	}
-
 	GetPlayerInfo() {}
 	GetPlayerId(): number {
 		return this.#playerId;
 	}
+
+	OnPlayerTriggerEnter() {}
+	OnPlayerTriggerStay() {}
+	OnPlayerTriggerExit() {}
 
 	static GetPlayers(): Player[] {
 		return [];
