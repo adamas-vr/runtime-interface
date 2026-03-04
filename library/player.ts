@@ -2,12 +2,6 @@ import { quat, vec3 } from "gl-matrix";
 import { Entity } from "./entity";
 import { RpcClient } from "./rpc";
 
-/**
- * TODO: need to return user?
- * grabble on select
- * trigger: on collider
- */
-
 export class User {
 	constructor(private userId: string) {}
 
@@ -133,8 +127,4 @@ export class User {
 			strength,
 		});
 	}
-
-	OnUserTriggerEnter() {}
-	OnUserTriggerStay() {}
-	OnUserTriggerExit() {}
 }

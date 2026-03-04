@@ -1,4 +1,5 @@
 import { Entity } from "../entity";
+import { User } from "../player";
 import { RpcClient } from "../rpc";
 import { vec3 } from "gl-matrix";
 
@@ -7,7 +8,7 @@ export type ColliderHandle = number;
 export class ColliderManager {
 	static CreateBox(entityHandle: Entity): ColliderHandle {
 		return Number(
-			RpcClient.Call("ColliderAPI_CreateBox", {
+			RpcClient.Call("ColliderAPI::CreateBox", {
 				entityHandle,
 			}),
 		);
@@ -15,7 +16,7 @@ export class ColliderManager {
 
 	static CreateSphere(entityHandle: Entity): ColliderHandle {
 		return Number(
-			RpcClient.Call("ColliderAPI_CreateSphere", {
+			RpcClient.Call("ColliderAPI::CreateSphere", {
 				entityHandle,
 			}),
 		);
@@ -23,7 +24,7 @@ export class ColliderManager {
 
 	static CreateCapsule(entityHandle: Entity): ColliderHandle {
 		return Number(
-			RpcClient.Call("ColliderAPI_CreateCapsule", {
+			RpcClient.Call("ColliderAPI::CreateCapsule", {
 				entityHandle,
 			}),
 		);
@@ -34,7 +35,7 @@ export class ColliderManager {
 		colliderHandle: ColliderHandle,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("ColliderAPI_Destroy", {
+			RpcClient.Call("ColliderAPI::Destroy", {
 				entityHandle,
 				colliderHandle,
 			}),
@@ -46,7 +47,7 @@ export class ColliderManager {
 		colliderHandle: ColliderHandle,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("ColliderAPI_HasComponent", {
+			RpcClient.Call("ColliderAPI::HasComponent", {
 				entityHandle,
 				colliderHandle,
 			}),
@@ -55,7 +56,7 @@ export class ColliderManager {
 
 	static GetEntity(colliderHandle: ColliderHandle): Entity {
 		return Number(
-			RpcClient.Call("ColliderAPI_GetEntity", {
+			RpcClient.Call("ColliderAPI::GetEntity", {
 				colliderHandle,
 			}),
 		);
@@ -63,7 +64,7 @@ export class ColliderManager {
 
 	static GetAllColliders(entityHandle: Entity): ColliderHandle[] {
 		const json = String(
-			RpcClient.Call("ColliderAPI_GetAllColliders", {
+			RpcClient.Call("ColliderAPI::GetAllColliders", {
 				entityHandle,
 			}),
 		);
@@ -73,7 +74,7 @@ export class ColliderManager {
 
 	static GetBoxColliderCenter(colliderHandle: ColliderHandle): vec3 {
 		const center = JSON.parse(
-			RpcClient.Call("ColliderAPI_GetBoxColliderCenter", {
+			RpcClient.Call("ColliderAPI::GetBoxColliderCenter", {
 				colliderHandle,
 			}) as string,
 		) as number[];
@@ -85,7 +86,7 @@ export class ColliderManager {
 		colliderHandle: ColliderHandle,
 		center: vec3,
 	): boolean {
-		return RpcClient.Call("ColliderAPI_SetBoxColliderCenter", {
+		return RpcClient.Call("ColliderAPI::SetBoxColliderCenter", {
 			colliderHandle,
 			v0: center[0],
 			v1: center[1],
@@ -95,7 +96,7 @@ export class ColliderManager {
 
 	static GetBoxColliderSize(colliderHandle: ColliderHandle): vec3 {
 		const center = JSON.parse(
-			RpcClient.Call("ColliderAPI_GetBoxColliderSize", {
+			RpcClient.Call("ColliderAPI::GetBoxColliderSize", {
 				colliderHandle,
 			}) as string,
 		) as number[];
@@ -107,7 +108,7 @@ export class ColliderManager {
 		colliderHandle: ColliderHandle,
 		size: vec3,
 	): boolean {
-		return RpcClient.Call("ColliderAPI_SetBoxColliderSize", {
+		return RpcClient.Call("ColliderAPI::SetBoxColliderSize", {
 			colliderHandle,
 			v0: size[0],
 			v1: size[1],
@@ -117,7 +118,7 @@ export class ColliderManager {
 
 	static GetSphereColliderCenter(colliderHandle: ColliderHandle): vec3 {
 		const center = JSON.parse(
-			RpcClient.Call("ColliderAPI_GetSphereColliderCenter", {
+			RpcClient.Call("ColliderAPI::GetSphereColliderCenter", {
 				colliderHandle,
 			}) as string,
 		) as number[];
@@ -129,7 +130,7 @@ export class ColliderManager {
 		colliderHandle: ColliderHandle,
 		center: vec3,
 	): boolean {
-		return RpcClient.Call("ColliderAPI_SetSphereColliderCenter", {
+		return RpcClient.Call("ColliderAPI::SetSphereColliderCenter", {
 			colliderHandle,
 			v0: center[0],
 			v1: center[1],
@@ -138,7 +139,7 @@ export class ColliderManager {
 	}
 
 	static GetSphereColliderRadius(colliderHandle: ColliderHandle): number {
-		return RpcClient.Call("ColliderAPI_GetSphereColliderRadius", {
+		return RpcClient.Call("ColliderAPI::GetSphereColliderRadius", {
 			colliderHandle,
 		}) as number;
 	}
@@ -147,7 +148,7 @@ export class ColliderManager {
 		colliderHandle: ColliderHandle,
 		radius: number,
 	): boolean {
-		return RpcClient.Call("ColliderAPI_SetSphereColliderRadius", {
+		return RpcClient.Call("ColliderAPI::SetSphereColliderRadius", {
 			colliderHandle,
 			radius,
 		});
@@ -155,7 +156,7 @@ export class ColliderManager {
 
 	static GetCapsuleColliderCenter(colliderHandle: ColliderHandle): vec3 {
 		const center = JSON.parse(
-			RpcClient.Call("ColliderAPI_GetCapsuleColliderCenter", {
+			RpcClient.Call("ColliderAPI::GetCapsuleColliderCenter", {
 				colliderHandle,
 			}) as string,
 		) as number[];
@@ -167,7 +168,7 @@ export class ColliderManager {
 		colliderHandle: ColliderHandle,
 		center: vec3,
 	): boolean {
-		return RpcClient.Call("ColliderAPI_SetCapsuleColliderCenter", {
+		return RpcClient.Call("ColliderAPI::SetCapsuleColliderCenter", {
 			colliderHandle,
 			v0: center[0],
 			v1: center[1],
@@ -176,7 +177,7 @@ export class ColliderManager {
 	}
 
 	static GetCapsuleColliderRadius(colliderHandle: ColliderHandle): number {
-		return RpcClient.Call("ColliderAPI_GetCapsuleColliderRadius", {
+		return RpcClient.Call("ColliderAPI::GetCapsuleColliderRadius", {
 			colliderHandle,
 		}) as number;
 	}
@@ -185,14 +186,14 @@ export class ColliderManager {
 		colliderHandle: ColliderHandle,
 		radius: number,
 	): boolean {
-		return RpcClient.Call("ColliderAPI_SetCapsuleColliderRadius", {
+		return RpcClient.Call("ColliderAPI::SetCapsuleColliderRadius", {
 			colliderHandle,
 			radius,
 		});
 	}
 
 	static GetCapsuleColliderHeight(colliderHandle: ColliderHandle): number {
-		return RpcClient.Call("ColliderAPI_GetCapsuleColliderHeight", {
+		return RpcClient.Call("ColliderAPI::GetCapsuleColliderHeight", {
 			colliderHandle,
 		}) as number;
 	}
@@ -201,7 +202,7 @@ export class ColliderManager {
 		colliderHandle: ColliderHandle,
 		height: number,
 	): boolean {
-		return RpcClient.Call("ColliderAPI_SetCapsuleColliderHeight", {
+		return RpcClient.Call("ColliderAPI::SetCapsuleColliderHeight", {
 			colliderHandle,
 			height,
 		});
@@ -209,7 +210,7 @@ export class ColliderManager {
 
 	static GetIsTrigger(entityHandle: Entity): Boolean {
 		return Boolean(
-			RpcClient.Call("ColliderAPI_GetIsTrigger", {
+			RpcClient.Call("ColliderAPI::GetIsTrigger", {
 				entityHandle,
 			}),
 		);
@@ -217,19 +218,19 @@ export class ColliderManager {
 
 	static SetIsTrigger(colliderHandle: Entity, isTrigger: boolean): Boolean {
 		return Boolean(
-			RpcClient.Call("ColliderAPI_SetIsTrigger", {
+			RpcClient.Call("ColliderAPI::SetIsTrigger", {
 				colliderHandle,
 				isTrigger,
 			}),
 		);
 	}
 
-	static AddTriggerEnterCallback(
+	static OnTriggerEnter(
 		entityHandle: Entity,
 		onTriggerEnter: (entity: Entity, collider: ColliderHandle) => void,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("ColliderAPI_AddTriggerEnterCallback", {
+			RpcClient.Call("ColliderAPI::OnTriggerEnter", {
 				entityHandle,
 				onTriggerEnter: (args: any) =>
 					onTriggerEnter(args.entityHandle, args.colliderHandle),
@@ -237,12 +238,12 @@ export class ColliderManager {
 		);
 	}
 
-	static AddTriggerExitCallback(
+	static OnTriggerExit(
 		entityHandle: Entity,
 		onTriggerExit: (entity: Entity, collider: ColliderHandle) => void,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("ColliderAPI_AddTriggerExitCallback", {
+			RpcClient.Call("ColliderAPI::OnTriggerExit", {
 				entityHandle,
 				onTriggerExit: (args: any) =>
 					onTriggerExit(args.entityHandle, args.colliderHandle),
@@ -250,12 +251,12 @@ export class ColliderManager {
 		);
 	}
 
-	static AddTriggerStayCallback(
+	static OnTriggerStay(
 		entityHandle: Entity,
 		onTriggerStay: (entity: Entity, collider: ColliderHandle) => void,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("ColliderAPI_AddTriggerStayCallback", {
+			RpcClient.Call("ColliderAPI::OnTriggerStay", {
 				entityHandle,
 				onTriggerStay: (args: any) =>
 					onTriggerStay(args.entityHandle, args.colliderHandle),
@@ -263,12 +264,12 @@ export class ColliderManager {
 		);
 	}
 
-	static AddCollisionEnterCallback(
+	static OnCollisionEnter(
 		entityHandle: Entity,
 		onCollisionEnter: (entity: Entity, collider: ColliderHandle) => void,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("ColliderAPI_AddCollisionEnterCallback", {
+			RpcClient.Call("ColliderAPI::OnCollisionEnter", {
 				entityHandle,
 				onCollisionEnter: (args: any) => {
 					onCollisionEnter(args.entityHandle, args.colliderHandle);
@@ -277,12 +278,12 @@ export class ColliderManager {
 		);
 	}
 
-	static AddCollisionExitCallback(
+	static OnCollisionExit(
 		entityHandle: Entity,
 		onCollisionExit: (entity: Entity, collider: ColliderHandle) => void,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("ColliderAPI_AddCollisionExitCallback", {
+			RpcClient.Call("ColliderAPI::OnCollisionExit", {
 				entityHandle,
 				onCollisionExit: (args: any) => {
 					onCollisionExit(args.entityHandle, args.colliderHandle);
@@ -291,16 +292,55 @@ export class ColliderManager {
 		);
 	}
 
-	static AddCollisionStayCallback(
+	static OnCollisionStay(
 		entityHandle: Entity,
 		onCollisionStay: (entity: Entity, collider: ColliderHandle) => void,
 	): boolean {
 		return Boolean(
-			RpcClient.Call("ColliderAPI_AddCollisionStayCallback", {
+			RpcClient.Call("ColliderAPI::OnCollisionStay", {
 				entityHandle,
 				onCollisionStay: (args: any) => {
 					onCollisionStay(args.entityHandle, args.colliderHandle);
 				},
+			}),
+		);
+	}
+
+	static OnUserTriggerEnter(
+		entityHandle: Entity,
+		onUserTriggerEnter: (user: User) => void,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("ColliderAPI::OnUserTriggerEnter", {
+				entityHandle,
+				onUserTriggerEnter: (args: any) =>
+					onUserTriggerEnter(new User(args.userId)),
+			}),
+		);
+	}
+
+	static OnUserTriggerExit(
+		entityHandle: Entity,
+		onUserTriggerExit: (user: User) => void,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("ColliderAPI::OnUserTriggerExit", {
+				entityHandle,
+				onUserTriggerExit: (args: any) =>
+					onUserTriggerExit(new User(args.userId)),
+			}),
+		);
+	}
+
+	static OnUserTriggerStay(
+		entityHandle: Entity,
+		onUserTriggerStay: (user: User) => void,
+	): boolean {
+		return Boolean(
+			RpcClient.Call("ColliderAPI::OnUserTriggerStay", {
+				entityHandle,
+				onUserTriggerStay: (args: any) =>
+					onUserTriggerStay(new User(args.userId)),
 			}),
 		);
 	}
