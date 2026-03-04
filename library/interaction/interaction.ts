@@ -38,9 +38,9 @@ export class GrabInteractableManager {
 		}
 
 		const networkValue = Networking.NewVariable(
-			Networking.GetStateAuthorityPlayerId(),
+			Networking.GetMasterClientId(),
 			(playerId) => {
-				if (playerId == Networking.GetPlayerId()) {
+				if (playerId == Networking.GetClientId()) {
 					Networking.SyncLocalTransform(entityHandle);
 				} else {
 					GrabInteractableManager.CancelSelect(entityHandle);
@@ -49,7 +49,7 @@ export class GrabInteractableManager {
 		);
 
 		GrabInteractableManager.AddSelectEnteredCallback(entityHandle, () => {
-			networkValue.value = Networking.GetPlayerId();
+			networkValue.value = Networking.GetClientId();
 		});
 		GrabInteractableManager.AddSelectExitedCallback(entityHandle, () => {
 			networkValue.value = -1;

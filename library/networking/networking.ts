@@ -54,18 +54,16 @@ export class Networking {
 		return RpcClient.Call("Networking::IsLocalMode", {}) as boolean;
 	}
 
-	static GetPlayerId(): number {
-		return RpcClient.Call("Networking::GetPlayerId", {}) as number;
+	static IsMasterClient(): boolean {
+		return RpcClient.Call("Networking::IsMasterClient", {}) as boolean;
 	}
 
-	static IsStateAuthority(): boolean {
-		return RpcClient.Call("Networking::IsStateAuthority", {
-			networkId: Networking.GetNetworkID(),
-		}) as boolean;
+	static GetClientId(): number {
+		return RpcClient.Call("Networking::GetClientId", {}) as number;
 	}
 
-	static GetStateAuthorityPlayerId(): number {
-		return RpcClient.Call("Networking::GetStateAuthorityPlayerId", {
+	static GetMasterClientId(): number {
+		return RpcClient.Call("Networking::GetMasterClientPlayerId", {
 			networkId: Networking.GetNetworkID(),
 		}) as number;
 	}
@@ -166,7 +164,7 @@ export class Networking {
 			}
 		});
 
-		if (Networking.IsStateAuthority()) {
+		if (Networking.IsMasterClient()) {
 			initialized = true;
 			onStateChange?.(internalState.value);
 		} else {
