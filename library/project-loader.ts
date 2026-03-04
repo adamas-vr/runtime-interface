@@ -19,7 +19,7 @@ import {
 } from "./interaction/interaction";
 import { RpcClient } from "./rpc";
 import { UUID } from "crypto";
-import { Networking } from "./networking/state-sync";
+import { Networking } from "./networking/networking";
 
 const RAD2DEG = 180 / Math.PI;
 

@@ -1,5 +1,5 @@
 import { Entity, EntityManager } from "../entity";
-import { Networking } from "../networking/state-sync";
+import { Networking } from "../networking/networking";
 import { RigidbodyManager } from "../physics/rigidbody";
 import { RpcClient } from "../rpc";
 
