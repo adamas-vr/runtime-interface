@@ -1,6 +1,7 @@
 import { RpcClient } from "../rpc";
 import { Project } from "../project";
 import { Entity } from "../entity";
+import { User } from "../user";
 
 export type StateRef<T> = { value: T };
 
@@ -200,5 +201,20 @@ export class Networking {
 		});
 
 		return callFunction;
+	}
+
+	static OnUserJoined(onUserJoined: (user: User) => void): boolean {
+		return RpcClient.Call("Networking::OnUserJoined", {
+			onUserJoined: ({ userId }: { userId: string }) => {
+				onUserJoined(new User(userId));
+			},
+		}) as boolean;
+	}
+	static OnUserLeft(onUserLeft: (user: User) => void): boolean {
+		return RpcClient.Call("Networking::OnUserLeft", {
+			onUserLeft: ({ userId }: { userId: string }) => {
+				onUserLeft(new User(userId));
+			},
+		}) as boolean;
 	}
 }

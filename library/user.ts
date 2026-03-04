@@ -2,19 +2,25 @@ import { quat, vec3 } from "gl-matrix";
 import { Entity } from "./entity";
 import { RpcClient } from "./rpc";
 
+/**
+ * TODO: need tests: here, and collider user trigger, and networking user joined/left
+ */
 export class User {
 	constructor(private userId: string) {}
 
-	static GetUserById(userId: string): User | undefined {
-		const user = new User(userId);
-
-		if (user.IsValid()) return user;
-		return undefined;
+	/**
+	 * Get local user that logs into the account.
+	 * @returns local user ID
+	 */
+	static GetLocalUser(): User {
+		return new User(RpcClient.Call("UserAPI::GetLocalUser", {}));
 	}
+
 	static GetUsers(): User[] {
 		const userIds = RpcClient.Call("UserAPI::GetUsers", {}) as string[];
 		return userIds.map((userId) => new User(userId));
 	}
+
 	GetUserId(): string {
 		return this.userId;
 	}
