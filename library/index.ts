@@ -3,7 +3,7 @@ import "../types/asset.d";
 export * from "./project";
 export * from "./entity";
 export * from "./device";
-export * from "./player";
+export * from "./user";
 
 export * from "./render/material";
 export * from "./render/texture";

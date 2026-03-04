@@ -1,5 +1,5 @@
 import { Entity } from "../entity";
-import { User } from "../player";
+import { User } from "../user";
 import { RpcClient } from "../rpc";
 import { vec3 } from "gl-matrix";
 
