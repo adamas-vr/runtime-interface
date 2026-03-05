@@ -26,16 +26,24 @@ export class User {
 	}
 
 	GetHeadEntity(): Entity {
-		return 0;
+		return RpcClient.Call("UserAPI::GetHeadEntity", {
+			userId: this.userId,
+		}) as number;
 	}
 	GetLeftHandEntity(): Entity {
-		return 0;
+		return RpcClient.Call("UserAPI::GetLeftHandEntity", {
+			userId: this.userId,
+		}) as number;
 	}
 	GetRightHandEntity(): Entity {
-		return 0;
+		return RpcClient.Call("UserAPI::GetRightHandEntity", {
+			userId: this.userId,
+		}) as number;
 	}
-	GetUserRootEntity(): Entity {
-		return 0;
+	GetOriginEntity(): Entity {
+		return RpcClient.Call("UserAPI::GetOriginEntity", {
+			userId: this.userId,
+		}) as number;
 	}
 
 	SetEnableLocomotion(value: boolean): void {
