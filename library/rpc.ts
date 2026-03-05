@@ -8,13 +8,9 @@ const addon =
 export class RpcClient {
 	static Init() {
 		addon.Rpc_RegisterCbHandler((callbackId: number, argsJson: string) => {
-			let kvJson = JSON.parse(argsJson);
-			let objJson = RpcClient.keyValueToObject(
-				kvJson["keys"],
-				kvJson["values"],
-			);
+			let callbackArgument = JSON.parse(argsJson);
 			try {
-				RpcClient.callbackRegistry[callbackId](objJson);
+				RpcClient.callbackRegistry[callbackId](callbackArgument);
 			} catch (error) {
 				console.error(`${error}`);
 			}
@@ -66,14 +62,6 @@ export class RpcClient {
 		const keys = Object.keys(obj);
 		const values = keys.map((key) => obj[key]);
 		return { keys, values };
-	}
-
-	static keyValueToObject(keys: string[], values: any[]): Record<string, any> {
-		const obj: Record<string, any> = {};
-		keys.forEach((key, index) => {
-			obj[key] = values[index];
-		});
-		return obj;
 	}
 
 	static callbackRegistry: { [key: number]: (...args: any[]) => any } = {};
