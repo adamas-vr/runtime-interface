@@ -63,7 +63,7 @@ export class Networking {
 	}
 
 	static GetMasterClientId(): number {
-		return RpcClient.Call("Networking::GetMasterClientPlayerId", {
+		return RpcClient.Call("Networking::GetMasterClientId", {
 			networkId: Networking.GetNetworkID(),
 		}) as number;
 	}
