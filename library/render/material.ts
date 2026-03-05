@@ -105,7 +105,7 @@ export class MaterialManager {
 	/**
 	 * Set a float property on the material
 	 * @param handle The material handle
-	 * @param prop The property name
+	 * @param property The property name
 	 * @param value The float value
 	 * @returns boolean indicating success
 	 */
@@ -126,7 +126,7 @@ export class MaterialManager {
 	/**
 	 * Get a float property from the material
 	 * @param handle The material handle
-	 * @param prop The property name
+	 * @param property The property name
 	 * @returns The float value
 	 */
 	static GetFloat(handle: MaterialHandle, property: MaterialProperty): number {
@@ -141,7 +141,7 @@ export class MaterialManager {
 	/**
 	 * Set a vector property on the material
 	 * @param handle The material handle
-	 * @param prop The property name
+	 * @param property The property name
 	 * @param value vec4 value
 	 * @returns boolean indicating success
 	 */
@@ -170,7 +170,7 @@ export class MaterialManager {
 	/**
 	 * Get a vector property on the material
 	 * @param handle The material handle
-	 * @param prop The property name
+	 * @param property The property name
 	 * @returns vec4 value
 	 */
 	static GetVector(handle: MaterialHandle, property: MaterialProperty): vec4 {
@@ -193,7 +193,7 @@ export class MaterialManager {
 	/**
 	 * Set a color property on the material
 	 * @param handle The material handle
-	 * @param prop The property name
+	 * @param property The property name
 	 * @param rgba vec4 color [0.0, 1.0]
 	 * @returns boolean indicating success
 	 */
@@ -217,7 +217,7 @@ export class MaterialManager {
 	/**
 	 * Get a color property from the material
 	 * @param handle The material handle
-	 * @param prop The property name
+	 * @param property The property name
 	 * @returns Color
 	 */
 	static GetColor(handle: MaterialHandle, property: MaterialProperty): vec4 {
@@ -235,8 +235,8 @@ export class MaterialManager {
 	/**
 	 * Set a texture property on the material
 	 * @param handle The material handle
-	 * @param prop The property name
-	 * @param tex The texture handle
+	 * @param property The property name
+	 * @param texture The texture handle
 	 * @returns boolean indicating success
 	 */
 	static SetTexture(
@@ -256,7 +256,7 @@ export class MaterialManager {
 	/**
 	 * Get a texture property on the material
 	 * @param handle The material handle
-	 * @param prop The property name
+	 * @param property The property name
 	 * @returns The texture handle
 	 */
 	static GetTexture(

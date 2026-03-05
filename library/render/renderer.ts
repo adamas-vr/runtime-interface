@@ -6,7 +6,6 @@ import { vec3 } from "gl-matrix";
 export class RendererManager {
 	/**
 	 * Set skybox texture. Support exr and hdr in Texture2D.
-	 * @param sceneHandle The scene handle
 	 * @param textureHandle The skybox material handle
 	 * @returns boolean indicating success
 	 */
