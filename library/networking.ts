@@ -1,9 +1,11 @@
-import { RpcClient } from "../rpc";
-import { Project } from "../project";
-import { Entity } from "../entity";
-import { User } from "../user";
+import { RpcClient } from "./rpc";
+import { Project } from "./project";
+import { Entity } from "./entity";
+import { User } from "./user";
 
-export type StateRef<T> = { value: T };
+export interface NetworkState<T> {
+	value: T;
+}
 
 //TODO: missing onPlayerJoined and onPlayerLeaving
 // network sync entity state authority
@@ -124,7 +126,7 @@ export class Networking {
 	static NewVariable<T>(
 		initialValue: T,
 		onStateChange?: (state: T) => void,
-	): StateRef<T> {
+	): NetworkState<T> {
 		const internalState = { value: initialValue };
 		const syncKey = Networking.#KeyGen();
 		const initKey = Networking.#KeyGen();

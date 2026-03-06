@@ -13,13 +13,10 @@ import { LightManager, LightType } from "./render/light";
 import { ColliderManager } from "./physics/collider";
 import { CameraManager } from "./render/camera";
 import { RigidbodyManager } from "./physics/rigidbody";
-import {
-	GrabInteractableManager,
-	MovementType,
-} from "./interaction/interaction";
+import { GrabInteractableManager, MovementType } from "./interaction";
 import { RpcClient } from "./rpc";
 import { UUID } from "crypto";
-import { Networking } from "./networking/networking";
+import { Networking } from "./networking";
 
 const RAD2DEG = 180 / Math.PI;
 

@@ -18,6 +18,6 @@ export * from "./render/light";
 
 export * from "./physics/rigidbody";
 export * from "./physics/collider";
-export * from "./interaction/interaction";
-export * from "./networking/networking";
+export * from "./interaction";
+export * from "./networking";
 export * from "./utilities/base64";

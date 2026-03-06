@@ -1,7 +1,7 @@
-import { Entity, EntityManager } from "../entity";
-import { Networking } from "../networking/networking";
-import { RigidbodyManager } from "../physics/rigidbody";
-import { RpcClient } from "../rpc";
+import { Entity, EntityManager } from "./entity";
+import { Networking } from "./networking";
+import { RigidbodyManager } from "./physics/rigidbody";
+import { RpcClient } from "./rpc";
 
 export enum MovementType {
 	VelocityTracking = 0,
