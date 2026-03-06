@@ -1,7 +1,6 @@
 import { vec2 } from "gl-matrix";
 import { RpcClient } from "../rpc";
 import { base64Encode } from "../utilities/base64";
-import { MaterialHandle } from "./material";
 
 export type TextureHandle = number;
 
@@ -33,18 +32,18 @@ export enum TextureDimension {
 }
 
 export enum TextureFilterMode {
-	NEAREST = 0,
-	LINEAR = 1,
-	NEAREST_MIPMAP_NEAREST = 2,
-	LINEAR_MIPMAP_NEAREST = 3,
-	NEAREST_MIPMAP_LINEAR = 4,
-	LINEAR_MIPMAP_LINEAR = 5,
+	Nearest = 0,
+	Linear = 1,
+	NearestMipmapNearest = 2,
+	LinearMipmapNearest = 3,
+	NearestMipmapLinear = 4,
+	LinearMipmapLinear = 5,
 }
 
 export enum TextureWrapMode {
-	CLAMP_TO_EDGE = 0,
-	REPEAT = 1,
-	MIRRORED_REPEAT = 2,
+	ClampToEdge = 0,
+	Repeat = 1,
+	MirroredRepeat = 2,
 }
 
 export interface ImageReadbackResult {

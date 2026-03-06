@@ -60,6 +60,12 @@ export enum MaterialProperty {
 	Culling = "_Cull",
 }
 
+export enum AlphaMode {
+	Opaque = "Opaque",
+	Mask = "Mask",
+	Blend = "Blend",
+}
+
 export class MaterialManager {
 	/**
 	 * Create a new material
@@ -273,7 +279,7 @@ export class MaterialManager {
 
 	static SetAlphaMode(
 		handle: MaterialHandle,
-		alphaMode: "Blend" | "Mask" | "Opaque" = "Opaque",
+		alphaMode: AlphaMode = AlphaMode.Opaque,
 	) {
 		return Boolean(
 			RpcClient.Call("Material::SetAlphaMode", {
@@ -283,9 +289,7 @@ export class MaterialManager {
 		);
 	}
 
-	static GetAlphaMode(
-		handle: MaterialHandle,
-	): "Blend" | "Mask" | "Opaque" | undefined {
+	static GetAlphaMode(handle: MaterialHandle): AlphaMode | undefined {
 		const val = String(
 			RpcClient.Call("Material::GetAlphaMode", {
 				materialHandle: handle,
@@ -293,6 +297,6 @@ export class MaterialManager {
 		);
 
 		if (val == "") return undefined;
-		return val as "Blend" | "Mask" | "Opaque";
+		return val as AlphaMode;
 	}
 }
