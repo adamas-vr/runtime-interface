@@ -1,4 +1,3 @@
-import { assetRecord, projectFile } from "adamas:project";
 import { LoadProject, SceneGraph } from "./project-loader";
 import { RpcClient } from "./rpc";
 
@@ -17,7 +16,11 @@ export class Project {
 		}) as string;
 	}
 
-	static Launch(callbacks: ProjectCallbacks) {
+	static Launch(
+		assetRecord: any,
+		projectFile: any,
+		callbacks: ProjectCallbacks,
+	) {
 		let sceneGraph = LoadProject(assetRecord, projectFile);
 
 		const project = new Project(callbacks);

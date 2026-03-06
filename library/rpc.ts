@@ -1,9 +1,12 @@
-import { platform } from "node:os";
-
 const addon =
-	platform() === "darwin"
-		? require("./native-bindings-osx.node")
-		: require("./native-bindings-win.node");
+	typeof process !== "undefined" && process.env?.ADAMAS_PROCESS
+		? (() => {
+				const { platform } = require("node:os");
+				return platform() === "darwin"
+					? require("./native-bindings-osx.node")
+					: require("./native-bindings-win.node");
+			})()
+		: undefined;
 
 export class RpcClient {
 	static Init() {
