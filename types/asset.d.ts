@@ -21,5 +21,5 @@ declare module "*.prefab" {
 declare module "adamas:project" {
 	import { UUID } from "crypto";
 	export const assetRecord: Map<UUID, import("./lib").Asset>;
-	export const projectFile: any;
+	export const projectDescription: import("./lib").ProjectDescription;
 }

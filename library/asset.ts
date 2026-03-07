@@ -210,14 +210,13 @@ export interface WorldProperty {
 
 export interface ProjectMetadata {
 	name: string;
+	version: string;
 	createdAt: Date;
 	updateAt: Date;
 }
 
 export interface ProjectDescription {
-	version: string;
-	meta: ProjectMetadata;
-	projectRoot: string;
+	metadata: ProjectMetadata;
 	world: WorldProperty;
 	scene: {
 		entities: Set<UUID>;
