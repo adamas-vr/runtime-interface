@@ -31,19 +31,19 @@ export interface TextureTransform {
 	rotation: number;
 }
 
-export interface SparseArrayString {
+export interface SparseMorphData {
 	arraySize: number;
-	sparseIndices: string;
-	sparseValues: string;
+	sparseIndices: Uint16Array;
+	sparseValues: Float32Array;
 }
 
 export interface MeshPrimitive {
-	base64Indices: string;
-	base64Vertices: string;
-	base64Normals?: string;
-	base64Uvs?: string;
-	base64MorphPosition?: (string | SparseArrayString)[];
-	base64MorphNormal?: (string | SparseArrayString)[];
+	indices: Uint16Array;
+	vertices: Float32Array;
+	normals?: Float32Array;
+	uvs?: Float32Array;
+	morphPosition?: (Float32Array | SparseMorphData)[];
+	morphNormal?: (Float32Array | SparseMorphData)[];
 }
 
 export interface Asset {
@@ -53,7 +53,7 @@ export interface Asset {
 }
 
 export interface TextureAsset extends Asset {
-	base64Image: string;
+	image: Uint8Array;
 	mimeType: string;
 	filterMode: TextureFilterMode;
 	wrapModeU: TextureWrapMode;
