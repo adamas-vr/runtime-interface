@@ -9,147 +9,36 @@ import {
 	MaterialProperty,
 } from "./render/material";
 import { TextureFormat, TextureHandle, TextureManager } from "./render/texture";
-import { LightManager, LightType } from "./render/light";
+import { LightManager } from "./render/light";
 import { ColliderManager } from "./physics/collider";
 import { CameraManager } from "./render/camera";
 import { RigidbodyManager } from "./physics/rigidbody";
-import { GrabInteractableManager, MovementType } from "./interaction";
+import { GrabInteractableManager } from "./interaction";
 import { RpcClient } from "./rpc";
 import { UUID } from "crypto";
 import { Networking } from "./networking";
+import {
+	Asset,
+	BoxCollider,
+	CapsuleCollider,
+	MaterialAsset,
+	MeshAsset,
+	ProjectDescription,
+	PropertyComponent,
+	SphereCollider,
+	TextureAsset,
+	TransformComponent,
+} from "./asset";
 
 const RAD2DEG = 180 / Math.PI;
-
-/**
- *
- * matelness and roughness share the same texture
- * culling is on matieral
- */
-
-type Properties = {
-	componentType: string;
-	name: string;
-	activeEntity: boolean;
-};
-type Transforms = {
-	componentType: string;
-	isTransformSync: boolean;
-	parent: UUID;
-	children: UUID[];
-	localScale: {
-		value: [number, number, number];
-	};
-	localRotation: {
-		value: {
-			x: number;
-			y: number;
-			z: number;
-		};
-	};
-	localPosition: {
-		value: [number, number, number];
-	};
-};
-type Renderables = {
-	componentType: string;
-	enabled: boolean;
-	layerMask: number;
-	receiveShadows: boolean;
-	castShadows: number;
-	culling: boolean;
-	mesh: string;
-	materialList: string[];
-};
-type Lights = {
-	componentType: string;
-	enabled: boolean;
-	color: {
-		value: [number, number, number];
-	};
-	cullingMask: number;
-	intensity: number;
-	range: number;
-	shadows: number;
-	lightType: number;
-	spotAngle: number;
-	isSpotAngleDegree: boolean;
-};
-type Cameras = {
-	componentType: string;
-	enabled: boolean;
-	projectionType: number;
-	perspectiveFov: number;
-	orthographicSize: number;
-	clippingNear: number;
-	clippingFar: number;
-	cullingMask: number;
-};
-type Colliders = {
-	componentType: string;
-	colliders: (
-		| {
-				isTrigger: boolean;
-				colliderType: string;
-				center: {
-					value: [number, number, number];
-				};
-				size: {
-					value: [number, number, number];
-				};
-				radius?: undefined;
-				height?: undefined;
-		  }
-		| {
-				isTrigger: boolean;
-				colliderType: string;
-				center: {
-					value: [number, number, number];
-				};
-				radius: number;
-				size?: undefined;
-				height?: undefined;
-		  }
-		| {
-				isTrigger: boolean;
-				colliderType: string;
-				center: {
-					value: [number, number, number];
-				};
-				height: number;
-				radius: number;
-				size?: undefined;
-		  }
-	)[];
-};
-type Rigidbodies = {
-	componentType: string;
-	constraints: number;
-	angularDamping: number;
-	isKinematic: boolean;
-	linearDamping: number;
-	mass: number;
-	useGravity: boolean;
-};
-
-type Grabbles = {
-	componentType: string;
-	enabled: boolean;
-	dynamicAttach: boolean;
-	attachEntity?: UUID;
-	allowHoverActivate: boolean;
-	movementType: MovementType;
-	trackPosition: boolean;
-	trackRotation: boolean;
-	throwOnDetach: boolean;
-};
 
 export interface SceneGraph {}
 
 function buildSceneGraphRuntime(
-	scene: any,
+	scene: ProjectDescription["scene"],
 	entityMap: Map<string, Entity>,
-	properties: Map<UUID, Properties>,
-	transforms: Map<UUID, Transforms>,
+	properties: Map<UUID, PropertyComponent>,
+	transforms: Map<UUID, TransformComponent>,
 ) {
 	interface SceneGraphUUIDNode {
 		entityId: number;
@@ -185,14 +74,14 @@ function buildSceneGraphRuntime(
 		children: new Map(),
 	};
 
-	for (const entity of scene.entities.value) {
+	for (const entity of scene.entities) {
 		sceneGraphNodeMap.set(entity, {
 			entityId: entityMap.get(entity)!,
 			children: new Map(),
 		});
 	}
 
-	for (const entity of scene.entities.value) {
+	for (const entity of scene.entities) {
 		const transform = transforms.get(entity)!;
 
 		if (transform.parent !== "00000000-0000-0000-0000-000000000000") {
@@ -210,39 +99,24 @@ function buildSceneGraphRuntime(
 }
 
 export function LoadProject(
-	assetRecord: Map<string, object>,
-	projectFile: any,
+	assetRecord: Map<UUID, Asset>,
+	projectFile: ProjectDescription,
 ): SceneGraph {
-	// type Properties = Exclude<(typeof scene.properties)[number][number], string>;
-	// type Transforms = Exclude<(typeof scene.transforms)[number][number], string>;
-	// type Renderables = Exclude<
-	// 	(typeof scene.renderables)[number][number],
-	// 	string
-	// >;
-	// type Lights = Exclude<(typeof scene.lights)[number][number], string>;
-	// type Cameras = Exclude<(typeof scene.cameras)[number][number], string>;
-	// type Colliders = Exclude<(typeof scene.colliders)[number][number], string>;
-	// type Rigidbodies = Exclude<
-	// 	(typeof scene.rigidbodies)[number][number],
-	// 	string
-	// >;
-	// type Grabbles = Exclude<(typeof scene.grabbles)[number][number], string>;
-
 	const scene = projectFile.scene;
-	const properties = new Map(scene.properties.value as [UUID, Properties][]);
-	const transforms = new Map(scene.transforms.value as [UUID, Transforms][]);
-	const renderables = new Map(scene.renderables.value as [UUID, Renderables][]);
-	const lights = new Map(scene.lights.value as [UUID, Lights][]);
-	const cameras = new Map(scene.cameras.value as [UUID, Cameras][]);
-	const colliders = new Map(scene.colliders.value as [UUID, Colliders][]);
-	const rigidbodies = new Map(scene.rigidbodies.value as [UUID, Rigidbodies][]);
-	const grabbles = new Map(scene.grabbles.value as [UUID, Grabbles][]);
+	const properties = scene.properties;
+	const transforms = scene.transforms;
+	const renderables = scene.renderables;
+	const lights = scene.lights;
+	const cameras = scene.cameras;
+	const colliders = scene.colliders;
+	const rigidbodies = scene.rigidbodies;
+	const grabbles = scene.grabbles;
 
 	const meshCache = new Map<UUID, MeshHandle>();
 	const materialCache = new Map<UUID, MaterialHandle>();
 	const textureCache = new Map<UUID, TextureHandle>();
 
-	const createMesh = (meshAsset: any): MeshHandle => {
+	const createMesh = (meshAsset: MeshAsset): MeshHandle => {
 		const cacheMeshHandle = meshCache.get(meshAsset.uuid);
 		if (cacheMeshHandle) return cacheMeshHandle;
 
@@ -255,7 +129,10 @@ export function LoadProject(
 		return meshHandle;
 	};
 
-	const createTexture = (textureAsset: any, linear = false): TextureHandle => {
+	const createTexture = (
+		textureAsset: TextureAsset,
+		linear = false,
+	): TextureHandle => {
 		const cacheTexHandle = textureCache.get(textureAsset.uuid);
 		if (cacheTexHandle) return cacheTexHandle;
 
@@ -265,7 +142,7 @@ export function LoadProject(
 			TextureFormat.RGBA32,
 			linear,
 		);
-		TextureManager.LoadImage(texHandle, textureAsset.base64Image);
+		TextureManager.LoadImage(texHandle, textureAsset.image.buffer);
 		TextureManager.SetFilterMode(texHandle, textureAsset.filterMode);
 		TextureManager.SetWrapModeU(texHandle, textureAsset.wrapModeU);
 		TextureManager.SetWrapModeV(texHandle, textureAsset.wrapModeV);
@@ -275,7 +152,7 @@ export function LoadProject(
 	};
 
 	const createMaterial = (
-		materialAsset: any,
+		materialAsset: MaterialAsset,
 		culling: boolean,
 	): MaterialHandle => {
 		const cacheMatHandle = materialCache.get(materialAsset.uuid);
@@ -286,10 +163,10 @@ export function LoadProject(
 			matHandle,
 			MaterialProperty.BaseColor,
 			vec4.fromValues(
-				materialAsset.baseColor.x,
-				materialAsset.baseColor.y,
-				materialAsset.baseColor.z,
-				materialAsset.baseColor.w,
+				materialAsset.baseColor[0],
+				materialAsset.baseColor[1],
+				materialAsset.baseColor[2],
+				materialAsset.baseColor[3],
 			),
 		);
 
@@ -297,7 +174,7 @@ export function LoadProject(
 			const texAsset = assetRecord.get(materialAsset.baseColorMap);
 
 			if (texAsset) {
-				const texHandle = createTexture(texAsset);
+				const texHandle = createTexture(texAsset as TextureAsset);
 				MaterialManager.SetTexture(
 					matHandle,
 					MaterialProperty.BaseColorMap,
@@ -312,10 +189,10 @@ export function LoadProject(
 					matHandle,
 					MaterialProperty.BaseColorMapScaleOffset,
 					vec4.fromValues(
-						materialAsset.baseColorTransform.scale.value[0],
-						materialAsset.baseColorTransform.scale.value[1],
-						materialAsset.baseColorTransform.offset.value[0],
-						materialAsset.baseColorTransform.offset.value[1],
+						materialAsset.baseColorTransform.scale[0],
+						materialAsset.baseColorTransform.scale[1],
+						materialAsset.baseColorTransform.offset[0],
+						materialAsset.baseColorTransform.offset[1],
 					),
 				);
 			}
@@ -325,7 +202,7 @@ export function LoadProject(
 			const texAsset = assetRecord.get(materialAsset.normalMap);
 
 			if (texAsset) {
-				const texHandle = createTexture(texAsset, true);
+				const texHandle = createTexture(texAsset as TextureAsset, true);
 				MaterialManager.SetTexture(
 					matHandle,
 					MaterialProperty.NormalMap,
@@ -340,10 +217,10 @@ export function LoadProject(
 					matHandle,
 					MaterialProperty.NormalMapScaleOffset,
 					vec4.fromValues(
-						materialAsset.normalTransform.scale.value[0],
-						materialAsset.normalTransform.scale.value[1],
-						materialAsset.normalTransform.offset.value[0],
-						materialAsset.normalTransform.offset.value[1],
+						materialAsset.normalTransform.scale[0],
+						materialAsset.normalTransform.scale[1],
+						materialAsset.normalTransform.offset[0],
+						materialAsset.normalTransform.offset[1],
 					),
 				);
 
@@ -359,9 +236,9 @@ export function LoadProject(
 			matHandle,
 			MaterialProperty.Emission,
 			vec4.fromValues(
-				materialAsset.emission.value[0] * materialAsset.emissionIntensity,
-				materialAsset.emission.value[1] * materialAsset.emissionIntensity,
-				materialAsset.emission.value[2] * materialAsset.emissionIntensity,
+				materialAsset.emission[0] * materialAsset.emissionIntensity,
+				materialAsset.emission[1] * materialAsset.emissionIntensity,
+				materialAsset.emission[2] * materialAsset.emissionIntensity,
 				1,
 			),
 		);
@@ -370,7 +247,7 @@ export function LoadProject(
 			const texAsset = assetRecord.get(materialAsset.emissionMap);
 
 			if (texAsset) {
-				const texHandle = createTexture(texAsset);
+				const texHandle = createTexture(texAsset as TextureAsset);
 				MaterialManager.SetTexture(
 					matHandle,
 					MaterialProperty.EmissionMap,
@@ -385,20 +262,20 @@ export function LoadProject(
 					matHandle,
 					MaterialProperty.EmissionMapScaleOffset,
 					vec4.fromValues(
-						materialAsset.emissionTransform.scale.value[0],
-						materialAsset.emissionTransform.scale.value[1],
-						materialAsset.emissionTransform.offset.value[0],
-						materialAsset.emissionTransform.offset.value[1],
+						materialAsset.emissionTransform.scale[0],
+						materialAsset.emissionTransform.scale[1],
+						materialAsset.emissionTransform.offset[0],
+						materialAsset.emissionTransform.offset[1],
 					),
 				);
 			}
 		}
 
 		if (materialAsset.occlusionMap) {
-			const texAsset = assetRecord.get(materialAsset.occlusionMap) as any;
+			const texAsset = assetRecord.get(materialAsset.occlusionMap);
 
 			if (texAsset) {
-				const texHandle = createTexture(texAsset);
+				const texHandle = createTexture(texAsset as TextureAsset);
 				MaterialManager.SetTexture(
 					matHandle,
 					MaterialProperty.OcclusionMap,
@@ -413,10 +290,10 @@ export function LoadProject(
 					matHandle,
 					MaterialProperty.OcclusionMapScaleOffset,
 					vec4.fromValues(
-						materialAsset.occlusionTransform.scale.value[0],
-						materialAsset.occlusionTransform.scale.value[1],
-						materialAsset.occlusionTransform.offset.value[0],
-						materialAsset.occlusionTransform.offset.value[1],
+						materialAsset.occlusionTransform.scale[0],
+						materialAsset.occlusionTransform.scale[1],
+						materialAsset.occlusionTransform.offset[0],
+						materialAsset.occlusionTransform.offset[1],
 					),
 				);
 
@@ -429,12 +306,10 @@ export function LoadProject(
 		}
 
 		if (materialAsset.metallicRoughnessMap) {
-			const texAsset = assetRecord.get(
-				materialAsset.metallicRoughnessMap,
-			) as any;
+			const texAsset = assetRecord.get(materialAsset.metallicRoughnessMap);
 
 			if (texAsset) {
-				const texHandle = createTexture(texAsset);
+				const texHandle = createTexture(texAsset as TextureAsset);
 				MaterialManager.SetTexture(
 					matHandle,
 					MaterialProperty.MetallicRoughnessMap,
@@ -449,10 +324,10 @@ export function LoadProject(
 					matHandle,
 					MaterialProperty.MetallicRoughnessMapScaleOffset,
 					vec4.fromValues(
-						materialAsset.metallicRoughnessTransform.scale.value[0],
-						materialAsset.metallicRoughnessTransform.scale.value[1],
-						materialAsset.metallicRoughnessTransform.offset.value[0],
-						materialAsset.metallicRoughnessTransform.offset.value[1],
+						materialAsset.metallicRoughnessTransform.scale[0],
+						materialAsset.metallicRoughnessTransform.scale[1],
+						materialAsset.metallicRoughnessTransform.offset[0],
+						materialAsset.metallicRoughnessTransform.offset[1],
 					),
 				);
 			}
@@ -488,7 +363,7 @@ export function LoadProject(
 	};
 
 	const entityMap = new Map<string, Entity>();
-	for (const entity of scene.entities.value) {
+	for (const entity of scene.entities) {
 		const property = properties.get(entity)!;
 		const entityId = EntityManager.Create(property.name);
 		entityMap.set(entity, entityId);
@@ -501,7 +376,7 @@ export function LoadProject(
 		transforms,
 	);
 
-	for (const entity of scene.entities.value) {
+	for (const entity of scene.entities) {
 		const currEntity = entityMap.get(entity)!;
 		EntityManager.SetActive(currEntity, false);
 
@@ -517,26 +392,26 @@ export function LoadProject(
 			TransformManager.SetLocalPosition(
 				currEntity,
 				vec3.fromValues(
-					transform.localPosition.value[0],
-					transform.localPosition.value[1],
-					transform.localPosition.value[2],
+					transform.localPosition[0],
+					transform.localPosition[1],
+					transform.localPosition[2],
 				),
 			);
 			TransformManager.SetLocalScale(
 				currEntity,
 				vec3.fromValues(
-					transform.localScale.value[0],
-					transform.localScale.value[1],
-					transform.localScale.value[2],
+					transform.localScale[0],
+					transform.localScale[1],
+					transform.localScale[2],
 				),
 			);
 			TransformManager.SetLocalRotation(
 				currEntity,
 				quat.fromEuler(
 					[0, 0, 0, 0],
-					transform.localRotation.value.x * RAD2DEG,
-					transform.localRotation.value.y * RAD2DEG,
-					transform.localRotation.value.z * RAD2DEG,
+					transform.localRotation[0] * RAD2DEG,
+					transform.localRotation[1] * RAD2DEG,
+					transform.localRotation[2] * RAD2DEG,
 					"xyz",
 				),
 			);
@@ -550,7 +425,7 @@ export function LoadProject(
 
 		const renderable = renderables.get(entity);
 		if (renderable && renderable.mesh) {
-			const meshAsset = assetRecord.get(renderable.mesh) as any;
+			const meshAsset = assetRecord.get(renderable.mesh) as MeshAsset;
 
 			if (meshAsset) {
 				const meshHandle = createMesh(meshAsset);
@@ -577,10 +452,14 @@ export function LoadProject(
 				}
 
 				renderable.materialList.forEach((m, idx) => {
-					const material = assetRecord.get(m) as any;
+					if (m === undefined) return;
+					const material = assetRecord.get(m);
 					if (material === undefined) return;
 
-					const matHandle = createMaterial(material, renderable.culling);
+					const matHandle = createMaterial(
+						material as MaterialAsset,
+						renderable.culling,
+					);
 					RenderableManager.SetMaterial(currEntity, matHandle, idx);
 				});
 
@@ -598,11 +477,7 @@ export function LoadProject(
 			LightManager.SetIntensity(currEntity, light.intensity);
 			LightManager.SetColor(
 				currEntity,
-				vec3.fromValues(
-					light.color.value[0],
-					light.color.value[1],
-					light.color.value[2],
-				),
+				vec3.fromValues(light.color[0], light.color[1], light.color[2]),
 			);
 
 			LightManager.SetRange(currEntity, light.range);
@@ -634,52 +509,39 @@ export function LoadProject(
 
 		const collider = colliders.get(entity);
 		if (collider) {
-			collider.colliders.forEach((c) => {
-				switch (c.colliderType) {
+			collider.colliders.forEach((collider) => {
+				switch (collider.colliderType) {
 					case "Box": {
+						const c = collider as BoxCollider;
 						const handle = ColliderManager.CreateBox(currEntity);
 						ColliderManager.SetBoxColliderCenter(
 							handle,
-							vec3.fromValues(
-								c.center.value[0],
-								c.center.value[1],
-								c.center.value[2],
-							),
+							vec3.fromValues(c.center[0], c.center[1], c.center[2]),
 						);
 						ColliderManager.SetBoxColliderSize(
 							handle,
-							vec3.fromValues(
-								c.size!.value[0],
-								c.size!.value[1],
-								c.size!.value[2],
-							),
+							vec3.fromValues(c.size[0], c.size[1], c.size[2]),
 						);
 						ColliderManager.SetIsTrigger(handle, c.isTrigger);
 						break;
 					}
 					case "Sphere": {
+						const c = collider as SphereCollider;
 						const handle = ColliderManager.CreateSphere(currEntity);
 						ColliderManager.SetSphereColliderCenter(
 							handle,
-							vec3.fromValues(
-								c.center.value[0],
-								c.center.value[1],
-								c.center.value[2],
-							),
+							vec3.fromValues(c.center[0], c.center[1], c.center[2]),
 						);
 						ColliderManager.SetSphereColliderRadius(handle, c.radius!);
 						ColliderManager.SetIsTrigger(handle, c.isTrigger);
 						break;
 					}
 					case "Capsule": {
+						const c = collider as CapsuleCollider;
 						const handle = ColliderManager.CreateCapsule(currEntity);
 						ColliderManager.SetCapsuleColliderCenter(
 							handle,
-							vec3.fromValues(
-								c.center.value[0],
-								c.center.value[1],
-								c.center.value[2],
-							),
+							vec3.fromValues(c.center[0], c.center[1], c.center[2]),
 						);
 						ColliderManager.SetCapsuleColliderRadius(handle, c.radius!);
 						ColliderManager.SetCapsuleColliderHeight(handle, c.height!);
