@@ -103,19 +103,17 @@ export class RpcClient {
 		});
 	}
 
-	static async Call(funcName: string, args: Record<string, any>): Promise<any> {
+	static async Call(funcName: string, ...args: any[]): Promise<any> {
 		if (!this.socket) {
 			throw new Error("RPC client is not connected");
 		}
 
-		const processedArgs: Record<string, any> = {};
-		for (const [key, value] of Object.entries(args)) {
+		const processedArgs = args.map((value) => {
 			if (typeof value === "function") {
-				processedArgs[key] = this.RegisterCallback(value);
-			} else {
-				processedArgs[key] = value;
+				return this.RegisterCallback(value);
 			}
-		}
+			return value;
+		});
 
 		const requestId = this.requestCounter++;
 		const payloadJson = JSON.stringify(processedArgs);
@@ -174,11 +172,9 @@ export class RpcClient {
 		let parsed = JSON.parse(payloadText);
 
 		if (parsed?.error) {
-			const remoteError = new Error(parsed.error.message ?? "Remote RPC error");
-			(remoteError as any).remoteType = parsed.error.type;
-			(remoteError as any).remoteStackTrace = parsed.error.stackTrace;
-			(remoteError as any).requestId = header.requestId;
-			(remoteError as any).funcName = pending.funcName;
+			const remoteError = new Error(
+				`${pending.funcName} API Error: ${parsed.error.message}`,
+			);
 			pending.reject(remoteError);
 			return;
 		}
