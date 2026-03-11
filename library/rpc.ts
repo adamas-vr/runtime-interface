@@ -4,15 +4,14 @@ type CallbackFn = (...args: any[]) => any;
 
 interface RpcRequestHeader {
 	requestId: number;
-	functionName: string;
 	bufferSize: number;
+	functionName: string;
 }
 
 interface ResponseHeader {
-	clientId: number;
 	msgType: number;
 	requestId: number;
-	statusCodeOrCallbackId: number;
+	callbackId: number;
 	bufferSize: number;
 }
 
@@ -23,18 +22,20 @@ interface PendingCall {
 	requestId: number;
 }
 
+const RESP_HEADER_SIZE = 16;
+
 export class RpcClient {
 	private static socket: net.Socket | null = null;
 	private static recvBuffer = Buffer.alloc(0);
 
-	private static clientId = -1;
 	private static requestCounter = 1;
 	private static pendingCalls = new Map<number, PendingCall>();
 
 	private static callbackRegistry: Record<number, CallbackFn> = {};
 	private static callbackCounter = 1;
 
-	static Connect(host = "127.0.0.1", port = 6969): void {
+	static Connect(projectId: string, host = "127.0.0.1", port = 6969): void {
+		// TODO: connection error
 		if (this.socket) return;
 
 		const socket = new net.Socket();
@@ -42,7 +43,14 @@ export class RpcClient {
 		socket.setNoDelay(true);
 
 		socket.on("connect", () => {
-			// wait for handshake packet from server
+			const buf = Buffer.alloc(34);
+			buf.writeInt32LE(process.pid, 0);
+
+			const fnBytes = Buffer.from(projectId, "ascii");
+			fnBytes.copy(buf, 4);
+			buf[4 + fnBytes.length] = 0;
+
+			socket.write(buf);
 		});
 
 		socket.on("data", (chunk: Buffer) => {
@@ -50,7 +58,7 @@ export class RpcClient {
 
 			try {
 				while (true) {
-					const headerSize = 20;
+					const headerSize = RESP_HEADER_SIZE;
 					if (this.recvBuffer.length < headerSize) break;
 
 					const header = this.decodeResponseHeader(
@@ -96,8 +104,6 @@ export class RpcClient {
 	}
 
 	static async Call(funcName: string, args: Record<string, any>): Promise<any> {
-		this.Connect();
-
 		if (!this.socket) {
 			throw new Error("RPC client is not connected");
 		}
@@ -116,8 +122,8 @@ export class RpcClient {
 		const payloadBuffer = Buffer.from(payloadJson, "utf8");
 		const headerBuffer = this.encodeRequestHeader({
 			requestId,
-			functionName: funcName,
 			bufferSize: payloadBuffer.length,
+			functionName: funcName,
 		});
 
 		const promise = new Promise<any>((resolve, reject) => {
@@ -156,15 +162,6 @@ export class RpcClient {
 			return;
 		}
 
-		if (
-			header.requestId === 0 &&
-			header.statusCodeOrCallbackId === 0 &&
-			header.bufferSize === 0
-		) {
-			this.clientId = header.clientId;
-			return;
-		}
-
 		const pending = this.pendingCalls.get(header.requestId);
 		this.pendingCalls.delete(header.requestId);
 		if (!pending) {
@@ -193,7 +190,7 @@ export class RpcClient {
 		header: ResponseHeader,
 		payloadBuffer: Buffer,
 	): void {
-		const callbackId = header.statusCodeOrCallbackId;
+		const callbackId = header.callbackId;
 		const callback = this.callbackRegistry[callbackId];
 		if (!callback) {
 			console.warn(`RPC callback ${callbackId} not found`);
@@ -234,13 +231,9 @@ export class RpcClient {
 	private static encodeRequestHeader(header: RpcRequestHeader): Buffer {
 		// C# layout:
 		// int request_id         @ 0
-		// char functionName[64]  @ 4
-		// int bufferSize         @ 68
+		// int bufferSize         @ 4
+		// char functionName[64]  @ 8
 		// total size = 72
-		const buf = Buffer.alloc(72);
-
-		buf.writeInt32LE(header.requestId, 0);
-
 		const fnBytes = Buffer.from(header.functionName, "ascii");
 		if (fnBytes.length >= 64) {
 			throw new Error(
@@ -248,31 +241,30 @@ export class RpcClient {
 			);
 		}
 
-		fnBytes.copy(buf, 4);
-		buf[4 + fnBytes.length] = 0;
-
-		buf.writeInt32LE(header.bufferSize, 68);
+		const buf = Buffer.alloc(72);
+		buf.writeInt32LE(header.requestId, 0);
+		buf.writeInt32LE(header.bufferSize, 4);
+		fnBytes.copy(buf, 8);
+		buf[8 + fnBytes.length] = 0;
 
 		return buf;
 	}
 
 	private static decodeResponseHeader(buf: Buffer): ResponseHeader {
 		// C# layout:
-		// int clientId               @ 0
-		// int msgType                @ 4
-		// int requestId              @ 8
-		// int statusCodeOrCallbackId @ 12
-		// int bufferSize             @ 16
-		if (buf.length < 20) {
+		// int msgType                @ 0
+		// int requestId              @ 4
+		// int callbackId   @ 8
+		// int bufferSize             @ 12
+		if (buf.length < RESP_HEADER_SIZE) {
 			throw new Error("ResponseHeader buffer too small");
 		}
 
 		return {
-			clientId: buf.readInt32LE(0),
-			msgType: buf.readInt32LE(4),
-			requestId: buf.readInt32LE(8),
-			statusCodeOrCallbackId: buf.readInt32LE(12),
-			bufferSize: buf.readInt32LE(16),
+			msgType: buf.readInt32LE(0),
+			requestId: buf.readInt32LE(4),
+			callbackId: buf.readInt32LE(8),
+			bufferSize: buf.readInt32LE(12),
 		};
 	}
 }
