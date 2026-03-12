@@ -1,6 +1,7 @@
 import net from "node:net";
+import { Project } from "./project";
 
-type CallbackFn = (...args: any[]) => any;
+type CallbackFn = (...args: any[]) => void;
 
 interface RpcRequestHeader {
 	requestId: number;
@@ -33,6 +34,10 @@ export class RpcClient {
 
 	private static callbackRegistry: Record<number, CallbackFn> = {};
 	private static callbackCounter = 1;
+
+	static GetClientId() {
+		return Project.GetProjectId();
+	}
 
 	static Connect(projectId: string, host = "127.0.0.1", port = 6969): void {
 		// TODO: connection error
@@ -103,11 +108,13 @@ export class RpcClient {
 		});
 	}
 
-	static async Call(funcName: string, ...args: any[]): Promise<any> {
+	static async Call<T>(funcName: string, ...args: any[]): Promise<T> {
 		if (!this.socket) {
 			throw new Error("RPC client is not connected");
 		}
 
+		//FIXME: make sure it works without args
+		//TODO: check if it is gl-matrix vec2, vec3, vec4 in arraybuffer; convert to array
 		const processedArgs = args.map((value) => {
 			if (typeof value === "function") {
 				return this.RegisterCallback(value);
@@ -124,7 +131,7 @@ export class RpcClient {
 			functionName: funcName,
 		});
 
-		const promise = new Promise<any>((resolve, reject) => {
+		const promise = new Promise<T>((resolve, reject) => {
 			this.pendingCalls.set(requestId, {
 				resolve,
 				reject,
@@ -168,6 +175,7 @@ export class RpcClient {
 			);
 		}
 
+		// TODO: need to make sure gl-vec returns properly
 		const payloadText = payloadBuffer.toString("utf8");
 		let parsed = JSON.parse(payloadText);
 
@@ -194,10 +202,14 @@ export class RpcClient {
 		}
 
 		const payloadText = payloadBuffer.toString("utf8");
-		let callbackArg = JSON.parse(payloadText);
+		let callbackArg = JSON.parse(payloadText) as any[];
+		if (!Array.isArray(callbackArg)) {
+			console.error("Error in callback argument format");
+			return;
+		}
 
 		try {
-			callback(callbackArg);
+			callback(...callbackArg);
 		} catch (error) {
 			console.error(`Error in registered callback ${callbackId}:`, error);
 		}
