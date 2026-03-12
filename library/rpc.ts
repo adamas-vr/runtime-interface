@@ -180,10 +180,9 @@ export class RpcClient {
 		let parsed = JSON.parse(payloadText);
 
 		if (parsed?.error) {
-			const remoteError = new Error(
-				`${pending.funcName} API Error: ${parsed.error.message}`,
+			pending.reject(
+				new Error(`${pending.funcName} API Error: ${parsed.error}`),
 			);
-			pending.reject(remoteError);
 			return;
 		}
 
