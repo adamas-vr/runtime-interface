@@ -1,7 +1,8 @@
 import { vec2 } from "gl-matrix";
 import { RpcClient } from "./rpc";
+import { Project } from "./project";
 
-export type SubscriptionHandle = number;
+export type DeviceSubscription = number;
 
 export const DevicePath = {
 	/** float, range [0.0, 1.0] */
@@ -26,28 +27,28 @@ export const DevicePath = {
 };
 
 export class Device {
-	static GetValue(devicePath: string): number | vec2 | undefined {
-		return RpcClient.Call("Device::GetValue", {
-			devicePath,
-		});
+	static GetValue(...args: [devicePath: string]) {
+		return RpcClient.Call<number | vec2 | undefined>(
+			"Device::GetValue",
+			...args,
+		);
 	}
 
-	static SubscribeValueChange(
-		devicePath: string,
-		callback: (value: number | vec2) => void,
-	): SubscriptionHandle {
-		return RpcClient.Call("Device::SubscribeValueChange", {
-			clientId: RpcClient.GetClientId(),
-			devicePath,
-			callback: (value: { change: string }) =>
-				callback(JSON.parse(value.change)),
-		});
+	static async SubscribeValueChange(
+		...args: [devicePath: string, callback: (value: number | vec2) => void]
+	) {
+		return RpcClient.Call<DeviceSubscription>(
+			"Device::SubscribeValueChange",
+			RpcClient.GetClientId(),
+			...args,
+		);
 	}
 
-	static UnsubscribeValueChange(handle: SubscriptionHandle): boolean {
-		return RpcClient.Call("Device::UnsubscribeValueChange", {
-			clientId: RpcClient.GetClientId(),
-			handle,
-		});
+	static async UnsubscribeValueChange(...args: [handle: DeviceSubscription]) {
+		return RpcClient.Call<boolean>(
+			"Device::UnsubscribeValueChange",
+			RpcClient.GetClientId(),
+			...args,
+		);
 	}
 }

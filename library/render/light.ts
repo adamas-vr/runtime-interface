@@ -21,13 +21,8 @@ export class LightManager {
 	 * @param type The type of light to create
 	 * @returns boolean indicating success
 	 */
-	static Create(entity: Entity, type: LightType): boolean {
-		return Boolean(
-			RpcClient.Call("Light::Create", {
-				entityHandle: entity,
-				lightType: type, // 0=Spot,1=Directional,2=Point
-			}),
-		);
+	static Create(...args: [entity: Entity, type: LightType]) {
+		return RpcClient.Call<boolean>("Light::Create", ...args);
 	}
 
 	/**
@@ -35,8 +30,8 @@ export class LightManager {
 	 * @param entity The entity to remove the light from
 	 * @returns boolean indicating success
 	 */
-	static Destroy(entity: Entity): boolean {
-		return Boolean(RpcClient.Call("Light::Destroy", { entityHandle: entity }));
+	static Destroy(...args: [entity: Entity]) {
+		return RpcClient.Call<boolean>("Light::Destroy", ...args);
 	}
 
 	/**
@@ -44,171 +39,98 @@ export class LightManager {
 	 * @param entity The entity to check
 	 * @returns boolean indicating if light component exists
 	 */
-	static HasComponent(entity: Entity): boolean {
-		return Boolean(
-			RpcClient.Call("Light::HasComponent", { entityHandle: entity }),
-		);
+	static HasComponent(...args: [entity: Entity]) {
+		return RpcClient.Call<boolean>("Light::HasComponent", ...args);
 	}
 
 	/**
 	 * Set if the light component is enabled
-	 * @param entityHandle The entity with the renderable component
+	 * @param entity The entity with the renderable component
 	 * @param enabled If the light component is enabled
-	 * @returns boolean indicating success
 	 */
-	static SetEnabled(entityHandle: Entity, enabled: boolean): boolean {
-		return Boolean(
-			RpcClient.Call("Light::SetEnabled", {
-				entityHandle,
-				enabled,
-			}),
-		);
+	static SetEnabled(...args: [entity: Entity, enabled: boolean]) {
+		return RpcClient.Call<void>("Light::SetEnabled", ...args);
 	}
 
-	static GetEnabled(entityHandle: Entity): boolean {
-		return Boolean(
-			RpcClient.Call("Light::GetEnabled", {
-				entityHandle,
-			}),
-		);
+	static GetEnabled(...args: [entity: Entity]) {
+		return RpcClient.Call<boolean>("Light::GetEnabled", ...args);
 	}
 
 	/**
 	 * Set the type of light
 	 * @param entity The entity with the light component
 	 * @param type The light type
-	 * @returns boolean indicating success
 	 */
-	static SetType(entity: Entity, type: LightType): boolean {
-		return Boolean(
-			RpcClient.Call("Light::SetType", {
-				entityHandle: entity,
-				lightType: type, // 0=Spot,1=Directional,2=Point
-			}),
-		);
+	static SetType(...args: [entity: Entity, type: LightType]) {
+		return RpcClient.Call<void>("Light::SetType", ...args);
 	}
 
-	static GetType(entity: Entity): LightType {
-		return Number(
-			RpcClient.Call("Light::GetType", {
-				entityHandle: entity,
-			}),
-		);
+	static GetType(...args: [entity: Entity]) {
+		return RpcClient.Call<LightType>("Light::GetType", ...args);
 	}
 
 	/**
 	 * Set the color of the light
 	 * @param entity The entity with the light component
 	 * @param rgb color in range [0, 1]
-	 * @returns boolean indicating success
 	 */
-	static SetColor(entity: Entity, rgb: vec3): boolean {
-		return Boolean(
-			RpcClient.Call("Light::SetColor", {
-				entityHandle: entity,
-				r: rgb[0],
-				g: rgb[1],
-				b: rgb[2],
-			}),
-		);
+	static SetColor(...args: [entity: Entity, rgb: vec3]) {
+		return RpcClient.Call<void>("Light::SetColor", ...args);
 	}
 
-	static GetColor(entity: Entity): vec3 {
-		const val = JSON.parse(
-			RpcClient.Call("Light::GetColor", { entityHandle: entity }),
-		);
-		return vec3.fromValues(val[0], val[1], val[2]);
+	static async GetColor(...args: [entity: Entity]) {
+		return RpcClient.Call<vec3>("Light::GetColor", ...args);
 	}
 
 	/**
 	 * Set the intensity of the light
 	 * @param entity The entity with the light component
 	 * @param intensity The light intensity
-	 * @returns boolean indicating success
 	 */
-	static SetIntensity(entity: Entity, intensity: number): boolean {
-		return Boolean(
-			RpcClient.Call("Light::SetIntensity", {
-				entityHandle: entity,
-				intensity,
-			}),
-		);
+	static SetIntensity(...args: [entity: Entity, intensity: number]) {
+		return RpcClient.Call<void>("Light::SetIntensity", ...args);
 	}
 
-	static GetIntensity(entity: Entity): number {
-		return Number(
-			RpcClient.Call("Light::GetIntensity", {
-				entityHandle: entity,
-			}),
-		);
+	static GetIntensity(...args: [entity: Entity]) {
+		return RpcClient.Call<number>("Light::GetIntensity", ...args);
 	}
 
 	/**
 	 * Set the range of the light
 	 * @param entity The entity with the light component
 	 * @param range The light range
-	 * @returns boolean indicating success
 	 */
-	static SetRange(entity: Entity, range: number): boolean {
-		return Boolean(
-			RpcClient.Call("Light::SetRange", {
-				entityHandle: entity,
-				range,
-			}),
-		);
+	static SetRange(...args: [entity: Entity, range: number]) {
+		return RpcClient.Call<void>("Light::SetRange", ...args);
 	}
 
-	static GetRange(entity: Entity): number {
-		return Number(
-			RpcClient.Call("Light::GetRange", {
-				entityHandle: entity,
-			}),
-		);
+	static GetRange(...args: [entity: Entity]) {
+		return RpcClient.Call<number>("Light::GetRange", ...args);
 	}
 
 	/**
 	 * Set the spot angle for spot lights
 	 * @param entity The entity with the light component
 	 * @param angle The spot angle in degree
-	 * @returns boolean indicating success
 	 */
-	static SetSpotAngle(entity: Entity, angle: number): boolean {
-		return Boolean(
-			RpcClient.Call("Light::SetSpotAngle", {
-				entityHandle: entity,
-				angle,
-			}),
-		);
+	static SetSpotAngle(...args: [entity: Entity, angle: number]) {
+		return RpcClient.Call<void>("Light::SetSpotAngle", ...args);
 	}
 
-	static GetSpotAngle(entity: Entity): number {
-		return Number(
-			RpcClient.Call("Light::GetSpotAngle", {
-				entityHandle: entity,
-			}),
-		);
+	static GetSpotAngle(...args: [entity: Entity]) {
+		return RpcClient.Call<number>("Light::GetSpotAngle", ...args);
 	}
 
 	/**
 	 * Set the shadow mode for the light
 	 * @param entity The entity with the light component
 	 * @param mode The shadow mode
-	 * @returns boolean indicating success
 	 */
-	static SetShadows(entity: Entity, mode: LightShadowMode): boolean {
-		return Boolean(
-			RpcClient.Call("Light::SetShadows", {
-				entityHandle: entity,
-				shadowType: mode, // 0=NoShadows,1=Hard,2=Soft
-			}),
-		);
+	static SetShadows(...args: [entity: Entity, mode: LightShadowMode]) {
+		return RpcClient.Call<void>("Light::SetShadows", ...args);
 	}
 
-	static GetShadows(entity: Entity): LightShadowMode {
-		return Number(
-			RpcClient.Call("Light:GetShadows", {
-				entityHandle: entity,
-			}),
-		);
+	static GetShadows(...args: [entity: Entity]) {
+		return RpcClient.Call<LightShadowMode>("Light::GetShadows", ...args);
 	}
 }

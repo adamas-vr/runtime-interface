@@ -7,9 +7,7 @@ export interface NetworkState<T> {
 	value: T;
 }
 
-//TODO: missing onPlayerJoined and onPlayerLeaving
-// network sync entity state authority
-// API call OnSetup check
+//TODO: API call OnSetup check
 
 export class Networking {
 	static #stateKey = 0;
@@ -19,77 +17,83 @@ export class Networking {
 	static #channelNameMap = new Map<string, number>();
 
 	static #NewChannel(
-		channelId: number,
-		onReceived: (sender: number, payload: string) => void,
+		...args: [
+			channelId: number,
+			onReceived: (sender: number, payload: string) => void,
+		]
 	) {
-		RpcClient.Call("Networking::NewChannel", {
-			networkId: Networking.GetNetworkID(),
-			channelId,
-			onReceived: ({ sender, data }: { sender: number; data: string }) => {
-				onReceived(sender, data);
-			},
-		});
+		return RpcClient.Call<void>(
+			"Networking::NewChannel",
+			Networking.GetNetworkID(),
+			...args,
+		);
 	}
 
-	static #SendMessageTo(playerId: number, channelId: number, payload: string) {
-		RpcClient.Call("Networking::SendMessageTo", {
-			networkId: Networking.GetNetworkID(),
-			playerId,
-			channelId,
-			payload,
-		});
+	static #SendMessageTo(
+		...args: [playerId: number, channelId: number, payload: string]
+	) {
+		return RpcClient.Call<void>(
+			"Networking::SendMessageTo",
+			Networking.GetNetworkID(),
+			...args,
+		);
 	}
 
-	static #BroadcastMessage(channelId: number, payload: string) {
-		RpcClient.Call("Networking::BroadcastMessage", {
-			networkId: Networking.GetNetworkID(),
-			channelId,
-			payload,
-		});
+	static #BroadcastMessage(...args: [channelId: number, payload: string]) {
+		return RpcClient.Call<void>(
+			"Networking::BroadcastMessage",
+			Networking.GetNetworkID(),
+			...args,
+		);
 	}
 
-	static GetNetworkID(): string {
+	static GetNetworkID() {
 		return Project.GetProjectId();
 	}
 
-	static IsLocalMode(): boolean {
-		return RpcClient.Call("Networking::IsLocalMode", {}) as boolean;
+	static IsLocalMode(...args: []) {
+		return RpcClient.Call<boolean>("Networking::IsLocalMode", ...args);
 	}
 
-	static IsMasterClient(): boolean {
-		return RpcClient.Call("Networking::IsMasterClient", {}) as boolean;
+	static IsMasterClient(...args: []) {
+		return RpcClient.Call<boolean>("Networking::IsMasterClient", ...args);
 	}
 
-	static GetClientId(): number {
-		return RpcClient.Call("Networking::GetClientId", {}) as number;
+	static GetClientId(...args: []) {
+		return RpcClient.Call<number>("Networking::GetClientId", ...args);
 	}
 
-	static GetMasterClientId(): number {
-		return RpcClient.Call("Networking::GetMasterClientId", {
-			networkId: Networking.GetNetworkID(),
-		}) as number;
+	static GetMasterClientId(...args: []) {
+		return RpcClient.Call<number>(
+			"Networking::GetMasterClientId",
+			Networking.GetNetworkID(),
+			...args,
+		);
 	}
 
-	static MakeNetworkTransform(entityHandle: Entity) {
-		return RpcClient.Call("Networking::MakeNetworkTransform", {
-			networkId: Networking.GetNetworkID(),
-			entityHandle,
-			syncKey: this.#KeyGen(),
-		}) as boolean;
+	static MakeNetworkTransform(...args: [entityHandle: Entity]) {
+		return RpcClient.Call<boolean>(
+			"Networking::MakeNetworkTransform",
+			Networking.GetNetworkID(),
+			...args,
+			this.#KeyGen(),
+		);
 	}
 
-	static IsNetworkTransform(entityHandle: Entity) {
-		return RpcClient.Call("Networking::IsNetworkTransform", {
-			networkId: Networking.GetNetworkID(),
-			entityHandle,
-		}) as boolean;
+	static IsNetworkTransform(...args: [entityHandle: Entity]) {
+		return RpcClient.Call<boolean>(
+			"Networking::IsNetworkTransform",
+			Networking.GetNetworkID(),
+			...args,
+		);
 	}
 
-	static SyncLocalTransform(entityHandle: Entity) {
-		return RpcClient.Call("Networking::SyncLocalTransform", {
-			networkId: Networking.GetNetworkID(),
-			entityHandle,
-		}) as boolean;
+	static SyncLocalTransform(...args: [entityHandle: Entity]) {
+		return RpcClient.Call<boolean>(
+			"Networking::SyncLocalTransform",
+			Networking.GetNetworkID(),
+			...args,
+		);
 	}
 
 	static NewChannel(
@@ -166,22 +170,24 @@ export class Networking {
 			}
 		});
 
-		if (Networking.IsMasterClient()) {
-			initialized = true;
-			onStateChange?.(internalState.value);
-		} else {
-			// Not very efficient
-			this.#BroadcastMessage(
-				initKey,
-				JSON.stringify({ msgType: "req", msg: "" }),
-			);
-			setTimeout(() => {
-				if (!initialized) {
-					initialized = true;
-					onStateChange?.(internalState.value);
-				}
-			}, 2000);
-		}
+		Networking.IsMasterClient().then((isMaster) => {
+			if (isMaster) {
+				initialized = true;
+				onStateChange?.(internalState.value);
+			} else {
+				// Not very efficient
+				this.#BroadcastMessage(
+					initKey,
+					JSON.stringify({ msgType: "req", msg: "" }),
+				);
+				setTimeout(() => {
+					if (!initialized) {
+						initialized = true;
+						onStateChange?.(internalState.value);
+					}
+				}, 2000);
+			}
+		});
 
 		return proxy;
 	}
@@ -195,7 +201,7 @@ export class Networking {
 		};
 
 		this.#NewChannel(key, (_, payload) => {
-			console.log("NewFuction onReceived: " + payload);
+			console.log("NewFunction onReceived: " + payload);
 			const received = JSON.parse(payload) as Parameters<F>;
 			func(...received);
 		});
@@ -203,18 +209,18 @@ export class Networking {
 		return callFunction;
 	}
 
-	static OnUserJoined(onUserJoined: (user: User) => void): boolean {
-		return RpcClient.Call("Networking::OnUserJoined", {
-			onUserJoined: ({ userId }: { userId: string }) => {
-				onUserJoined(new User(userId));
-			},
-		}) as boolean;
+	static OnUserJoined(onUserJoined: (user: User) => void) {
+		return RpcClient.Call<void>(
+			"Networking::OnUserJoined",
+			RpcClient.GetClientId(),
+			(userId: string) => onUserJoined(new User(userId)),
+		);
 	}
-	static OnUserLeft(onUserLeft: (user: User) => void): boolean {
-		return RpcClient.Call("Networking::OnUserLeft", {
-			onUserLeft: ({ userId }: { userId: string }) => {
-				onUserLeft(new User(userId));
-			},
-		}) as boolean;
+	static OnUserLeft(onUserLeft: (user: User) => void) {
+		return RpcClient.Call<void>(
+			"Networking::OnUserLeft",
+			RpcClient.GetClientId(),
+			(userId: string) => onUserLeft(new User(userId)),
+		);
 	}
 }

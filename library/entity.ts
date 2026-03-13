@@ -1,3 +1,4 @@
+import { Project } from "./project";
 import { RpcClient } from "./rpc";
 
 export type Entity = number;
@@ -8,48 +9,44 @@ export class EntityManager {
 	 * @param name Name of the entity
 	 * @returns entity handle
 	 */
-	static Create(name: string): Entity {
-		return Number(
-			RpcClient.Call("Entity::Create", {
-				name,
-				clientId: RpcClient.GetClientId(),
-				processId: process.pid,
-			}),
+	static async Create(...args: [name: string]) {
+		return RpcClient.Call<Entity>(
+			"Entity::Create",
+			Project.GetProjectId(),
+			RpcClient.GetClientId(),
+			...args,
 		);
 	}
 
 	/**
 	 * Destroy the entity
-	 * @param {Entity} entityHandle
-	 * @returns
+	 * @param entity
 	 */
-	static Destroy(entityHandle: Entity): boolean {
-		return Boolean(RpcClient.Call("Entity::Destroy", { entityHandle }));
+	static Destroy(...args: [entity: Entity]) {
+		return RpcClient.Call<boolean>("Entity::Destroy", ...args);
 	}
 
-	static SetActive(entityHandle: Entity, active: boolean): boolean {
-		return Boolean(
-			RpcClient.Call("Entity::SetActive", { entityHandle, active }),
-		);
+	static SetActive(...args: [entity: Entity, active: boolean]) {
+		return RpcClient.Call<void>("Entity::SetActive", ...args);
 	}
 
-	static GetActive(entityHandle: Entity): boolean {
-		return Boolean(RpcClient.Call("Entity::GetActive", { entityHandle }));
+	static GetActive(...args: [entity: Entity]) {
+		return RpcClient.Call<boolean>("Entity::GetActive", ...args);
 	}
 
-	static SetName(entityHandle: Entity, name: string): boolean {
-		return Boolean(RpcClient.Call("Entity::SetName", { entityHandle, name }));
+	static SetName(...args: [entity: Entity, name: string]) {
+		return RpcClient.Call<void>("Entity::SetName", ...args);
 	}
 
-	static GetName(entityHandle: Entity): string {
-		return RpcClient.Call("Entity::GetName", { entityHandle });
+	static GetName(...args: [entity: Entity]) {
+		return RpcClient.Call<string>("Entity::GetName", ...args);
 	}
 
-	// static SetLayer(entityHandle: Entity, layer: number): boolean {
-	// 	return Boolean(RpcClient.Call("Entity::SetLayer", { entityHandle, layer }));
+	// static SetLayer(entity: Entity, layer: number): boolean {
+	// 	return Boolean(RpcClient.Call("Entity::SetLayer", { entity, layer }));
 	// }
 
-	// static GetLayer(entityHandle: Entity): number {
-	// 	return Number(RpcClient.Call("Entity::GetLayer", { entityHandle }));
+	// static GetLayer(entity: Entity): number {
+	// 	return Number(RpcClient.Call("Entity::GetLayer", { entity }));
 	// }
 }

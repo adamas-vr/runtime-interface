@@ -1,9 +1,9 @@
-import { RpcClient } from "../rpc";
 import { Entity } from "../entity";
+import { RpcClient } from "../rpc";
 import { vec4 } from "gl-matrix";
-import { TextureHandle } from "./texture";
+import { Texture } from "./texture";
 
-export type MaterialHandle = number;
+export type Material = number;
 
 export enum MaterialProperty {
 	/** vec4 [0.0, 1.0] */
@@ -71,27 +71,27 @@ export class MaterialManager {
 	 * Create a new material
 	 * @returns The material handle
 	 */
-	static Create(): MaterialHandle;
+	static Create(): Promise<Material>;
 	/**
 	 * Create a new material and attach it to a renderable component
 	 * @param entity The entity with the renderable component
 	 * @param submeshIndex The submesh index to attach to (default: 0)
 	 * @returns The material handle
 	 */
-	static Create(entity: Entity, submeshIndex?: number): MaterialHandle;
-	static Create(entity?: Entity, submeshIndex: number = 0): MaterialHandle {
-		const matHandle = Number(
-			RpcClient.Call("Material::Create", {
-				clientId: RpcClient.GetClientId(),
-			}),
+	static Create(entity: Entity, submeshIndex?: number): Promise<Material>;
+	static async Create(...args: [entity?: Entity, submeshIndex?: number]) {
+		const matHandle = await RpcClient.Call<Material>(
+			"Material::Create",
+			RpcClient.GetClientId(),
 		);
 
-		if (entity !== undefined) {
-			RpcClient.Call("Renderable::SetMaterial", {
-				entityHandle: entity,
-				materialHandle: matHandle,
-				index: submeshIndex,
-			});
+		if (args[0] !== undefined) {
+			await RpcClient.Call<boolean>(
+				"Renderable::SetMaterial",
+				args[0],
+				matHandle,
+				args[1] ?? 0,
+			);
 		}
 
 		return matHandle;
@@ -102,10 +102,8 @@ export class MaterialManager {
 	 * @param handle The material handle to destroy
 	 * @returns boolean indicating success
 	 */
-	static Destroy(handle: MaterialHandle): boolean {
-		return Boolean(
-			RpcClient.Call("Material::Destroy", { materialHandle: handle }),
-		);
+	static Destroy(...args: [handle: Material]) {
+		return RpcClient.Call<boolean>("Material::Destroy", ...args);
 	}
 
 	/**
@@ -116,17 +114,9 @@ export class MaterialManager {
 	 * @returns boolean indicating success
 	 */
 	static SetFloat(
-		handle: MaterialHandle,
-		property: MaterialProperty,
-		value: number,
-	): boolean {
-		return Boolean(
-			RpcClient.Call("Material::SetFloat", {
-				materialHandle: handle,
-				propertyName: property,
-				value,
-			}),
-		);
+		...args: [handle: Material, property: MaterialProperty, value: number]
+	) {
+		return RpcClient.Call<void>("Material::SetFloat", ...args);
 	}
 
 	/**
@@ -135,13 +125,8 @@ export class MaterialManager {
 	 * @param property The property name
 	 * @returns The float value
 	 */
-	static GetFloat(handle: MaterialHandle, property: MaterialProperty): number {
-		return Number(
-			RpcClient.Call("Material::GetFloat", {
-				materialHandle: handle,
-				propertyName: property,
-			}),
-		);
+	static GetFloat(...args: [handle: Material, property: MaterialProperty]) {
+		return RpcClient.Call<number>("Material::GetFloat", ...args);
 	}
 
 	/**
@@ -149,28 +134,15 @@ export class MaterialManager {
 	 * @param handle The material handle
 	 * @param property The property name
 	 * @param value vec4 value
-	 * @returns boolean indicating success
 	 */
-	static SetVector(
-		handle: MaterialHandle,
-		property: MaterialProperty,
-		value: vec4,
-	): boolean {
+	static SetVector(handle: Material, property: MaterialProperty, value: vec4) {
 		let newW = value[3];
 		if (property.includes("Texture_ST")) {
 			newW = 1 - value[1] - newW;
 		}
 
-		return Boolean(
-			RpcClient.Call("Material::SetVector", {
-				materialHandle: handle,
-				propertyName: property,
-				x: value[0],
-				y: value[1],
-				z: value[2],
-				w: newW,
-			}),
-		);
+		const vec = [value[0], value[1], value[2], newW];
+		return RpcClient.Call<void>("Material::SetVector", handle, property, vec);
 	}
 
 	/**
@@ -179,18 +151,13 @@ export class MaterialManager {
 	 * @param property The property name
 	 * @returns vec4 value
 	 */
-	static GetVector(handle: MaterialHandle, property: MaterialProperty): vec4 {
-		const arr = JSON.parse(
-			RpcClient.Call("Material::GetVector", {
-				materialHandle: handle,
-				propertyName: property,
-			}),
-		);
-
-		if (arr.length != 4) throw `Property ${property} does not exist.`;
+	static async GetVector(
+		...args: [handle: Material, property: MaterialProperty]
+	) {
+		const arr = await RpcClient.Call<vec4>("Material::GetVector", ...args);
 
 		let newW = arr[3];
-		if (property.includes("Texture_ST")) {
+		if (args[1].includes("Texture_ST")) {
 			newW = 1 - arr[1] - newW;
 		}
 		return vec4.fromValues(arr[0], arr[1], arr[2], newW);
@@ -201,23 +168,11 @@ export class MaterialManager {
 	 * @param handle The material handle
 	 * @param property The property name
 	 * @param rgba vec4 color [0.0, 1.0]
-	 * @returns boolean indicating success
 	 */
 	static SetColor(
-		handle: MaterialHandle,
-		property: MaterialProperty,
-		rgba: vec4,
-	): boolean {
-		return Boolean(
-			RpcClient.Call("Material::SetColor", {
-				materialHandle: handle,
-				propertyName: property,
-				r: rgba[0],
-				g: rgba[1],
-				b: rgba[2],
-				a: rgba[3],
-			}),
-		);
+		...args: [handle: Material, property: MaterialProperty, rgba: vec4]
+	) {
+		return RpcClient.Call<void>("Material::SetColor", ...args);
 	}
 
 	/**
@@ -226,16 +181,10 @@ export class MaterialManager {
 	 * @param property The property name
 	 * @returns Color
 	 */
-	static GetColor(handle: MaterialHandle, property: MaterialProperty): vec4 {
-		const arr = JSON.parse(
-			RpcClient.Call("Material::GetColor", {
-				materialHandle: handle,
-				propertyName: property,
-			}),
-		);
-
-		if (arr.length != 4) throw `Property ${property} does not exist.`;
-		return vec4.fromValues(arr[0], arr[1], arr[2], arr[3]);
+	static async GetColor(
+		...args: [handle: Material, property: MaterialProperty]
+	) {
+		return RpcClient.Call<vec4>("Material::GetColor", ...args);
 	}
 
 	/**
@@ -243,20 +192,11 @@ export class MaterialManager {
 	 * @param handle The material handle
 	 * @param property The property name
 	 * @param texture The texture handle
-	 * @returns boolean indicating success
 	 */
 	static SetTexture(
-		handle: MaterialHandle,
-		property: MaterialProperty,
-		texture: TextureHandle,
-	): boolean {
-		return Boolean(
-			RpcClient.Call("Material::SetTexture", {
-				materialHandle: handle,
-				propertyName: property,
-				textureHandle: texture,
-			}),
-		);
+		...args: [handle: Material, property: MaterialProperty, texture: Texture]
+	) {
+		return RpcClient.Call<void>("Material::SetTexture", ...args);
 	}
 
 	/**
@@ -265,38 +205,19 @@ export class MaterialManager {
 	 * @param property The property name
 	 * @returns The texture handle
 	 */
-	static GetTexture(
-		handle: MaterialHandle,
-		property: MaterialProperty,
-	): TextureHandle {
-		return Number(
-			RpcClient.Call("Material::GetTexture", {
-				materialHandle: handle,
-				propertyName: property,
-			}),
+	static GetTexture(...args: [handle: Material, property: MaterialProperty]) {
+		return RpcClient.Call<Texture>("Material::GetTexture", ...args);
+	}
+
+	static SetAlphaMode(...args: [handle: Material, alphaMode?: AlphaMode]) {
+		return RpcClient.Call<void>(
+			"Material::SetAlphaMode",
+			args[0],
+			args[1] ?? AlphaMode.Opaque,
 		);
 	}
 
-	static SetAlphaMode(
-		handle: MaterialHandle,
-		alphaMode: AlphaMode = AlphaMode.Opaque,
-	) {
-		return Boolean(
-			RpcClient.Call("Material::SetAlphaMode", {
-				materialHandle: handle,
-				alphaMode,
-			}),
-		);
-	}
-
-	static GetAlphaMode(handle: MaterialHandle): AlphaMode | undefined {
-		const val = String(
-			RpcClient.Call("Material::GetAlphaMode", {
-				materialHandle: handle,
-			}),
-		);
-
-		if (val == "") return undefined;
-		return val as AlphaMode;
+	static GetAlphaMode(...args: [handle: Material]) {
+		return RpcClient.Call<AlphaMode>("Material::GetAlphaMode", ...args);
 	}
 }

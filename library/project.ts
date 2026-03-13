@@ -13,10 +13,9 @@ export class Project {
 	lastTimeStamp = Date.now();
 	constructor(private callbacks: ProjectCallbacks) {}
 
-	static GetProjectId() {
-		return RpcClient.Call<string>("ProjectManager_GetProjectIdFromPid", {
-			pid: process.pid,
-		});
+	private static projectId: string;
+	static GetProjectId(): string {
+		return Project.projectId;
 	}
 
 	static async Launch(
@@ -24,6 +23,13 @@ export class Project {
 		projectFile: ProjectDescription,
 		callbacks: ProjectCallbacks,
 	) {
+		Project.projectId = projectFile.metadata.projectId;
+		await RpcClient.Call<void>(
+			"Project::ProjectBootupBegin",
+			Project.projectId,
+			process.pid,
+		);
+
 		if (projectFile.world.worldEntrance) {
 			const user = await User.GetLocalUser();
 			await user.TeleportTo(
@@ -36,6 +42,9 @@ export class Project {
 
 		const project = new Project(callbacks);
 		project.callbacks.OnSetup?.(project, sceneGraph);
+
+		await RpcClient.Call<void>("Project::ProjectBootupEnd", Project.projectId);
+
 		setInterval(() => {
 			const currentTimeStamp = Date.now();
 			const timestep = currentTimeStamp - project.lastTimeStamp;

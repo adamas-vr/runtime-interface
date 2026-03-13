@@ -210,7 +210,10 @@ export interface WorldProperty {
 
 export interface ProjectMetadata {
 	name: string;
+	projectId: string;
+	author: string;
 	version: string;
+	previewImagePath?: string;
 	createdAt: Date;
 	updateAt: Date;
 }

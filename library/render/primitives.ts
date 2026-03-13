@@ -53,8 +53,8 @@ export const cylinderMeshAsset = {
 		"AAAAAAAAAD8AAEA/XI8CPwAAgD8AAAA/AAAAAAAAAAAAAIA+XI8CPwAAgD8AAAAAgfxLP5W9Az8AAHg/AAAAPwP5lz6VvQM/AAB4PwAAAAAXg1c/ojwHPwAAcD8AAAA/LgavPqI8Bz8AAHA/AAAAAF0iYj8d6gw/AABoPwAAAD+6RMQ+HeoMPwAAaD8AAAAAAABgPwAAAD/UcWs/LI4UP6jj1j4sjhQ/AABgPwAAAAAAAFg/AAAAP+MVcz+j3R0/xivmPqPdHT8AAFg/AAAAAAAAUD8AAAA/XsN4P+l8KD+8hvE+6XwoPwAAUD8AAAAAAABIPwAAAD9rQnw/fgM0P9aE+D5+AzQ/AABIPwAAAAAAAEA/AAAAP6RwfT8AAEA/SOH6PgAAQD8AAEA/AAAAAAAAOD8AAAA/a0J8P4L8Sz/WhPg+gvxLPwAAOD8AAAAAAAAwPwAAAD9ew3g/F4NXP7yG8T4Xg1c/AAAwPwAAAAAAACg/AAAAP+MVcz9dImI/xivmPl0iYj8AACg/AAAAAAAAID8AAAA/1HFrP9Rxaz+o49Y+1HFrPwAAID8AAAAAAAAYPwAAAD9dImI/4xVzP7pExD7jFXM/AAAYPwAAAAAAABA/AAAAPxeDVz9ew3g/LgavPl7DeD8AABA/AAAAAAAACD8AAAA/gfxLP2tCfD8D+Zc+a0J8PwAACD8AAAAAAAAAPwAAAD8AAEA/pHB9PwAAgD6kcH0/AAAAPwAAAAAAAPA+AAAAP38DND9rQnw/+g1QPmtCfD8AAPA+AAAAAAAA4D4AAAA/6XwoP17DeD+k8yE+XsN4PwAA4D4AAAAAAADQPgAAAD+j3R0/4xVzPxbt7j3jFXM/AADQPgAAAAAAAMA+AAAAPyyOFD/UcWs/YnGkPdRxaz8AAMA+AAAAAAAAsD4AAAA/HeoMP10iYj/UoU49XSJiPwAAsD4AAAAAAACgPgAAAD+iPAc/F4NXPziU5zwXg1c/AACgPgAAAAAAAJA+AAAAP5W9Az+C/Es/QGVvPIL8Sz8AAJA+AAAAAAAAgD4AAAA/XI8CPwAAQD8Q1yM8AABAPwAAgD4AAAAAAABgPgAAAD+VvQM/fgM0P0Blbzx+AzQ/AABgPgAAAAAAAEA+AAAAP6I8Bz/pfCg/OJTnPOl8KD8AAEA+AAAAAAAAID4AAAA/HeoMP6PdHT/UoU49o90dPwAAID4AAAAAAAAAPgAAAD8sjhQ/LI4UP2JxpD0sjhQ/AAAAPgAAAAAAAMA9AAAAP6PdHT8d6gw/AADAPQAAAAAW7e49HeoMPwAAgD0AAAA/6XwoP6I8Bz8AAIA9AAAAAKTzIT6iPAc/AAAAPQAAAD9/AzQ/lb0DPwAAAD0AAAAA+g1QPpW9Az8=",
 };
 
-export function NewCubeMesh(): number {
-	const meshHandle = MeshManager.Create();
+export async function NewCubeMesh(): Promise<number> {
+	const meshHandle = await MeshManager.Create();
 
 	MeshManager.SetVertices(meshHandle, cubeMeshAsset.base64Vertices);
 	MeshManager.SetTriangles(meshHandle, cubeMeshAsset.base64Indices);
@@ -66,8 +66,8 @@ export function NewCubeMesh(): number {
 	return meshHandle;
 }
 
-export function NewQuadMesh(): number {
-	const meshHandle = MeshManager.Create();
+export async function NewQuadMesh(): Promise<number> {
+	const meshHandle = await MeshManager.Create();
 
 	MeshManager.SetVertices(meshHandle, quadMeshAsset.base64Vertices);
 	MeshManager.SetTriangles(meshHandle, quadMeshAsset.base64Indices);
@@ -79,8 +79,8 @@ export function NewQuadMesh(): number {
 	return meshHandle;
 }
 
-export function NewSphereMesh(): number {
-	const meshHandle = MeshManager.Create();
+export async function NewSphereMesh(): Promise<number> {
+	const meshHandle = await MeshManager.Create();
 
 	MeshManager.SetVertices(meshHandle, sphereMeshAsset.base64Vertices);
 	MeshManager.SetTriangles(meshHandle, sphereMeshAsset.base64Indices);
@@ -92,8 +92,8 @@ export function NewSphereMesh(): number {
 	return meshHandle;
 }
 
-export function NewCapsuleMesh(): number {
-	const meshHandle = MeshManager.Create();
+export async function NewCapsuleMesh(): Promise<number> {
+	const meshHandle = await MeshManager.Create();
 
 	MeshManager.SetVertices(meshHandle, capsuleMeshAsset.base64Vertices);
 	MeshManager.SetTriangles(meshHandle, capsuleMeshAsset.base64Indices);
@@ -105,8 +105,8 @@ export function NewCapsuleMesh(): number {
 	return meshHandle;
 }
 
-export function NewCylinderMesh(): number {
-	const meshHandle = MeshManager.Create();
+export async function NewCylinderMesh(): Promise<number> {
+	const meshHandle = await MeshManager.Create();
 
 	MeshManager.SetVertices(meshHandle, cylinderMeshAsset.base64Vertices);
 	MeshManager.SetTriangles(meshHandle, cylinderMeshAsset.base64Indices);

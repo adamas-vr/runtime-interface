@@ -1,24 +1,19 @@
-import { MaterialManager } from "./material";
-import { TextureHandle, TextureManager } from "./texture";
+import { Texture } from "./texture";
 import { RpcClient } from "../rpc";
 import { vec3 } from "gl-matrix";
 
 export class RendererManager {
 	/**
 	 * Set skybox texture. Support exr and hdr in Texture2D.
-	 * @param textureHandle The skybox material handle
+	 * @param texture The skybox material handle
 	 * @returns boolean indicating success
 	 */
-	static SetSkybox2DTexture(textureHandle: TextureHandle): boolean {
-		return Boolean(
-			RpcClient.Call("Renderer::SetSkybox2DTexture", {
-				textureHandle,
-			}),
-		);
+	static SetSkybox2DTexture(...args: [texture: Texture]) {
+		return RpcClient.Call<void>("Renderer::SetSkybox2DTexture", ...args);
 	}
 
-	static GetSkybox2DTexture(): TextureHandle {
-		return Number(RpcClient.Call("Renderer::GetSkybox2DTexture", {}));
+	static GetSkybox2DTexture() {
+		return RpcClient.Call<Texture>("Renderer::GetSkybox2DTexture");
 	}
 
 	/**
@@ -26,47 +21,24 @@ export class RendererManager {
 	 * @param color HDR color. Each component's range is [0, +10]
 	 * @returns
 	 */
-	static SetAmbientLight(color: vec3): boolean {
-		return Boolean(
-			RpcClient.Call("Renderer::SetAmbientLight", {
-				r: color[0],
-				g: color[1],
-				b: color[2],
-			}),
-		);
+	static SetAmbientLight(...args: [color: vec3]) {
+		return RpcClient.Call<void>("Renderer::SetAmbientLight", args[0]);
 	}
 
-	static GetAmbientLight(): vec3 {
-		const val = JSON.parse(RpcClient.Call("Renderer::GetAmbientLight", {}));
-		return vec3.fromValues(val[0], val[1], val[2]);
+	static GetAmbientLight() {
+		return RpcClient.Call<vec3>("Renderer::GetAmbientLight");
 	}
 
-	static RenderCubemap(
-		textureHandle: TextureHandle,
-		x: number,
-		y: number,
-		z: number,
-	): boolean {
-		return Boolean(
-			RpcClient.Call("Renderer::RenderCubemap", {
-				textureHandle,
-				x,
-				y,
-				z,
-			}),
-		);
+	static RenderCubemap(...args: [texture: Texture, position: vec3]) {
+		return RpcClient.Call<void>("Renderer::RenderCubemap", ...args);
 	}
 
-	static SetReflectionCubemap(textureHandle: TextureHandle): boolean {
-		return Boolean(
-			RpcClient.Call("Renderer::SetReflectionCubemap", {
-				textureHandle,
-			}),
-		);
+	static SetReflectionCubemap(...args: [texture: Texture]) {
+		return RpcClient.Call<void>("Renderer::SetReflectionCubemap", ...args);
 	}
 
-	static GetReflectionCubemap(): TextureHandle {
-		return Number(RpcClient.Call("Renderer::GetReflectionCubemap", {}));
+	static GetReflectionCubemap() {
+		return RpcClient.Call<Texture>("Renderer::GetReflectionCubemap");
 	}
 
 	/**
@@ -74,15 +46,11 @@ export class RendererManager {
 	 * @param intensity [0, 10] floating point. No reflection is 0
 	 * @returns
 	 */
-	static SetReflectionIntensity(intensity: number): boolean {
-		return Boolean(
-			RpcClient.Call("Renderer::SetReflectionIntensity", {
-				intensity,
-			}),
-		);
+	static SetReflectionIntensity(...args: [intensity: number]) {
+		return RpcClient.Call<void>("Renderer::SetReflectionIntensity", ...args);
 	}
 
-	static GetReflectionIntensity(): number {
-		return Number(RpcClient.Call("Renderer::GetReflectionIntensity", {}));
+	static GetReflectionIntensity() {
+		return RpcClient.Call<number>("Renderer::GetReflectionIntensity");
 	}
 }

@@ -37,208 +37,102 @@ export enum ForceMode {
 // }
 
 export class RigidbodyManager {
-	static Create(entityHandle: Entity): boolean {
-		return Boolean(
-			RpcClient.Call("RidigbodyAPI_Create", {
-				entityHandle,
-			}),
-		);
+	static Create(...args: [entity: Entity]) {
+		return RpcClient.Call<boolean>("Ridigbody::Create", ...args);
 	}
 
-	static Destroy(entityHandle: Entity): boolean {
-		return Boolean(
-			RpcClient.Call("RidigbodyAPI_Destroy", {
-				entityHandle,
-			}),
-		);
+	static Destroy(...args: [entity: Entity]) {
+		return RpcClient.Call<boolean>("Ridigbody::Destroy", ...args);
 	}
 
-	static HasComponent(entityHandle: Entity): boolean {
-		return Boolean(
-			RpcClient.Call("RidigbodyAPI_HasComponent", {
-				entityHandle,
-			}),
-		);
+	static HasComponent(...args: [entity: Entity]) {
+		return RpcClient.Call<boolean>("Ridigbody::HasComponent", ...args);
 	}
 
-	static GetLinearVelocity(entityHandle: Entity): vec3 {
-		const [x, y, z] = JSON.parse(
-			RpcClient.Call("RidigbodyAPI_GetLinearVelocity", {
-				entityHandle,
-			}),
-		);
-		return vec3.fromValues(x, y, z);
+	static GetLinearVelocity(...args: [entity: Entity]) {
+		return RpcClient.Call<vec3>("Ridigbody::GetLinearVelocity", ...args);
 	}
 
-	static GetAngularVelocity(entityHandle: Entity): vec3 {
-		const [x, y, z] = JSON.parse(
-			RpcClient.Call("RidigbodyAPI_GetAngularVelocity", {
-				entityHandle,
-			}),
-		);
-		return vec3.fromValues(x, y, z);
+	static GetAngularVelocity(...args: [entity: Entity]) {
+		return RpcClient.Call<vec3>("Ridigbody::GetAngularVelocity", ...args);
 	}
 
 	static AddForce(
-		entityHandle: Entity,
-		force: vec3,
-		forceMode: ForceMode = ForceMode.Force,
-	): boolean {
-		return Boolean(
-			RpcClient.Call("RidigbodyAPI_AddForce", {
-				entityHandle,
-				fx: force[0],
-				fy: force[1],
-				fz: force[2],
-				forceMode,
-			}),
+		...args: [entity: Entity, force: vec3, forceMode?: ForceMode]
+	) {
+		return RpcClient.Call<void>(
+			"Ridigbody::AddForce",
+			args[0],
+			Array.from(args[1]),
+			args[2] ?? ForceMode.Force,
 		);
 	}
 
 	static AddForceAtPosition(
-		entityHandle: Entity,
-		force: vec3,
-		position: vec3,
-		forceMode: ForceMode = ForceMode.Force,
-	): boolean {
-		return Boolean(
-			RpcClient.Call("RidigbodyAPI_AddForceAtPosition", {
-				entityHandle,
-				fx: force[0],
-				fy: force[1],
-				fz: force[2],
-				px: position[0],
-				py: position[1],
-				pz: position[2],
-				forceMode,
-			}),
+		...args: [
+			entity: Entity,
+			force: vec3,
+			position: vec3,
+			forceMode?: ForceMode,
+		]
+	) {
+		return RpcClient.Call<boolean>(
+			"Ridigbody::AddForceAtPosition",
+			args[0],
+			Array.from(args[1]),
+			Array.from(args[2]),
+			args[3] ?? ForceMode.Force,
 		);
 	}
 
 	static AddTorque(
-		entityHandle: Entity,
-		torque: vec3,
-		forceMode: ForceMode = ForceMode.Force,
-	): boolean {
-		return Boolean(
-			RpcClient.Call("RidigbodyAPI_AddTorque", {
-				entityHandle,
-				tx: torque[0],
-				ty: torque[1],
-				tz: torque[2],
-				forceMode,
-			}),
+		...args: [entity: Entity, torque: vec3, forceMode?: ForceMode]
+	) {
+		return RpcClient.Call<void>(
+			"Ridigbody::AddTorque",
+			args[0],
+			Array.from(args[1]),
+			args[2] ?? ForceMode.Force,
 		);
 	}
 
-	// static GetConstraints(entityHandle: Entity): RigidbodyConstraints {
-	// 	return Number(
-	// 		RpcClient.Call("RidigbodyAPI_GetConstraints", {
-	// 			entityHandle,
-	// 		}),
-	// 	);
-	// }
-
-	// static SetConstraints(
-	// 	entityHandle: Entity,
-	// 	constraints: RigidbodyConstraints,
-	// ): boolean {
-	// 	return Boolean(
-	// 		RpcClient.Call("RidigbodyAPI_SetConstraints", {
-	// 			entityHandle,
-	// 			constraints,
-	// 		}),
-	// 	);
-	// }
-
-	static GetIsKinematic(entityHandle: Entity): boolean {
-		return Boolean(
-			RpcClient.Call("RidigbodyAPI_GetIsKinematic", {
-				entityHandle,
-			}),
-		);
+	static GetIsKinematic(...args: [entity: Entity]) {
+		return RpcClient.Call<boolean>("Ridigbody::GetIsKinematic", ...args);
 	}
 
-	static SetIsKinematic(entityHandle: Entity, isKinematic: boolean): boolean {
-		return Boolean(
-			RpcClient.Call("RidigbodyAPI_SetIsKinematic", {
-				entityHandle,
-				isKinematic,
-			}),
-		);
+	static SetIsKinematic(...args: [entity: Entity, isKinematic: boolean]) {
+		return RpcClient.Call<void>("Ridigbody::SetIsKinematic", ...args);
 	}
 
-	static GetUseGravity(entityHandle: Entity): boolean {
-		return Boolean(
-			RpcClient.Call("RidigbodyAPI_GetUseGravity", {
-				entityHandle,
-			}),
-		);
+	static GetUseGravity(...args: [entity: Entity]) {
+		return RpcClient.Call<boolean>("Ridigbody::GetUseGravity", ...args);
 	}
 
-	static SetUseGravity(entityHandle: Entity, useGravity: boolean): boolean {
-		return Boolean(
-			RpcClient.Call("RidigbodyAPI_SetUseGravity", {
-				entityHandle,
-				useGravity,
-			}),
-		);
+	static SetUseGravity(...args: [entity: Entity, useGravity: boolean]) {
+		return RpcClient.Call<void>("Ridigbody::SetUseGravity", ...args);
 	}
 
-	static GetMass(entityHandle: Entity): number {
-		return Number(
-			RpcClient.Call("RidigbodyAPI_GetMass", {
-				entityHandle,
-			}),
-		);
+	static GetMass(...args: [entity: Entity]) {
+		return RpcClient.Call<number>("Ridigbody::GetMass", ...args);
 	}
 
-	static SetMass(entityHandle: Entity, mass: number): boolean {
-		return Boolean(
-			RpcClient.Call("RidigbodyAPI_SetMass", {
-				entityHandle,
-				mass,
-			}),
-		);
+	static SetMass(...args: [entity: Entity, mass: number]) {
+		return RpcClient.Call<void>("Ridigbody::SetMass", ...args);
 	}
 
-	static GetLinearDamping(entityHandle: Entity): number {
-		return Number(
-			RpcClient.Call("RidigbodyAPI_GetLinearDamping", {
-				entityHandle,
-			}),
-		);
+	static GetLinearDamping(...args: [entity: Entity]) {
+		return RpcClient.Call<number>("Ridigbody::GetLinearDamping", ...args);
 	}
 
-	static SetLinearDamping(
-		entityHandle: Entity,
-		linearDamping: number,
-	): boolean {
-		return Boolean(
-			RpcClient.Call("RidigbodyAPI_SetLinearDamping", {
-				entityHandle,
-				linearDamping,
-			}),
-		);
+	static SetLinearDamping(...args: [entity: Entity, linearDamping: number]) {
+		return RpcClient.Call<void>("Ridigbody::SetLinearDamping", ...args);
 	}
 
-	static GetAngularDamping(entityHandle: Entity): number {
-		return Number(
-			RpcClient.Call("RidigbodyAPI_GetAngularDamping", {
-				entityHandle,
-			}),
-		);
+	static GetAngularDamping(...args: [entity: Entity]) {
+		return RpcClient.Call<number>("Ridigbody::GetAngularDamping", ...args);
 	}
 
-	static SetAngularDamping(
-		entityHandle: Entity,
-		angularDamping: number,
-	): boolean {
-		return Boolean(
-			RpcClient.Call("RidigbodyAPI_SetAngularDamping", {
-				entityHandle,
-				angularDamping,
-			}),
-		);
+	static SetAngularDamping(...args: [entity: Entity, angularDamping: number]) {
+		return RpcClient.Call<void>("Ridigbody::SetAngularDamping", ...args);
 	}
 }

@@ -2,9 +2,6 @@ import { quat, vec3 } from "gl-matrix";
 import { Entity } from "./entity";
 import { RpcClient } from "./rpc";
 
-/**
- * TODO: need tests: here, and collider user trigger, and networking user joined/left
- */
 export class User {
 	constructor(private userId: string) {}
 
@@ -12,12 +9,12 @@ export class User {
 	 * Get local user that logs into the account.
 	 * @returns local user ID
 	 */
-	static GetLocalUser(): User {
-		return new User(RpcClient.Call("UserAPI::GetLocalUser", {}));
+	static async GetLocalUser() {
+		return new User(await RpcClient.Call<string>("UserAPI::GetLocalUser"));
 	}
 
-	static GetUsers(): User[] {
-		const userIds = RpcClient.Call("UserAPI::GetUsers", {}) as string[];
+	static async GetUsers() {
+		const userIds = await RpcClient.Call<string[]>("UserAPI::GetUsers");
 		return userIds.map((userId) => new User(userId));
 	}
 
@@ -25,120 +22,99 @@ export class User {
 		return this.userId;
 	}
 
-	GetHeadEntity(): Entity {
-		return RpcClient.Call("UserAPI::GetHeadEntity", {
-			userId: this.userId,
-		}) as number;
-	}
-	GetLeftHandEntity(): Entity {
-		return RpcClient.Call("UserAPI::GetLeftHandEntity", {
-			userId: this.userId,
-		}) as number;
-	}
-	GetRightHandEntity(): Entity {
-		return RpcClient.Call("UserAPI::GetRightHandEntity", {
-			userId: this.userId,
-		}) as number;
-	}
-	GetOriginEntity(): Entity {
-		return RpcClient.Call("UserAPI::GetOriginEntity", {
-			userId: this.userId,
-		}) as number;
+	GetHeadEntity() {
+		return RpcClient.Call<Entity>("UserAPI::GetHeadEntity", this.userId);
 	}
 
-	SetEnableLocomotion(value: boolean): void {
-		RpcClient.Call("UserAPI::SetEnableLocomotion", {
-			userId: this.userId,
+	GetLeftHandEntity() {
+		return RpcClient.Call<Entity>("UserAPI::GetLeftHandEntity", this.userId);
+	}
+
+	GetRightHandEntity() {
+		return RpcClient.Call<Entity>("UserAPI::GetRightHandEntity", this.userId);
+	}
+
+	GetOriginEntity() {
+		return RpcClient.Call<Entity>("UserAPI::GetOriginEntity", this.userId);
+	}
+
+	SetEnableLocomotion(value: boolean) {
+		return RpcClient.Call<void>(
+			"UserAPI::SetEnableLocomotion",
+			this.userId,
 			value,
-		});
-	}
-	GetEnableLocomotion(): boolean {
-		return RpcClient.Call("UserAPI::GetEnableLocomotion", {
-			userId: this.userId,
-		}) as boolean;
-	}
-	TeleportTo(worldPosition: vec3, worldRotation: quat): void {
-		RpcClient.Call("UserAPI::TeleportTo", {
-			userId: this.userId,
-			worldPosition: JSON.stringify(worldPosition),
-			worldRotation: JSON.stringify(worldRotation),
-		});
-	}
-	GetUserWorldPosition(): vec3 {
-		const pos = RpcClient.Call("UserAPI::GetUserWorldPosition", {
-			userId: this.userId,
-		});
-		return pos.fromValues(pos[0], pos[1], pos[2]);
-	}
-	GetUserWorldRotation(): quat {
-		const rot = RpcClient.Call("UserAPI::GetUserWorldRotation", {
-			userId: this.userId,
-		});
-		return quat.fromValues(rot[0], rot[1], rot[2], rot[3]);
+		);
 	}
 
-	IsValid(): boolean {
-		return RpcClient.Call("UserAPI::IsValid", {
-			userId: this.userId,
-		}) as boolean;
-	}
-	IsLocal(): boolean {
-		return RpcClient.Call("UserAPI::IsLocal", {
-			userId: this.userId,
-		}) as boolean;
-	}
-	IsVRMode(): boolean {
-		return RpcClient.Call("UserAPI::IsVRMode", {
-			userId: this.userId,
-		}) as boolean;
-	}
-	IsMenuOpen(): boolean {
-		return RpcClient.Call("UserAPI::IsMenuOpen", {
-			userId: this.userId,
-		}) as boolean;
-	}
-	IsGrounded(): boolean {
-		return RpcClient.Call("UserAPI::IsGrounded", {
-			userId: this.userId,
-		}) as boolean;
-	}
-	IsFlying(): boolean {
-		return RpcClient.Call("UserAPI::IsFlying", {
-			userId: this.userId,
-		}) as boolean;
+	GetEnableLocomotion() {
+		return RpcClient.Call<boolean>("UserAPI::GetEnableLocomotion", this.userId);
 	}
 
-	GetMoveSpeed(): number {
-		return RpcClient.Call("UserAPI::GetMoveSpeed", {
-			userId: this.userId,
-		}) as number;
+	TeleportTo(...args: [worldPosition: vec3, worldRotation: quat]) {
+		return RpcClient.Call<void>("UserAPI::TeleportTo", this.userId, ...args);
 	}
-	SetMoveSpeed(speed: number): void {
-		RpcClient.Call("UserAPI::SetMoveSpeed", {
-			userId: this.userId,
-			speed,
-		});
+
+	GetUserWorldPosition() {
+		return RpcClient.Call<vec3>("UserAPI::GetUserWorldPosition", this.userId);
 	}
-	GetJumpVelocity(): number {
-		return RpcClient.Call("UserAPI::GetJumpVelocity", {
-			userId: this.userId,
-		}) as number;
+
+	GetUserWorldRotation() {
+		return RpcClient.Call<quat>("UserAPI::GetUserWorldRotation", this.userId);
 	}
-	SetJumpVelocity(velocity: number) {
-		RpcClient.Call("UserAPI::GetJumpVelocity", {
-			userId: this.userId,
-			velocity,
-		});
+
+	IsValid() {
+		return RpcClient.Call<boolean>("UserAPI::IsValid", this.userId);
 	}
-	GetGravityStrength(): number {
-		return RpcClient.Call("UserAPI::GetGravityStrength", {
-			userId: this.userId,
-		}) as number;
+
+	IsLocal() {
+		return RpcClient.Call<boolean>("UserAPI::IsLocal", this.userId);
 	}
+
+	IsVRMode() {
+		return RpcClient.Call<boolean>("UserAPI::IsVRMode", this.userId);
+	}
+
+	IsMenuOpen() {
+		return RpcClient.Call<boolean>("UserAPI::IsMenuOpen", this.userId);
+	}
+
+	IsGrounded() {
+		return RpcClient.Call<boolean>("UserAPI::IsGrounded", this.userId);
+	}
+
+	IsFlying() {
+		return RpcClient.Call<boolean>("UserAPI::IsFlying", this.userId);
+	}
+
+	GetMoveSpeed() {
+		return RpcClient.Call<number>("UserAPI::GetMoveSpeed", this.userId);
+	}
+
+	SetMoveSpeed(...args: [speed: number]) {
+		return RpcClient.Call<void>("UserAPI::SetMoveSpeed", this.userId, ...args);
+	}
+
+	GetJumpVelocity() {
+		return RpcClient.Call<number>("UserAPI::GetJumpVelocity", this.userId);
+	}
+
+	SetJumpVelocity(...args: [velocity: number]) {
+		return RpcClient.Call<void>(
+			"UserAPI::SetJumpVelocity",
+			this.userId,
+			...args,
+		);
+	}
+
+	GetGravityStrength() {
+		return RpcClient.Call<number>("UserAPI::GetGravityStrength", this.userId);
+	}
+
 	SetGravityStrength(strength: number) {
-		RpcClient.Call("UserAPI::SetGravityStrength", {
-			userId: this.userId,
+		return RpcClient.Call<void>(
+			"UserAPI::SetGravityStrength",
+			this.userId,
 			strength,
-		});
+		);
 	}
 }

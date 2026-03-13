@@ -1,6 +1,7 @@
 import { RpcClient } from "../rpc";
 import { Entity } from "../entity";
 import { quat, vec3 } from "gl-matrix";
+import { Project } from "../project";
 
 export class TransformManager {
 	/**
@@ -8,23 +9,15 @@ export class TransformManager {
 	 * @param entity The entity with the transform component
 	 * @param worldPosition The world position to look at.
 	 * @param worldUp The world upward direction.
-	 * @returns boolean indicating success
 	 */
 	static LookAt(
-		entity: Entity,
-		worldPosition: vec3,
-		worldUp: vec3 = vec3.fromValues(0, 1, 0),
-	): boolean {
-		return Boolean(
-			RpcClient.Call("Transform::LookAt", {
-				entityHandle: entity,
-				posX: worldPosition[0],
-				posY: worldPosition[1],
-				posZ: worldPosition[2],
-				upX: worldUp[0],
-				upY: worldUp[1],
-				upZ: worldUp[2],
-			}),
+		...args: [entity: Entity, worldPosition: vec3, worldUp?: vec3]
+	) {
+		return RpcClient.Call<void>(
+			"Transform::LookAt",
+			args[0],
+			Array.from(args[1]),
+			Array.from(args[2] ?? vec3.fromValues(0, 1, 0)),
 		);
 	}
 
@@ -32,15 +25,13 @@ export class TransformManager {
 	 * Sets this entity's parent transform.
 	 * @param entity The entity with the transform component
 	 * @param parent The parent entity
-	 * @returns boolean indicating success
 	 */
-	static SetParent(entity: Entity, parent: Entity = -1): boolean {
-		return Boolean(
-			RpcClient.Call("Transform::SetParent", {
-				processId: process.pid,
-				entityHandle: entity,
-				parentHandle: parent,
-			}),
+	static async SetParent(...args: [entity: Entity, parent?: Entity]) {
+		return RpcClient.Call<void>(
+			"Transform::SetParent",
+			Project.GetProjectId(),
+			args[0],
+			args[1] ?? -1,
 		);
 	}
 
@@ -49,15 +40,14 @@ export class TransformManager {
 	 * @param entity The entity with the transform component
 	 * @returns The parent entity handle or undefined
 	 */
-	static GetParent(entity: Entity): Entity | undefined {
-		const parent = Number(
-			RpcClient.Call("Transform::GetParent", {
-				processId: process.pid,
-				entityHandle: entity,
-			}),
+	static async GetParent(...args: [entity: Entity]) {
+		const parent = await RpcClient.Call<Entity>(
+			"Transform::GetParent",
+			Project.GetProjectId(),
+			args[0],
 		);
 
-		if (parent == -1) return undefined;
+		if (parent === -1) return undefined;
 		return parent;
 	}
 
@@ -65,34 +55,18 @@ export class TransformManager {
 	 * Sets world position vector.
 	 * @param entity The entity with the transform component
 	 * @param pos The position vector
-	 * @returns boolean indicating success
 	 */
-	static SetWorldPosition(entity: Entity, pos: vec3): boolean {
-		return Boolean(
-			RpcClient.Call("Transform::SetWorldPosition", {
-				entityHandle: entity,
-				x: pos[0],
-				y: pos[1],
-				z: pos[2],
-			}),
-		);
+	static SetWorldPosition(...args: [entity: Entity, pos: vec3]) {
+		return RpcClient.Call<void>("Transform::SetWorldPosition", ...args);
 	}
 
 	/**
 	 * Sets local position vector.
 	 * @param entity The entity with the transform component
 	 * @param pos The position vector
-	 * @returns boolean indicating success
 	 */
-	static SetLocalPosition(entity: Entity, pos: vec3): boolean {
-		return Boolean(
-			RpcClient.Call("Transform::SetLocalPosition", {
-				entityHandle: entity,
-				x: pos[0],
-				y: pos[1],
-				z: pos[2],
-			}),
-		);
+	static SetLocalPosition(...args: [entity: Entity, pos: vec3]) {
+		return RpcClient.Call<void>("Transform::SetLocalPosition", ...args);
 	}
 
 	/**
@@ -100,12 +74,8 @@ export class TransformManager {
 	 * @param entity The entity with the transform component
 	 * @returns The position vector
 	 */
-	static GetWorldPosition(entity: Entity): vec3 {
-		const data = RpcClient.Call("Transform::GetWorldPosition", {
-			entityHandle: entity,
-		}) as string;
-		const [x, y, z] = data.split(",").map((j) => parseFloat(j));
-		return vec3.fromValues(x, y, z);
+	static GetWorldPosition(...args: [entity: Entity]) {
+		return RpcClient.Call<vec3>("Transform::GetWorldPosition", ...args);
 	}
 
 	/**
@@ -113,48 +83,35 @@ export class TransformManager {
 	 * @param entity The entity with the transform component
 	 * @returns The position vector
 	 */
-	static GetLocalPosition(entity: Entity): vec3 {
-		const data = RpcClient.Call("Transform::GetLocalPosition", {
-			entityHandle: entity,
-		}) as string;
-		const [x, y, z] = data.split(",").map((j) => parseFloat(j));
-		return vec3.fromValues(x, y, z);
+	static GetLocalPosition(...args: [entity: Entity]) {
+		return RpcClient.Call<vec3>("Transform::GetLocalPosition", ...args);
 	}
 
 	/**
 	 * Sets world rotation quaternion.
 	 * @param entity The entity with the transform component
-	 * @param quat The rotation quaternion [x, y, z, w]
-	 * @returns boolean indicating success
+	 * @param rotation The rotation quaternion [x, y, z, w]
 	 */
-	static SetWorldRotation(entity: Entity, quat: quat): boolean {
-		return Boolean(
-			RpcClient.Call("Transform::SetWorldRotation", {
-				entityHandle: entity,
-				x: quat[0],
-				y: quat[1],
-				z: quat[2],
-				w: quat[3],
-			}),
-		);
+	static SetWorldRotation(...args: [entity: Entity, rotation: quat]) {
+		return RpcClient.Call<void>("Transform::SetWorldRotation", ...args);
 	}
 
 	/**
 	 * Sets local rotation quaternion.
 	 * @param entity The entity with the transform component
-	 * @param quat The rotation quaternion [x, y, z, w]
-	 * @returns boolean indicating success
+	 * @param rotation The rotation quaternion [x, y, z, w]
 	 */
-	static SetLocalRotation(entity: Entity, quat: quat): boolean {
-		return Boolean(
-			RpcClient.Call("Transform::SetLocalRotation", {
-				entityHandle: entity,
-				x: quat[0],
-				y: quat[1],
-				z: quat[2],
-				w: quat[3],
-			}),
-		);
+	static SetLocalRotation(...args: [entity: Entity, rotation: quat]) {
+		return RpcClient.Call<void>("Transform::SetLocalRotation", ...args);
+	}
+
+	/**
+	 * Gets world rotation quaternion.
+	 * @param entity The entity with the transform component
+	 * @returns The rotation quaternion
+	 */
+	static GetWorldRotation(...args: [entity: Entity]) {
+		return RpcClient.Call<quat>("Transform::GetWorldRotation", ...args);
 	}
 
 	/**
@@ -162,54 +119,25 @@ export class TransformManager {
 	 * @param entity The entity with the transform component
 	 * @returns The rotation quaternion
 	 */
-	static GetWorldRotation(entity: Entity): quat {
-		const data = RpcClient.Call("Transform::GetWorldRotation", {
-			entityHandle: entity,
-		}) as string;
-		const [x, y, z, w] = data.split(",").map((j) => parseFloat(j));
-		return quat.fromValues(x, y, z, w);
-	}
-
-	/**
-	 * Gets local rotation quaternion.
-	 * @param entity The entity with the transform component
-	 * @returns The rotation quaternion
-	 */
-	static GetLocalRotation(entity: Entity): quat {
-		const data = RpcClient.Call("Transform::GetLocalRotation", {
-			entityHandle: entity,
-		}) as string;
-		const [x, y, z, w] = data.split(",").map((j) => parseFloat(j));
-		return quat.fromValues(x, y, z, w);
+	static GetLocalRotation(...args: [entity: Entity]) {
+		return RpcClient.Call<quat>("Transform::GetLocalRotation", ...args);
 	}
 
 	/**
 	 * Sets local scale vector.
 	 * @param entity The entity with the transform component
 	 * @param scale The scale vector
-	 * @returns boolean indicating success
 	 */
-	static SetLocalScale(entity: Entity, scale: vec3): boolean {
-		return Boolean(
-			RpcClient.Call("Transform::SetLocalScale", {
-				entityHandle: entity,
-				x: scale[0],
-				y: scale[1],
-				z: scale[2],
-			}),
-		);
+	static SetLocalScale(...args: [entity: Entity, scale: vec3]) {
+		return RpcClient.Call<void>("Transform::SetLocalScale", ...args);
 	}
 
 	/**
 	 * Gets local scale vector.
 	 * @param entity The entity with the transform component
-	 * @returns The position vector
+	 * @returns The scale vector
 	 */
-	static GetLocalScale(entity: Entity): vec3 {
-		const data = RpcClient.Call("Transform::GetLocalScale", {
-			entityHandle: entity,
-		}) as string;
-		const [x, y, z] = data.split(",").map((j) => parseFloat(j));
-		return vec3.fromValues(x, y, z);
+	static GetLocalScale(...args: [entity: Entity]) {
+		return RpcClient.Call<vec3>("Transform::GetLocalScale", ...args);
 	}
 }
