@@ -1,14 +1,10 @@
 import { quat, vec3, vec4 } from "gl-matrix";
 import { TransformManager } from "./render/transform";
 import { Entity, EntityManager } from "./entity";
-import { MeshHandle, MeshManager } from "./render/mesh";
+import { Mesh, MeshManager } from "./render/mesh";
 import { RenderableManager } from "./render/renderable";
-import {
-	MaterialHandle,
-	MaterialManager,
-	MaterialProperty,
-} from "./render/material";
-import { TextureFormat, TextureHandle, TextureManager } from "./render/texture";
+import { Material, MaterialManager, MaterialProperty } from "./render/material";
+import { TextureFormat, Texture, TextureManager } from "./render/texture";
 import { LightManager } from "./render/light";
 import { ColliderManager } from "./physics/collider";
 import { CameraManager } from "./render/camera";
@@ -98,10 +94,10 @@ function buildSceneGraphRuntime(
 	return sceneGraph;
 }
 
-export function LoadProject(
+export async function LoadProject(
 	assetRecord: Map<UUID, Asset>,
 	projectFile: ProjectDescription,
-): SceneGraph {
+): Promise<SceneGraph> {
 	const scene = projectFile.scene;
 	const properties = scene.properties;
 	const transforms = scene.transforms;
@@ -112,16 +108,16 @@ export function LoadProject(
 	const rigidbodies = scene.rigidbodies;
 	const grabbles = scene.grabbles;
 
-	const meshCache = new Map<UUID, MeshHandle>();
-	const materialCache = new Map<UUID, MaterialHandle>();
-	const textureCache = new Map<UUID, TextureHandle>();
+	const meshCache = new Map<UUID, Mesh>();
+	const materialCache = new Map<UUID, Material>();
+	const textureCache = new Map<UUID, Texture>();
 
-	const createMesh = (meshAsset: MeshAsset): MeshHandle => {
+	const createMesh = async (meshAsset: MeshAsset): Promise<Mesh> => {
 		const cacheMeshHandle = meshCache.get(meshAsset.uuid);
 		if (cacheMeshHandle) return cacheMeshHandle;
 
-		const meshHandle = RpcClient.Call("Internal:Mesh_Create", {
-			clientId: RpcClient.GetClientId(),
+		const meshHandle = await RpcClient.Call<Mesh>("Internal:Mesh_Create", {
+			clientId: await RpcClient.GetClientId(),
 			meshAsset: JSON.stringify(meshAsset),
 		});
 
@@ -129,20 +125,20 @@ export function LoadProject(
 		return meshHandle;
 	};
 
-	const createTexture = (
+	const createTexture = async (
 		textureAsset: TextureAsset,
 		linear = false,
-	): TextureHandle => {
+	): Promise<Texture> => {
 		const cacheTexHandle = textureCache.get(textureAsset.uuid);
 		if (cacheTexHandle) return cacheTexHandle;
 
-		const texHandle = TextureManager.Create2D(
+		const texHandle = await TextureManager.Create2D(
 			1,
 			1,
 			TextureFormat.RGBA32,
 			linear,
 		);
-		TextureManager.LoadImage(texHandle, textureAsset.image.buffer);
+		TextureManager.LoadImage(texHandle, textureAsset.image);
 		TextureManager.SetFilterMode(texHandle, textureAsset.filterMode);
 		TextureManager.SetWrapModeU(texHandle, textureAsset.wrapModeU);
 		TextureManager.SetWrapModeV(texHandle, textureAsset.wrapModeV);
@@ -151,14 +147,14 @@ export function LoadProject(
 		return texHandle;
 	};
 
-	const createMaterial = (
+	const createMaterial = async (
 		materialAsset: MaterialAsset,
 		culling: boolean,
-	): MaterialHandle => {
+	): Promise<Material> => {
 		const cacheMatHandle = materialCache.get(materialAsset.uuid);
 		if (cacheMatHandle) return cacheMatHandle;
 
-		const matHandle = MaterialManager.Create();
+		const matHandle = await MaterialManager.Create();
 		MaterialManager.SetColor(
 			matHandle,
 			MaterialProperty.BaseColor,
@@ -174,7 +170,7 @@ export function LoadProject(
 			const texAsset = assetRecord.get(materialAsset.baseColorMap);
 
 			if (texAsset) {
-				const texHandle = createTexture(texAsset as TextureAsset);
+				const texHandle = await createTexture(texAsset as TextureAsset);
 				MaterialManager.SetTexture(
 					matHandle,
 					MaterialProperty.BaseColorMap,
@@ -202,7 +198,7 @@ export function LoadProject(
 			const texAsset = assetRecord.get(materialAsset.normalMap);
 
 			if (texAsset) {
-				const texHandle = createTexture(texAsset as TextureAsset, true);
+				const texHandle = await createTexture(texAsset as TextureAsset, true);
 				MaterialManager.SetTexture(
 					matHandle,
 					MaterialProperty.NormalMap,
@@ -247,7 +243,7 @@ export function LoadProject(
 			const texAsset = assetRecord.get(materialAsset.emissionMap);
 
 			if (texAsset) {
-				const texHandle = createTexture(texAsset as TextureAsset);
+				const texHandle = await createTexture(texAsset as TextureAsset);
 				MaterialManager.SetTexture(
 					matHandle,
 					MaterialProperty.EmissionMap,
@@ -275,7 +271,7 @@ export function LoadProject(
 			const texAsset = assetRecord.get(materialAsset.occlusionMap);
 
 			if (texAsset) {
-				const texHandle = createTexture(texAsset as TextureAsset);
+				const texHandle = await createTexture(texAsset as TextureAsset);
 				MaterialManager.SetTexture(
 					matHandle,
 					MaterialProperty.OcclusionMap,
@@ -309,7 +305,7 @@ export function LoadProject(
 			const texAsset = assetRecord.get(materialAsset.metallicRoughnessMap);
 
 			if (texAsset) {
-				const texHandle = createTexture(texAsset as TextureAsset);
+				const texHandle = await createTexture(texAsset as TextureAsset);
 				MaterialManager.SetTexture(
 					matHandle,
 					MaterialProperty.MetallicRoughnessMap,
@@ -365,7 +361,7 @@ export function LoadProject(
 	const entityMap = new Map<string, Entity>();
 	for (const entity of scene.entities) {
 		const property = properties.get(entity)!;
-		const entityId = EntityManager.Create(property.name);
+		const entityId = await EntityManager.Create(property.name);
 		entityMap.set(entity, entityId);
 	}
 
@@ -428,9 +424,9 @@ export function LoadProject(
 			const meshAsset = assetRecord.get(renderable.mesh) as MeshAsset;
 
 			if (meshAsset) {
-				const meshHandle = createMesh(meshAsset);
+				const meshHandle = await createMesh(meshAsset);
 
-				if (MeshManager.BlendShapeCount(meshHandle) > 0) {
+				if ((await MeshManager.BlendShapeCount(meshHandle)) > 0) {
 					RenderableManager.Create(currEntity, true);
 				} else {
 					RenderableManager.Create(currEntity);
@@ -451,12 +447,12 @@ export function LoadProject(
 					});
 				}
 
-				renderable.materialList.forEach((m, idx) => {
+				renderable.materialList.forEach(async (m, idx) => {
 					if (m === undefined) return;
 					const material = assetRecord.get(m);
 					if (material === undefined) return;
 
-					const matHandle = createMaterial(
+					const matHandle = await createMaterial(
 						material as MaterialAsset,
 						renderable.culling,
 					);
@@ -509,11 +505,11 @@ export function LoadProject(
 
 		const collider = colliders.get(entity);
 		if (collider) {
-			collider.colliders.forEach((collider) => {
+			collider.colliders.forEach(async (collider) => {
 				switch (collider.colliderType) {
 					case "Box": {
 						const c = collider as BoxCollider;
-						const handle = ColliderManager.CreateBox(currEntity);
+						const handle = await ColliderManager.CreateBox(currEntity);
 						ColliderManager.SetBoxColliderCenter(
 							handle,
 							vec3.fromValues(c.center[0], c.center[1], c.center[2]),
@@ -527,7 +523,7 @@ export function LoadProject(
 					}
 					case "Sphere": {
 						const c = collider as SphereCollider;
-						const handle = ColliderManager.CreateSphere(currEntity);
+						const handle = await ColliderManager.CreateSphere(currEntity);
 						ColliderManager.SetSphereColliderCenter(
 							handle,
 							vec3.fromValues(c.center[0], c.center[1], c.center[2]),
@@ -538,7 +534,7 @@ export function LoadProject(
 					}
 					case "Capsule": {
 						const c = collider as CapsuleCollider;
-						const handle = ColliderManager.CreateCapsule(currEntity);
+						const handle = await ColliderManager.CreateCapsule(currEntity);
 						ColliderManager.SetCapsuleColliderCenter(
 							handle,
 							vec3.fromValues(c.center[0], c.center[1], c.center[2]),

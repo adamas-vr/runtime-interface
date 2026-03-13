@@ -165,21 +165,21 @@ export enum ColliderType {
 	Sphere = "Sphere",
 }
 
-export interface Collider {
+export interface ColliderBase {
 	isTrigger: boolean;
 	colliderType: ColliderType;
 	center: vec3;
 }
 
-export interface BoxCollider extends Collider {
+export interface BoxCollider extends ColliderBase {
 	size: vec3;
 }
 
-export interface SphereCollider extends Collider {
+export interface SphereCollider extends ColliderBase {
 	radius: number;
 }
 
-export interface CapsuleCollider extends Collider {
+export interface CapsuleCollider extends ColliderBase {
 	height: number;
 	radius: number;
 }
