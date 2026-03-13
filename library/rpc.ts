@@ -1,5 +1,4 @@
 import net from "node:net";
-import { Project } from "./project";
 
 type CallbackFn = (...args: any[]) => void;
 
@@ -27,7 +26,7 @@ const RESP_HEADER_SIZE = 16;
 
 export class RpcClient {
 	private static socket: net.Socket | null = null;
-	private static recvBuffer = Buffer.alloc(0);
+	private static recvBuffer: Buffer<ArrayBuffer> | null = null;
 
 	private static requestCounter = 1;
 	private static pendingCalls = new Map<number, PendingCall>();
@@ -36,7 +35,7 @@ export class RpcClient {
 	private static callbackCounter = 1;
 
 	static GetClientId() {
-		return Project.GetProjectId();
+		return process.pid;
 	}
 
 	static Connect(projectId: string, host = "127.0.0.1", port = 6969): void {
@@ -59,6 +58,7 @@ export class RpcClient {
 		});
 
 		socket.on("data", (chunk: Buffer) => {
+			if (this.recvBuffer == null) this.recvBuffer = Buffer.alloc(0);
 			this.recvBuffer = Buffer.concat([this.recvBuffer, chunk]);
 
 			try {
