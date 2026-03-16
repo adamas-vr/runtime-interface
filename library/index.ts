@@ -1,5 +1,3 @@
-import "../types/asset.d";
-
 export * from "./asset";
 export * from "./project";
 export * from "./entity";

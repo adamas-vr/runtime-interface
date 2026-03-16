@@ -232,5 +232,4 @@ export interface ProjectDescription {
 		cameras: Map<UUID, CameraComponent>;
 		colliders: Map<UUID, ColliderComponent>;
 	};
-	assetRecord: Map<UUID, string>;
 }
