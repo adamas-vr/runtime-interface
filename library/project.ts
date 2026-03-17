@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { ProjectBundle, ProjectMetadata } from "./asset";
 import { LoadProject, SceneGraph } from "./project-loader";
 import { RpcClient } from "./rpc";
@@ -9,7 +8,7 @@ export interface ProjectCallbacks {
 	OnTick?: (project: Project, timestep: number) => void;
 }
 
-function generateId(name: string, uid: string): string {
+export async function generateId(name: string, uid: string): Promise<string> {
 	const input = `${name}:${uid}`;
 
 	// Encode string to Uint8Array
@@ -17,7 +16,7 @@ function generateId(name: string, uid: string): string {
 	const data = encoder.encode(input);
 
 	// Compute SHA-256 digest
-	const hashBuffer = createHash("sha256").update(data).digest();
+	const hashBuffer = await crypto.subtle.digest("SHA-256", data);
 
 	// Convert ArrayBuffer to byte array
 	const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -65,21 +64,22 @@ export class Project {
 			author,
 			version,
 			previewImagePath,
-			projectId: generateId(name, author),
+			projectId: "",
 			createdAt: now,
 			updateAt: now,
 		});
 	}
 
 	async Launch(callbacks: ProjectCallbacks = {}): Promise<void> {
-		const { name, author, version, previewImagePath, projectId } =
-			this.metadata;
+		const { name, author, version, previewImagePath } = this.metadata;
 
-		Project.projectId = projectId;
+		Project.projectId = this.bundle
+			? this.metadata.projectId
+			: await generateId(name, author);
 
 		await RpcClient.Call<void>(
 			"Project::ProjectBootupBegin",
-			projectId,
+			Project.projectId,
 			process.pid,
 			name,
 			author,
@@ -101,7 +101,7 @@ export class Project {
 
 		callbacks.OnSetup?.(this, sceneGraph);
 
-		await RpcClient.Call<void>("Project::ProjectBootupEnd", projectId);
+		await RpcClient.Call<void>("Project::ProjectBootupEnd", Project.projectId);
 
 		this.lastTimeStamp = Date.now();
 
