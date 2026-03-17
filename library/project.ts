@@ -1,57 +1,115 @@
-import { UUID } from "crypto";
-import { Asset, ProjectDescription } from "./asset";
+import { createHash } from "node:crypto";
+import { ProjectBundle, ProjectMetadata } from "./asset";
 import { LoadProject, SceneGraph } from "./project-loader";
 import { RpcClient } from "./rpc";
 import { User } from "./user";
 
 export interface ProjectCallbacks {
-	OnSetup?: (project: Project, sceneGraph: SceneGraph) => void;
+	OnSetup?: (project: Project, sceneGraph?: SceneGraph) => void;
 	OnTick?: (project: Project, timestep: number) => void;
 }
 
-export class Project {
-	lastTimeStamp = Date.now();
-	constructor(private callbacks: ProjectCallbacks) {}
+function generateId(name: string, uid: string): string {
+	const input = `${name}:${uid}`;
 
+	// Encode string to Uint8Array
+	const encoder = new TextEncoder();
+	const data = encoder.encode(input);
+
+	// Compute SHA-256 digest
+	const hashBuffer = createHash("sha256").update(data).digest();
+
+	// Convert ArrayBuffer to byte array
+	const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+	// Convert to base64url
+	const base64url = btoa(String.fromCharCode(...hashArray))
+		.replace(/\+/g, "-")
+		.replace(/\//g, "_")
+		.replace(/=+$/, ""); // remove padding
+
+	return base64url; // 43 chars
+}
+
+export class Project {
 	private static projectId: string;
+
+	private readonly bundle?: ProjectBundle;
+	private readonly metadata: ProjectMetadata;
+
+	private lastTimeStamp = Date.now();
+
+	private constructor(metadata: ProjectMetadata, bundle?: ProjectBundle) {
+		this.metadata = metadata;
+		this.bundle = bundle;
+	}
+
 	static GetProjectId(): string {
 		return Project.projectId;
 	}
 
-	static async Launch(
-		assetRecord: Map<UUID, Asset>,
-		projectFile: ProjectDescription,
-		callbacks: ProjectCallbacks,
-	) {
-		Project.projectId = projectFile.metadata.projectId;
+	static FromBundle(bundle: ProjectBundle): Project {
+		return new Project(bundle.project.metadata, bundle);
+	}
+
+	static New(
+		name: string,
+		author: string,
+		version: string = "1.0.0",
+		previewImagePath?: string,
+	): Project {
+		const now = new Date();
+
+		return new Project({
+			name,
+			author,
+			version,
+			previewImagePath,
+			projectId: generateId(name, author),
+			createdAt: now,
+			updateAt: now,
+		});
+	}
+
+	async Launch(callbacks: ProjectCallbacks = {}): Promise<void> {
+		const { name, author, version, previewImagePath, projectId } =
+			this.metadata;
+
+		Project.projectId = projectId;
+
 		await RpcClient.Call<void>(
 			"Project::ProjectBootupBegin",
-			Project.projectId,
+			projectId,
 			process.pid,
+			name,
+			author,
+			version,
+			previewImagePath,
 		);
 
-		if (projectFile.world.worldEntrance) {
-			const user = await User.GetLocalUser();
-			await user.TeleportTo(
-				projectFile.world.spawnPosition,
-				projectFile.world.spawnRotation,
-			);
+		let sceneGraph: SceneGraph | undefined;
+
+		if (this.bundle) {
+			const world = this.bundle.project.world;
+			if (world.worldEntrance) {
+				const user = await User.GetLocalUser();
+				await user.TeleportTo(world.spawnPosition, world.spawnRotation);
+			}
+
+			sceneGraph = await LoadProject(this.bundle.assets, this.bundle.project);
 		}
 
-		let sceneGraph = await LoadProject(assetRecord, projectFile);
+		callbacks.OnSetup?.(this, sceneGraph);
 
-		const project = new Project(callbacks);
-		project.callbacks.OnSetup?.(project, sceneGraph);
+		await RpcClient.Call<void>("Project::ProjectBootupEnd", projectId);
 
-		await RpcClient.Call<void>("Project::ProjectBootupEnd", Project.projectId);
+		this.lastTimeStamp = Date.now();
 
 		setInterval(() => {
 			const currentTimeStamp = Date.now();
-			const timestep = currentTimeStamp - project.lastTimeStamp;
-			project.lastTimeStamp = currentTimeStamp;
-			project.callbacks.OnTick?.(project, timestep);
+			const timestep = currentTimeStamp - this.lastTimeStamp;
+			this.lastTimeStamp = currentTimeStamp;
+			callbacks.OnTick?.(this, timestep);
 		}, 50);
 	}
-
-	OnEvent(eventName: string, eventHandler: () => void) {}
 }

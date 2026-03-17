@@ -233,3 +233,8 @@ export interface ProjectDescription {
 		colliders: Map<UUID, ColliderComponent>;
 	};
 }
+
+export interface ProjectBundle {
+	project: ProjectDescription;
+	assets: Map<UUID, Asset>;
+}
