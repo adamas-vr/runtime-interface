@@ -1,10 +1,12 @@
 import net from "node:net";
+import { createAssetBinaryReplacer } from "./utilities/rpc-utils";
 
 type CallbackFn = (...args: any[]) => void;
 
 interface RpcRequestHeader {
 	requestId: number;
 	bufferSize: number;
+	binarySize: number;
 	functionName: string;
 }
 
@@ -125,7 +127,6 @@ export class RpcClient {
 			throw new Error("RPC client is not connected");
 		}
 
-		//FIXME: make sure it works without args
 		const processedArgs = args.map((value) => {
 			if (typeof value === "function") {
 				return this.RegisterCallback(value);
@@ -140,11 +141,15 @@ export class RpcClient {
 		});
 
 		const requestId = this.requestCounter++;
-		const payloadJson = JSON.stringify(processedArgs);
+
+		const { replacer, getBinaryBuffer } = createAssetBinaryReplacer();
+		const payloadJson = JSON.stringify(processedArgs, replacer);
 		const payloadBuffer = Buffer.from(payloadJson, "utf8");
+		const binBuffer = getBinaryBuffer();
 		const headerBuffer = this.encodeRequestHeader({
 			requestId,
 			bufferSize: payloadBuffer.length,
+			binarySize: binBuffer.byteLength,
 			functionName: funcName,
 		});
 
@@ -159,7 +164,9 @@ export class RpcClient {
 		});
 
 		try {
-			await this.writeAsync(Buffer.concat([headerBuffer, payloadBuffer]));
+			await this.writeAsync(
+				Buffer.concat([headerBuffer, payloadBuffer, binBuffer]),
+			);
 		} catch (error) {
 			const pending = this.pendingCalls.get(requestId);
 			this.pendingCalls.delete(requestId);
@@ -257,20 +264,22 @@ export class RpcClient {
 		// C# layout:
 		// int request_id         @ 0
 		// int bufferSize         @ 4
-		// char functionName[64]  @ 8
-		// total size = 72
+		// int bufferSize         @ 8
+		// char functionName[64]  @ 12
+		// total size = 76
 		const fnBytes = Buffer.from(header.functionName, "ascii");
-		if (fnBytes.length >= 64) {
+		if (fnBytes.length >= 76) {
 			throw new Error(
 				`RPC function name too long (${fnBytes.length} bytes). Max is 63 ASCII bytes.`,
 			);
 		}
 
-		const buf = Buffer.alloc(72);
+		const buf = Buffer.alloc(76);
 		buf.writeInt32LE(header.requestId, 0);
 		buf.writeInt32LE(header.bufferSize, 4);
-		fnBytes.copy(buf, 8);
-		buf[8 + fnBytes.length] = 0;
+		buf.writeInt32LE(header.binarySize, 8);
+		fnBytes.copy(buf, 12);
+		buf[12 + fnBytes.length] = 0;
 
 		return buf;
 	}

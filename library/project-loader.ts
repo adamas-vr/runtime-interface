@@ -119,7 +119,7 @@ export async function LoadProject(
 		const meshHandle = await RpcClient.Call<Mesh>(
 			"Internal:Mesh_Create",
 			RpcClient.GetClientId(),
-			JSON.stringify(meshAsset),
+			meshAsset,
 		);
 
 		meshCache.set(meshAsset.uuid, meshHandle);

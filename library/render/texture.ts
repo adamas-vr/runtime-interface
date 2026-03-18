@@ -1,6 +1,5 @@
 import { vec2 } from "gl-matrix";
 import { RpcClient } from "../rpc";
-import { base64Encode } from "../utilities/base64";
 
 export type Texture = number;
 
@@ -132,40 +131,14 @@ export class TextureManager {
 	 * @returns boolean indicating success
 	 */
 	static LoadRGBAImage(
-		handle: Texture,
-		rgbaData: Uint8Array,
-		width: number,
-		height: number,
-	): Promise<void>;
-	/**
-	 * Set raw RGBA iamge for the texture
-	 * @param handle The texture handle
-	 * @param rgbaData RGBA values in base64 string encoding
-	 * @param width The texture width
-	 * @param height The texture height
-	 * @returns boolean indicating success
-	 */
-	static LoadRGBAImage(
-		handle: Texture,
-		rgbaData: string,
-		width: number,
-		height: number,
-	): Promise<void>;
-	static LoadRGBAImage(
 		...args: [
 			handle: Texture,
-			rgbaData: Uint8Array | string,
+			rgbaData: Uint8Array,
 			width: number,
 			height: number,
 		]
 	) {
-		return RpcClient.Call<void>(
-			"Texture::LoadRawTextureData",
-			args[0],
-			typeof args[1] === "string" ? args[1] : base64Encode(args[1]),
-			args[2],
-			args[3],
-		);
+		return RpcClient.Call<void>("Texture::LoadRawTextureData", ...args);
 	}
 
 	/**
@@ -174,20 +147,8 @@ export class TextureManager {
 	 * @param image PNG, JPG, or EXR image data in arraybuffer
 	 * @returns boolean indicating success
 	 */
-	static LoadImage(handle: Texture, image: Uint8Array): Promise<void>;
-	/**
-	 * Loads PNG, JPG, and EXR image byte array into a texture.
-	 * @param handle The texture handle
-	 * @param image PNG, JPG, or EXR image data in base64 string encoding
-	 * @returns boolean indicating success
-	 */
-	static LoadImage(handle: Texture, image: string): Promise<void>;
-	static LoadImage(...args: [handle: Texture, image: Uint8Array | string]) {
-		return RpcClient.Call<void>(
-			"Texture::LoadImage",
-			args[0],
-			typeof args[1] === "string" ? args[1] : base64Encode(args[1]),
-		);
+	static LoadImage(...args: [handle: Texture, image: Uint8Array]) {
+		return RpcClient.Call<void>("Texture::LoadImage", ...args);
 	}
 
 	/**
