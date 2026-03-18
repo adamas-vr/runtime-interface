@@ -77,6 +77,8 @@ export class Project {
 			? this.metadata.projectId
 			: await generateId(name, author);
 
+		await RpcClient.Connect(Project.projectId);
+
 		await RpcClient.Call<void>(
 			"Project::ProjectBootupBegin",
 			Project.projectId,

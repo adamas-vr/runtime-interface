@@ -38,23 +38,41 @@ export class RpcClient {
 		return process.pid;
 	}
 
-	static Connect(projectId: string, host = "127.0.0.1", port = 6969): void {
+	static async Connect(projectId: string, host = "127.0.0.1", port = 6969) {
 		// TODO: connection error
 		if (this.socket) return;
 
 		const socket = new net.Socket();
 		this.socket = socket;
 		socket.setNoDelay(true);
+		await new Promise<void>((resolve, reject) => {
+			socket.on("connect", async () => {
+				console.log(
+					`Connecting to server -- pid: ${process.pid}; projectId: ${projectId}`,
+				);
 
-		socket.on("connect", () => {
-			const buf = Buffer.alloc(34);
-			buf.writeInt32LE(process.pid, 0);
+				const buf = new ArrayBuffer(48);
+				const view = new DataView(buf);
 
-			const fnBytes = Buffer.from(projectId, "ascii");
-			fnBytes.copy(buf, 4);
-			buf[4 + fnBytes.length] = 0;
+				// write pid as int32 little-endian at offset 0
+				view.setInt32(0, process.pid, true);
 
-			socket.write(buf);
+				// encode projectId as bytes
+				const encoder = new TextEncoder();
+				const fnBytes = encoder.encode(projectId);
+
+				// copy string bytes starting at offset 4
+				const out = new Uint8Array(buf);
+				out.set(fnBytes, 4);
+				out[4 + fnBytes.length] = 0;
+
+				console.log(out);
+				await this.writeAsync(Buffer.from(out));
+				resolve();
+			});
+
+			socket.on("error", reject);
+			socket.connect(port, host);
 		});
 
 		socket.on("data", (chunk: Buffer) => {
@@ -83,16 +101,10 @@ export class RpcClient {
 			}
 		});
 
-		socket.on("error", (error) => {
-			this.failAllPending(error);
-		});
-
 		socket.on("close", () => {
 			this.socket = null;
 			this.failAllPending(new Error("RPC socket closed"));
 		});
-
-		socket.connect(port, host);
 	}
 
 	static async Close(): Promise<void> {
@@ -114,10 +126,15 @@ export class RpcClient {
 		}
 
 		//FIXME: make sure it works without args
-		//TODO: check if it is gl-matrix vec2, vec3, vec4 in arraybuffer; convert to array
 		const processedArgs = args.map((value) => {
 			if (typeof value === "function") {
 				return this.RegisterCallback(value);
+			} else if (
+				ArrayBuffer.isView(value) &&
+				value instanceof Float32Array &&
+				(value.length === 2 || value.length === 3 || value.length === 4)
+			) {
+				return Array.from(value);
 			}
 			return value;
 		});
@@ -131,6 +148,7 @@ export class RpcClient {
 			functionName: funcName,
 		});
 
+		console.log(`Call ${funcName} |-> ${payloadJson}`);
 		const promise = new Promise<T>((resolve, reject) => {
 			this.pendingCalls.set(requestId, {
 				resolve,

@@ -116,10 +116,11 @@ export async function LoadProject(
 		const cacheMeshHandle = meshCache.get(meshAsset.uuid);
 		if (cacheMeshHandle) return cacheMeshHandle;
 
-		const meshHandle = await RpcClient.Call<Mesh>("Internal:Mesh_Create", {
-			clientId: RpcClient.GetClientId(),
-			meshAsset: JSON.stringify(meshAsset),
-		});
+		const meshHandle = await RpcClient.Call<Mesh>(
+			"Internal:Mesh_Create",
+			RpcClient.GetClientId(),
+			JSON.stringify(meshAsset),
+		);
 
 		meshCache.set(meshAsset.uuid, meshHandle);
 		return meshHandle;
@@ -427,9 +428,9 @@ export async function LoadProject(
 				const meshHandle = await createMesh(meshAsset);
 
 				if ((await MeshManager.BlendShapeCount(meshHandle)) > 0) {
-					RenderableManager.Create(currEntity, true);
+					await RenderableManager.Create(currEntity, true);
 				} else {
-					RenderableManager.Create(currEntity);
+					await RenderableManager.Create(currEntity);
 				}
 				RenderableManager.SetEnabled(currEntity, false);
 
@@ -467,7 +468,7 @@ export async function LoadProject(
 
 		const light = lights.get(entity);
 		if (light) {
-			LightManager.Create(currEntity, light.lightType);
+			await LightManager.Create(currEntity, light.lightType);
 			LightManager.SetEnabled(currEntity, false);
 
 			LightManager.SetIntensity(currEntity, light.intensity);
@@ -488,7 +489,7 @@ export async function LoadProject(
 
 		const camera = cameras.get(entity);
 		if (camera) {
-			CameraManager.Create(currEntity);
+			await CameraManager.Create(currEntity);
 			CameraManager.SetEnabled(currEntity, false);
 
 			CameraManager.SetProjectionType(currEntity, camera.projectionType);
@@ -550,7 +551,7 @@ export async function LoadProject(
 
 		const rigidbody = rigidbodies.get(entity);
 		if (rigidbody) {
-			RigidbodyManager.Create(currEntity);
+			await RigidbodyManager.Create(currEntity);
 			// RigidbodyManager.SetConstraints(currEntity, rigidbody.constraints);
 			RigidbodyManager.SetLinearDamping(currEntity, rigidbody.linearDamping);
 			RigidbodyManager.SetAngularDamping(currEntity, rigidbody.angularDamping);
@@ -561,7 +562,7 @@ export async function LoadProject(
 
 		const grabble = grabbles.get(entity);
 		if (grabble) {
-			GrabInteractableManager.Create(currEntity);
+			await GrabInteractableManager.Create(currEntity);
 			GrabInteractableManager.SetEnabled(currEntity, false);
 
 			GrabInteractableManager.SetMovementType(currEntity, grabble.movementType);
