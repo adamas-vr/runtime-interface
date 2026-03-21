@@ -208,14 +208,14 @@ export interface WorldProperty {
 	spawnPosition: vec3;
 }
 
+export type Version = `${number}.${number}.${number}`;
+
 export interface ProjectMetadata {
 	name: string;
 	projectId: string;
 	author: string;
-	version: string;
+	version: Version;
 	previewImagePath?: string;
-	createdAt: Date;
-	updateAt: Date;
 }
 
 export interface ProjectDescription {

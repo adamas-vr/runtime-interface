@@ -1,4 +1,4 @@
-import { ProjectBundle, ProjectMetadata } from "./asset";
+import { ProjectBundle, ProjectMetadata, Version } from "./asset";
 import { LoadProject, SceneGraph } from "./project-loader";
 import { RpcClient } from "./rpc";
 import { User } from "./user";
@@ -30,6 +30,10 @@ export async function generateId(name: string, uid: string): Promise<string> {
 	return base64url; // 43 chars
 }
 
+function isVersion(value: string): value is Version {
+	return /^\d+\.\d+\.\d+$/.test(value);
+}
+
 export class Project {
 	private static projectId: string;
 
@@ -51,22 +55,13 @@ export class Project {
 		return new Project(bundle.project.metadata, bundle);
 	}
 
-	static New(
-		name: string,
-		author: string,
-		version: string = "1.0.0",
-		previewImagePath?: string,
-	): Project {
-		const now = new Date();
-
+	static New(metadata: Omit<ProjectMetadata, "projectId">): Project {
 		return new Project({
-			name,
-			author,
-			version,
-			previewImagePath,
+			name: metadata.name,
+			author: metadata.author,
+			version: metadata.version,
+			previewImagePath: metadata.previewImagePath,
 			projectId: "",
-			createdAt: now,
-			updateAt: now,
 		});
 	}
 
