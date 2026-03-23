@@ -30,7 +30,7 @@ export async function generateId(name: string, uid: string): Promise<string> {
 	return base64url; // 43 chars
 }
 
-function isVersion(value: string): value is Version {
+export function isVersion(value: string): value is Version {
 	return /^\d+\.\d+\.\d+$/.test(value);
 }
 
