@@ -1,7 +1,7 @@
 {
-	"name": "@adamas/sdk",
+	"name": "@adamasvr/sdk",
 	"version": "0.3.0",
-	"description": "Adamas Typescript interface",
+	"description": "Adamas Typescript interface.",
 	"main": "dist/index.js",
 	"scripts": {
 		"format": "npx prettier . --write",
@@ -10,18 +10,18 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+ssh://git@github.com:adamas-vr/prefab-interface.git"
+		"url": "git+ssh://git@github.com:adamas-vr/runtime-interface.git"
 	},
 	"author": "Adamas VR, Inc.",
 	"bugs": {
-		"url": "https://github.com/adamas-vr/prefab-interface/issues"
+		"url": "https://github.com/adamas-vr/runtime-interface/issues"
 	},
 	"types": "./types/index.d.ts",
 	"files": [
 		"dist",
 		"types"
 	],
-	"homepage": "https://github.com/adamas-vr/prefab-interface#readme",
+	"homepage": "https://github.com/adamas-vr/runtime-interface#readme",
 	"dependencies": {
 		"gl-matrix": "^3.4.4"
 	},
