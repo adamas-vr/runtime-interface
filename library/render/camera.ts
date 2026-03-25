@@ -85,7 +85,11 @@ export class CameraManager {
 	 * @returns A promise that resolves when the render texture has been changed.
 	 */
 	static SetRenderTexture(entity: Entity, renderTexture: Texture) {
-		return RpcClient.Call<void>("Camera::SetRenderTexture", entity, renderTexture);
+		return RpcClient.Call<void>(
+			"Camera::SetRenderTexture",
+			entity,
+			renderTexture,
+		);
 	}
 
 	/**
@@ -206,7 +210,11 @@ export class CameraManager {
 	 * @returns A promise that resolves when the far clip plane has been changed.
 	 */
 	static SetFarClipPlane(entity: Entity, farClipPlane: number) {
-		return RpcClient.Call<void>("Camera::SetFarClipPlane", entity, farClipPlane);
+		return RpcClient.Call<void>(
+			"Camera::SetFarClipPlane",
+			entity,
+			farClipPlane,
+		);
 	}
 
 	/**
