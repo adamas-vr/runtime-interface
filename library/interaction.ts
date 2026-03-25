@@ -1,36 +1,67 @@
+/**
+ * APIs for creating and updating grab interactables.
+ *
+ * @module interaction
+ */
 import { Entity, EntityManager } from "./entity";
 import { Networking } from "./networking";
 import { RigidbodyManager } from "./physics/rigidbody";
 import { RpcClient } from "./rpc";
 
+/**
+ * Supported movement types for grab interactions.
+ */
 export enum MovementType {
+	/** Velocity-tracked movement. */
 	VelocityTracking = 0,
+	/** Kinematic movement. */
 	Kinematic = 1,
+	/** Instantaneous movement. */
 	Instantaneous = 2,
 }
 
+/**
+ * Creates and updates grab interactable components.
+ */
 export class GrabInteractableManager {
 	/**
-	 * Creates a grab interactable component for the specified entity.
-	 * All colliders added before this component is add are used to detect grabbing
-	 * @param entity The entity to attach the grab interactable to.
-	 * @returns A handle representing the newly created grab interactable.
+	 * Creates a grab interactable component on an entity.
+	 *
+	 * Colliders added before the component is created are used for interaction
+	 * detection. Interaction states include hover, select, and activate.
+	 * Hover begins when a user's hand touches or points at the
+	 * collider, select begins when the user presses the grip input to grab the
+	 * entity, and activate begins when the user presses the trigger input.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @returns A promise that resolves to `true` if the grab interactable
+	 * component was created, or `false` otherwise.
 	 */
-	static Create(...args: [entity: Entity]) {
-		if (!RigidbodyManager.HasComponent(args[0])) {
-			RigidbodyManager.Create(args[0]);
+	static Create(entity: Entity) {
+		if (!RigidbodyManager.HasComponent(entity)) {
+			RigidbodyManager.Create(entity);
 		}
 
-		return RpcClient.Call<boolean>("Grab::Create", ...args);
+		return RpcClient.Call<boolean>("Grab::Create", entity);
 	}
 
-	static async MakeNetworkGrabble(...args: [entity: Entity]) {
+	/**
+	 * Makes a grab interactable network-aware.
+	 *
+	 * The grab interactable can then be used by network users, and its transform
+	 * is synchronized across the network session. An error is thrown in local mode
+	 * or when the entity does not use a network transform.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @returns A promise that resolves when network grab behavior has been
+	 * configured.
+	 */
+	static async MakeNetworkGrabble(entity: Entity) {
 		if (
 			!(await Networking.IsLocalMode()) &&
-			!(await Networking.IsNetworkTransform(args[0]))
+			!(await Networking.IsNetworkTransform(entity))
 		) {
-			//TODO: async
-			const name = EntityManager.GetName(args[0]);
+			const name = await EntityManager.GetName(entity);
 			throw `Entity ${name} must have network transform to make network grabble`;
 		}
 
@@ -38,292 +69,369 @@ export class GrabInteractableManager {
 			await Networking.GetMasterClientId(),
 			async (playerId) => {
 				if (playerId == (await Networking.GetClientId())) {
-					await Networking.SyncLocalTransform(args[0]);
+					await Networking.SyncLocalTransform(entity);
 				} else {
-					await GrabInteractableManager.CancelSelect(args[0]);
+					await GrabInteractableManager.CancelSelect(entity);
 				}
 			},
 		);
 
 		await GrabInteractableManager.AddSelectEnteredCallback(
-			args[0],
+			entity,
 			async () => (networkValue.value = await Networking.GetClientId()),
 		);
 		await GrabInteractableManager.AddSelectExitedCallback(
-			args[0],
+			entity,
 			() => (networkValue.value = -1),
 		);
 	}
 
 	/**
-	 * Destroys the grab interactable component on the given entity.
-	 * @param entity The entity whose grab interactable should be destroyed.
-	 * @returns True if the component was successfully destroyed.
+	 * Removes a grab interactable component from an entity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @returns A promise that resolves to `true` if the component was removed, or
+	 * `false` otherwise.
 	 */
-	static Destroy(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Grab::Destroy", ...args);
+	static Destroy(entity: Entity) {
+		return RpcClient.Call<boolean>("Grab::Destroy", entity);
 	}
 
 	/**
-	 * Checks if the specified entity has a grab interactable component.
-	 * @param entity The entity to check.
-	 * @returns True if the component exists.
+	 * Checks whether an entity has a grab interactable component.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if the component exists, or
+	 * `false` otherwise.
 	 */
-	static HasComponent(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Grab::HasComponent", ...args);
+	static HasComponent(entity: Entity) {
+		return RpcClient.Call<boolean>("Grab::HasComponent", entity);
 	}
 
 	/**
-	 * Set if the GrabInteractable component is enabled
-	 * @param entity The entity with the renderable component
-	 * @param enabled If the GrabInteractable component is enabled
-	 * @returns boolean indicating success
+	 * Sets whether a grab interactable component is enabled.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param enabled - Whether the grab interactable component is enabled.
+	 * @returns A promise that resolves when the enabled state has been changed.
 	 */
-	static SetEnabled(...args: [entity: Entity, enabled: boolean]) {
-		return RpcClient.Call<void>("Grab::SetEnabled", ...args);
+	static SetEnabled(entity: Entity, enabled: boolean) {
+		return RpcClient.Call<void>("Grab::SetEnabled", entity, enabled);
 	}
 
-	static GetEnabled(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Grab::GetEnabled", ...args);
+	/**
+	 * Gets whether a grab interactable component is enabled.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if the component is enabled, or
+	 * `false` otherwise.
+	 */
+	static GetEnabled(entity: Entity) {
+		return RpcClient.Call<boolean>("Grab::GetEnabled", entity);
 	}
 
 	/**
 	 * Gets whether the grab interactable tracks position.
-	 * @param entity The target entity.
-	 * @returns True if position tracking is enabled.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if position tracking is enabled,
+	 * or `false` otherwise.
 	 */
-	static GetTrackPosition(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Grab::GetTrackPosition", ...args);
+	static GetTrackPosition(entity: Entity) {
+		return RpcClient.Call<boolean>("Grab::GetTrackPosition", entity);
 	}
 
 	/**
-	 * Enables or disables position tracking on the grab interactable.
-	 * @param entity The target entity.
-	 * @param isTracking Whether to enable position tracking.
-	 * @returns True if the change was applied.
+	 * Sets whether a grab interactable tracks position.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param isTracking - Whether position tracking is enabled.
+	 * @returns A promise that resolves when the setting has been changed.
 	 */
-	static SetTrackPosition(...args: [entity: Entity, isTracking: boolean]) {
-		return RpcClient.Call<void>("Grab::SetTrackPosition", ...args);
+	static SetTrackPosition(entity: Entity, isTracking: boolean) {
+		return RpcClient.Call<void>("Grab::SetTrackPosition", entity, isTracking);
 	}
 
 	/**
 	 * Gets whether the grab interactable tracks rotation.
-	 * @param entity The target entity.
-	 * @returns True if rotation tracking is enabled.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if rotation tracking is enabled,
+	 * or `false` otherwise.
 	 */
-	static GetTrackRotation(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Grab::GetTrackRotation", ...args);
+	static GetTrackRotation(entity: Entity) {
+		return RpcClient.Call<boolean>("Grab::GetTrackRotation", entity);
 	}
 
 	/**
-	 * Enables or disables rotation tracking on the grab interactable.
-	 * @param entity The target entity.
-	 * @param isTracking Whether to enable rotation tracking.
-	 * @returns True if the change was applied.
+	 * Sets whether a grab interactable tracks rotation.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param isTracking - Whether rotation tracking is enabled.
+	 * @returns A promise that resolves when the setting has been changed.
 	 */
-	static SetTrackRotation(...args: [entity: Entity, isTracking: boolean]) {
-		return RpcClient.Call<void>("Grab::SetTrackRotation", ...args);
+	static SetTrackRotation(entity: Entity, isTracking: boolean) {
+		return RpcClient.Call<void>("Grab::SetTrackRotation", entity, isTracking);
 	}
 
 	/**
-	 * Gets whether the object should apply physics-based throw on detach.
-	 * @param entity The target entity.
-	 * @returns True if throw-on-detach is enabled.
+	 * Gets whether a grab interactable applies physics-based throwing on detach.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if throw-on-detach is enabled, or
+	 * `false` otherwise.
 	 */
-	static GetThrowOnDetach(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Grab::GetThrowOnDetach", ...args);
+	static GetThrowOnDetach(entity: Entity) {
+		return RpcClient.Call<boolean>("Grab::GetThrowOnDetach", entity);
 	}
 
 	/**
-	 * Enables or disables physics-based throwing on detach.
-	 * @param entity The target entity.
-	 * @param enable Whether to enable throw-on-detach.
-	 * @returns True if the setting was successfully changed.
+	 * Sets whether a grab interactable applies physics-based throwing on detach.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param enable - Whether throw-on-detach is enabled.
+	 * @returns A promise that resolves when the setting has been changed.
 	 */
-	static SetThrowOnDetach(...args: [entity: Entity, enable: boolean]) {
-		return RpcClient.Call<void>("Grab::SetThrowOnDetach", ...args);
+	static SetThrowOnDetach(entity: Entity, enable: boolean) {
+		return RpcClient.Call<void>("Grab::SetThrowOnDetach", entity, enable);
 	}
 
 	/**
-	 * Gets the currently attached entity handle, if any.
-	 * @param entity The entity whose attachment is being queried.
-	 * @returns True if the query was successful. The actual value is assumed returned via RPC side effect or callback.
+	 * Gets the attach entity of a grab interactable.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the attached {@link Entity}.
 	 */
-	static GetAttachEntity(...args: [entity: Entity]) {
-		return RpcClient.Call<Entity>("Grab::GetAttachEntity", ...args);
+	static GetAttachEntity(entity: Entity) {
+		return RpcClient.Call<Entity>("Grab::GetAttachEntity", entity);
 	}
 
 	/**
-	 * Sets the entity that should be used as the attachment target for this grab interactable.
-	 * @param entity The source grab interactable entity.
-	 * @param attachentity The target entity to attach to.
-	 * @returns True if the attachment was successfully updated.
+	 * Sets the attach entity of a grab interactable.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param attachEntity - The target {@link Entity} to attach to.
+	 * @returns A promise that resolves when the attach entity has been changed.
 	 */
-	static SetAttachEntity(...args: [entity: Entity, attachentity: Entity]) {
-		return RpcClient.Call<void>("Grab::SetAttachEntity", ...args);
-	}
-
-	static SetAllowHoverActivate(
-		...args: [entity: Entity, allowHoverActivate: boolean]
-	) {
-		return RpcClient.Call<void>("Grab::SetAllowHoverActivate", ...args);
-	}
-
-	static GetAllowHoverActivate(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Grab::GetAllowHoverActivate", ...args);
-	}
-
-	static SetDynamicAttach(...args: [entity: Entity, dynamicAttach: boolean]) {
-		return RpcClient.Call<void>("Grab::SetDynamicAttach", ...args);
-	}
-
-	static GetDynamicAttach(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Grab::GetDynamicAttach", ...args);
-	}
-
-	static SetMovementType(
-		...args: [entity: Entity, movementType: MovementType]
-	) {
-		return RpcClient.Call<void>("Grab::SetMovementType", ...args);
-	}
-
-	static GetMovementType(...args: [entity: Entity]) {
-		return RpcClient.Call<MovementType>("Grab::GetMovementType", ...args);
-	}
-
-	static CancelSelect(...args: [entity: Entity]) {
-		return RpcClient.Call<void>("Grab::CancelSelect", ...args);
+	static SetAttachEntity(entity: Entity, attachEntity: Entity) {
+		return RpcClient.Call<void>("Grab::SetAttachEntity", entity, attachEntity);
 	}
 
 	/**
-	 * Registers a callback to be invoked when the object is hovered.
-	 * @param entity The entity to observe.
-	 * @param onHoverEntered Callback function to invoke on hover enter.
-	 * @returns True if the callback was registered successfully.
+	 * Sets whether hover activation is allowed.
+	 *
+	 * When enabled, the object can be activated with the trigger input while it is
+	 * hovered, without being selected first.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param allowHoverActivate - Whether hover activation is allowed.
+	 * @returns A promise that resolves when the setting has been changed.
+	 */
+	static SetAllowHoverActivate(entity: Entity, allowHoverActivate: boolean) {
+		return RpcClient.Call<void>(
+			"Grab::SetAllowHoverActivate",
+			entity,
+			allowHoverActivate,
+		);
+	}
+
+	/**
+	 * Gets whether hover activation is allowed.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if hover activation is allowed,
+	 * or `false` otherwise.
+	 */
+	static GetAllowHoverActivate(entity: Entity) {
+		return RpcClient.Call<boolean>("Grab::GetAllowHoverActivate", entity);
+	}
+
+	/**
+	 * Sets whether dynamic attach is enabled.
+	 *
+	 * When enabled, the object can be grabbed directly at the collider contact
+	 * point, and the attach anchor does not move to the hand transform.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param dynamicAttach - Whether dynamic attach is enabled.
+	 * @returns A promise that resolves when the setting has been changed.
+	 */
+	static SetDynamicAttach(entity: Entity, dynamicAttach: boolean) {
+		return RpcClient.Call<void>(
+			"Grab::SetDynamicAttach",
+			entity,
+			dynamicAttach,
+		);
+	}
+
+	/**
+	 * Gets whether dynamic attach is enabled.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if dynamic attach is enabled, or
+	 * `false` otherwise.
+	 */
+	static GetDynamicAttach(entity: Entity) {
+		return RpcClient.Call<boolean>("Grab::GetDynamicAttach", entity);
+	}
+
+	/**
+	 * Sets the movement type of a grab interactable.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param movementType - The movement type to assign.
+	 * @returns A promise that resolves when the movement type has been changed.
+	 */
+	static SetMovementType(entity: Entity, movementType: MovementType) {
+		return RpcClient.Call<void>("Grab::SetMovementType", entity, movementType);
+	}
+
+	/**
+	 * Gets the movement type of a grab interactable.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the movement type.
+	 */
+	static GetMovementType(entity: Entity) {
+		return RpcClient.Call<MovementType>("Grab::GetMovementType", entity);
+	}
+
+	/**
+	 * Cancels the current select state of a grab interactable.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @returns A promise that resolves when the select state has been canceled.
+	 */
+	static CancelSelect(entity: Entity) {
+		return RpcClient.Call<void>("Grab::CancelSelect", entity);
+	}
+
+	/**
+	 * Registers a callback for hover enter events.
+	 *
+	 * @param entity - The {@link Entity} to observe.
+	 * @param onHoverEntered - The callback invoked when hover begins.
+	 * @returns A promise that resolves when the callback has been registered.
 	 */
 	static AddHoverEnteredCallback(
-		...args: [
-			entity: Entity,
-			onHoverEntered: (
-				interactableEntity: Entity,
-				interactorEntity: Entity,
-			) => void,
-		]
+		entity: Entity,
+		onHoverEntered: (
+			interactableEntity: Entity,
+			interactorEntity: Entity,
+		) => void,
 	) {
 		return RpcClient.Call<void>(
 			"Grab::AddHoverEnteredCallback",
 			RpcClient.GetClientId(),
-			...args,
+			entity,
+			onHoverEntered,
 		);
 	}
 
 	/**
-	 * Registers a callback to be invoked when the object is unhovered.
-	 * @param entity The entity to observe.
-	 * @param onHoverExited Callback function to invoke on hover exit.
-	 * @returns True if the callback was registered successfully.
+	 * Registers a callback for hover exit events.
+	 *
+	 * @param entity - The {@link Entity} to observe.
+	 * @param onHoverExited - The callback invoked when hover ends.
+	 * @returns A promise that resolves when the callback has been registered.
 	 */
 	static AddHoverExitedCallback(
-		...args: [
-			entity: Entity,
-			onHoverExited: (
-				interactableEntity: Entity,
-				interactorEntity: Entity,
-			) => void,
-		]
+		entity: Entity,
+		onHoverExited: (
+			interactableEntity: Entity,
+			interactorEntity: Entity,
+		) => void,
 	) {
 		return RpcClient.Call<void>(
 			"Grab::AddHoverExitedCallback",
 			RpcClient.GetClientId(),
-			...args,
+			entity,
+			onHoverExited,
 		);
 	}
 
 	/**
-	 * Registers a callback to be invoked when the object is selected (grabbed).
-	 * @param entity The entity to observe.
-	 * @param onSelectEntered Callback function to invoke on select enter.
-	 * @returns True if the callback was registered successfully.
+	 * Registers a callback for select enter events.
+	 *
+	 * @param entity - The {@link Entity} to observe.
+	 * @param onSelectEntered - The callback invoked when selection begins.
+	 * @returns A promise that resolves when the callback has been registered.
 	 */
 	static AddSelectEnteredCallback(
-		...args: [
-			entity: Entity,
-			onSelectEntered: (
-				interactableEntity: Entity,
-				interactorEntity: Entity,
-			) => void,
-		]
+		entity: Entity,
+		onSelectEntered: (
+			interactableEntity: Entity,
+			interactorEntity: Entity,
+		) => void,
 	) {
 		return RpcClient.Call<void>(
 			"Grab::AddSelectEnteredCallback",
 			RpcClient.GetClientId(),
-			...args,
+			entity,
+			onSelectEntered,
 		);
 	}
 
 	/**
-	 * Registers a callback to be invoked when the object is released (deselected).
-	 * @param entity The entity to observe.
-	 * @param onSelectExited Callback function to invoke on select exit.
-	 * @returns True if the callback was registered successfully.
+	 * Registers a callback for select exit events.
+	 *
+	 * @param entity - The {@link Entity} to observe.
+	 * @param onSelectExited - The callback invoked when selection ends.
+	 * @returns A promise that resolves when the callback has been registered.
 	 */
 	static AddSelectExitedCallback(
-		...args: [
-			entity: Entity,
-			onSelectExited: (
-				interactableEntity: Entity,
-				interactorEntity: Entity,
-			) => void,
-		]
+		entity: Entity,
+		onSelectExited: (
+			interactableEntity: Entity,
+			interactorEntity: Entity,
+		) => void,
 	) {
 		return RpcClient.Call<void>(
 			"Grab::AddSelectExitedCallback",
 			RpcClient.GetClientId(),
-			...args,
+			entity,
+			onSelectExited,
 		);
 	}
 
 	/**
-	 * Registers a callback to be invoked when the object is activated (e.g. trigger pressed).
-	 * @param entity The entity to observe.
-	 * @param onActivated Callback function to invoke on activation.
-	 * @returns True if the callback was registered successfully.
+	 * Registers a callback for activate events.
+	 *
+	 * @param entity - The {@link Entity} to observe.
+	 * @param onActivated - The callback invoked when activation begins.
+	 * @returns A promise that resolves when the callback has been registered.
 	 */
 	static AddActivatedCallback(
-		...args: [
-			entity: Entity,
-			onActivated: (
-				interactableEntity: Entity,
-				interactorEntity: Entity,
-			) => void,
-		]
+		entity: Entity,
+		onActivated: (interactableEntity: Entity, interactorEntity: Entity) => void,
 	) {
 		return RpcClient.Call<void>(
 			"Grab::AddActivatedCallback",
 			RpcClient.GetClientId(),
-			...args,
+			entity,
+			onActivated,
 		);
 	}
 
 	/**
-	 * Registers a callback to be invoked when the object is deactivated (e.g. trigger released).
-	 * @param entity The entity to observe.
-	 * @param onDeactivated Callback function to invoke on deactivation.
-	 * @returns True if the callback was registered successfully.
+	 * Registers a callback for deactivate events.
+	 *
+	 * @param entity - The {@link Entity} to observe.
+	 * @param onDeactivated - The callback invoked when activation ends.
+	 * @returns A promise that resolves when the callback has been registered.
 	 */
 	static AddDeactivatedCallback(
-		...args: [
-			entity: Entity,
-			onDeactivated: (
-				interactableEntity: Entity,
-				interactorEntity: Entity,
-			) => void,
-		]
+		entity: Entity,
+		onDeactivated: (
+			interactableEntity: Entity,
+			interactorEntity: Entity,
+		) => void,
 	) {
 		return RpcClient.Call<void>(
 			"Grab::AddDeactivatedCallback",
 			RpcClient.GetClientId(),
-			...args,
+			entity,
+			onDeactivated,
 		);
 	}
 }
