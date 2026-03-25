@@ -1,3 +1,8 @@
+/**
+ * Base64 encoding and decoding utilities.
+ *
+ * @module base64
+ */
 const chars =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -7,6 +12,12 @@ for (let i = 0; i < chars.length; i++) {
 	lookup[chars.charCodeAt(i)] = i;
 }
 
+/**
+ * Encodes binary data as a base64 string.
+ *
+ * @param input - The binary data to encode.
+ * @returns The base64-encoded string.
+ */
 export const base64Encode = (input: ArrayBuffer | ArrayBufferView): string => {
 	const bytes =
 		input instanceof ArrayBuffer
@@ -30,6 +41,13 @@ export const base64Encode = (input: ArrayBuffer | ArrayBufferView): string => {
 
 	return base64;
 };
+
+/**
+ * Encodes binary data as a base64 string.
+ *
+ * @param input - The binary data to encode.
+ * @returns A promise that resolves to the base64-encoded string.
+ */
 export const base64EncodeAsync = async (
 	input: ArrayBuffer | ArrayBufferView,
 ): Promise<string> => {
@@ -37,6 +55,12 @@ export const base64EncodeAsync = async (
 	return base64Encode(input);
 };
 
+/**
+ * Decodes a base64 string into binary data.
+ *
+ * @param base64 - The base64 string to decode.
+ * @returns The decoded binary data.
+ */
 export const base64Decode = (base64: string): ArrayBuffer => {
 	let bufferLength = base64.length * 0.75;
 	const len = base64.length;
@@ -71,6 +95,12 @@ export const base64Decode = (base64: string): ArrayBuffer => {
 	return arraybuffer;
 };
 
+/**
+ * Decodes a base64 string into binary data.
+ *
+ * @param base64 - The base64 string to decode.
+ * @returns A promise that resolves to the decoded binary data.
+ */
 export const base64DecodeAsync = async (
 	base64: string,
 ): Promise<ArrayBuffer> => {
