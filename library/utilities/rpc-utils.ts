@@ -1,3 +1,5 @@
+import { Version } from "../asset";
+
 type BinaryRef = {
 	__bufferType: "Uint8Array" | "Uint16Array" | "Float32Array";
 	offset: number;
@@ -6,6 +8,32 @@ type BinaryRef = {
 
 function packBinary(view: Uint8Array | Uint16Array | Float32Array) {
 	return new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+}
+
+export function isVersion(value: string): value is Version {
+	return /^\d+\.\d+\.\d+$/.test(value);
+}
+
+export async function generateId(name: string, uid: string): Promise<string> {
+	const input = `${name}:${uid}`;
+
+	// Encode string to Uint8Array
+	const encoder = new TextEncoder();
+	const data = encoder.encode(input);
+
+	// Compute SHA-256 digest
+	const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+
+	// Convert ArrayBuffer to byte array
+	const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+	// Convert to base64url
+	const base64url = btoa(String.fromCharCode(...hashArray))
+		.replace(/\+/g, "-")
+		.replace(/\//g, "_")
+		.replace(/=+$/, ""); // remove padding
+
+	return base64url; // 43 chars
 }
 
 export function createAssetBinaryReplacer() {

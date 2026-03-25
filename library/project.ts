@@ -1,37 +1,12 @@
-import { ProjectBundle, ProjectMetadata, Version } from "./asset";
+import { ProjectBundle, ProjectMetadata } from "./asset";
 import { LoadProject, SceneGraph } from "./project-loader";
 import { RpcClient } from "./rpc";
 import { User } from "./user";
+import { generateId, isVersion } from "./utilities/rpc-utils";
 
 export interface ProjectCallbacks {
 	OnSetup?: (project: Project, sceneGraph?: SceneGraph) => void;
 	OnTick?: (project: Project, timestep: number) => void;
-}
-
-export async function generateId(name: string, uid: string): Promise<string> {
-	const input = `${name}:${uid}`;
-
-	// Encode string to Uint8Array
-	const encoder = new TextEncoder();
-	const data = encoder.encode(input);
-
-	// Compute SHA-256 digest
-	const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-
-	// Convert ArrayBuffer to byte array
-	const hashArray = Array.from(new Uint8Array(hashBuffer));
-
-	// Convert to base64url
-	const base64url = btoa(String.fromCharCode(...hashArray))
-		.replace(/\+/g, "-")
-		.replace(/\//g, "_")
-		.replace(/=+$/, ""); // remove padding
-
-	return base64url; // 43 chars
-}
-
-export function isVersion(value: string): value is Version {
-	return /^\d+\.\d+\.\d+$/.test(value);
 }
 
 export class Project {
@@ -67,6 +42,10 @@ export class Project {
 
 	async Launch(callbacks: ProjectCallbacks = {}): Promise<void> {
 		const { name, author, version, previewImagePath } = this.metadata;
+
+		if (!isVersion(version)) {
+			throw "Version format is incorrect.";
+		}
 
 		Project.projectId = this.bundle
 			? this.metadata.projectId
