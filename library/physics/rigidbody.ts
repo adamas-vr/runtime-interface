@@ -1,7 +1,15 @@
+/**
+ * APIs for creating and updating rigidbody components.
+ *
+ * @module rigidbody
+ */
 import { vec3 } from "gl-matrix";
 import { Entity } from "../entity";
 import { RpcClient } from "../rpc";
 
+/**
+ * Supported force application modes.
+ */
 export enum ForceMode {
 	/** Add a continuous force to the rigidbody, using its mass. */
 	Force = 0,
@@ -36,103 +44,259 @@ export enum ForceMode {
 // 	FreezeAll = 126,
 // }
 
+/**
+ * Creates and updates rigidbody components.
+ */
 export class RigidbodyManager {
-	static Create(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Ridigbody::Create", ...args);
+	/**
+	 * Creates a rigidbody component on an entity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @returns A promise that resolves to `true` if the rigidbody component was
+	 * created, or `false` otherwise.
+	 */
+	static Create(entity: Entity) {
+		return RpcClient.Call<boolean>("Ridigbody::Create", entity);
 	}
 
-	static Destroy(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Ridigbody::Destroy", ...args);
+	/**
+	 * Removes a rigidbody component from an entity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @returns A promise that resolves to `true` if the rigidbody component was
+	 * removed, or `false` otherwise.
+	 */
+	static Destroy(entity: Entity) {
+		return RpcClient.Call<boolean>("Ridigbody::Destroy", entity);
 	}
 
-	static HasComponent(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Ridigbody::HasComponent", ...args);
+	/**
+	 * Checks whether an entity has a rigidbody component.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if the entity has a rigidbody
+	 * component, or `false` otherwise.
+	 */
+	static HasComponent(entity: Entity) {
+		return RpcClient.Call<boolean>("Ridigbody::HasComponent", entity);
 	}
 
-	static GetLinearVelocity(...args: [entity: Entity]) {
-		return RpcClient.Call<vec3>("Ridigbody::GetLinearVelocity", ...args);
+	/**
+	 * Gets the linear velocity of a rigidbody.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the linear velocity in meters per
+	 * second.
+	 */
+	static GetLinearVelocity(entity: Entity) {
+		return RpcClient.Call<vec3>("Ridigbody::GetLinearVelocity", entity);
 	}
 
-	static GetAngularVelocity(...args: [entity: Entity]) {
-		return RpcClient.Call<vec3>("Ridigbody::GetAngularVelocity", ...args);
+	/**
+	 * Gets the angular velocity of a rigidbody.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the angular velocity in radians per
+	 * second.
+	 */
+	static GetAngularVelocity(entity: Entity) {
+		return RpcClient.Call<vec3>("Ridigbody::GetAngularVelocity", entity);
 	}
 
-	static AddForce(
-		...args: [entity: Entity, force: vec3, forceMode?: ForceMode]
-	) {
+	/**
+	 * Adds force to a rigidbody.
+	 *
+	 * The force is expressed in newtons for {@link ForceMode.Force}, meters per
+	 * second squared for {@link ForceMode.Acceleration}, newton-seconds for
+	 * {@link ForceMode.Impulse}, and meters per second for
+	 * {@link ForceMode.VelocityChange}.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param force - The force vector.
+	 * @param forceMode - The force application mode. Defaults to
+	 * {@link ForceMode.Force}.
+	 * @returns A promise that resolves when the force has been applied.
+	 */
+	static AddForce(entity: Entity, force: vec3, forceMode?: ForceMode) {
 		return RpcClient.Call<void>(
 			"Ridigbody::AddForce",
-			args[0],
-			Array.from(args[1]),
-			args[2] ?? ForceMode.Force,
+			entity,
+			Array.from(force),
+			forceMode ?? ForceMode.Force,
 		);
 	}
 
+	/**
+	 * Adds force to a rigidbody at a world position.
+	 *
+	 * The force is expressed in newtons for {@link ForceMode.Force}, meters per
+	 * second squared for {@link ForceMode.Acceleration}, newton-seconds for
+	 * {@link ForceMode.Impulse}, and meters per second for
+	 * {@link ForceMode.VelocityChange}.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param force - The force vector.
+	 * @param position - The world position where the force is applied, in meters.
+	 * @param forceMode - The force application mode. Defaults to
+	 * {@link ForceMode.Force}.
+	 * @returns A promise that resolves to `true` if the force was applied, or
+	 * `false` otherwise.
+	 */
 	static AddForceAtPosition(
-		...args: [
-			entity: Entity,
-			force: vec3,
-			position: vec3,
-			forceMode?: ForceMode,
-		]
+		entity: Entity,
+		force: vec3,
+		position: vec3,
+		forceMode?: ForceMode,
 	) {
 		return RpcClient.Call<boolean>(
 			"Ridigbody::AddForceAtPosition",
-			args[0],
-			Array.from(args[1]),
-			Array.from(args[2]),
-			args[3] ?? ForceMode.Force,
+			entity,
+			Array.from(force),
+			Array.from(position),
+			forceMode ?? ForceMode.Force,
 		);
 	}
 
-	static AddTorque(
-		...args: [entity: Entity, torque: vec3, forceMode?: ForceMode]
-	) {
+	/**
+	 * Adds torque to a rigidbody.
+	 *
+	 * The torque is expressed in newton-meters for {@link ForceMode.Force},
+	 * radians per second squared for {@link ForceMode.Acceleration},
+	 * newton-meter-seconds for {@link ForceMode.Impulse}, and radians per second
+	 * for {@link ForceMode.VelocityChange}.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param torque - The torque vector.
+	 * @param forceMode - The force application mode. Defaults to
+	 * {@link ForceMode.Force}.
+	 * @returns A promise that resolves when the torque has been applied.
+	 */
+	static AddTorque(entity: Entity, torque: vec3, forceMode?: ForceMode) {
 		return RpcClient.Call<void>(
 			"Ridigbody::AddTorque",
-			args[0],
-			Array.from(args[1]),
-			args[2] ?? ForceMode.Force,
+			entity,
+			Array.from(torque),
+			forceMode ?? ForceMode.Force,
 		);
 	}
 
-	static GetIsKinematic(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Ridigbody::GetIsKinematic", ...args);
+	/**
+	 * Gets whether a rigidbody is kinematic.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if the rigidbody is kinematic, or
+	 * `false` otherwise.
+	 */
+	static GetIsKinematic(entity: Entity) {
+		return RpcClient.Call<boolean>("Ridigbody::GetIsKinematic", entity);
 	}
 
-	static SetIsKinematic(...args: [entity: Entity, isKinematic: boolean]) {
-		return RpcClient.Call<void>("Ridigbody::SetIsKinematic", ...args);
+	/**
+	 * Sets whether a rigidbody is kinematic.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param isKinematic - Whether the rigidbody is kinematic.
+	 * @returns A promise that resolves when the kinematic setting has been
+	 * changed.
+	 */
+	static SetIsKinematic(entity: Entity, isKinematic: boolean) {
+		return RpcClient.Call<void>(
+			"Ridigbody::SetIsKinematic",
+			entity,
+			isKinematic,
+		);
 	}
 
-	static GetUseGravity(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Ridigbody::GetUseGravity", ...args);
+	/**
+	 * Gets whether a rigidbody uses gravity.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if the rigidbody uses gravity, or
+	 * `false` otherwise.
+	 */
+	static GetUseGravity(entity: Entity) {
+		return RpcClient.Call<boolean>("Ridigbody::GetUseGravity", entity);
 	}
 
-	static SetUseGravity(...args: [entity: Entity, useGravity: boolean]) {
-		return RpcClient.Call<void>("Ridigbody::SetUseGravity", ...args);
+	/**
+	 * Sets whether a rigidbody uses gravity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param useGravity - Whether the rigidbody uses gravity.
+	 * @returns A promise that resolves when the gravity setting has been changed.
+	 */
+	static SetUseGravity(entity: Entity, useGravity: boolean) {
+		return RpcClient.Call<void>("Ridigbody::SetUseGravity", entity, useGravity);
 	}
 
-	static GetMass(...args: [entity: Entity]) {
-		return RpcClient.Call<number>("Ridigbody::GetMass", ...args);
+	/**
+	 * Gets the mass of a rigidbody.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the mass in kilograms.
+	 */
+	static GetMass(entity: Entity) {
+		return RpcClient.Call<number>("Ridigbody::GetMass", entity);
 	}
 
-	static SetMass(...args: [entity: Entity, mass: number]) {
-		return RpcClient.Call<void>("Ridigbody::SetMass", ...args);
+	/**
+	 * Sets the mass of a rigidbody.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param mass - The mass in kilograms.
+	 * @returns A promise that resolves when the mass has been changed.
+	 */
+	static SetMass(entity: Entity, mass: number) {
+		return RpcClient.Call<void>("Ridigbody::SetMass", entity, mass);
 	}
 
-	static GetLinearDamping(...args: [entity: Entity]) {
-		return RpcClient.Call<number>("Ridigbody::GetLinearDamping", ...args);
+	/**
+	 * Gets the linear damping of a rigidbody.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the linear damping.
+	 */
+	static GetLinearDamping(entity: Entity) {
+		return RpcClient.Call<number>("Ridigbody::GetLinearDamping", entity);
 	}
 
-	static SetLinearDamping(...args: [entity: Entity, linearDamping: number]) {
-		return RpcClient.Call<void>("Ridigbody::SetLinearDamping", ...args);
+	/**
+	 * Sets the linear damping of a rigidbody.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param linearDamping - The linear damping.
+	 * @returns A promise that resolves when the linear damping has been changed.
+	 */
+	static SetLinearDamping(entity: Entity, linearDamping: number) {
+		return RpcClient.Call<void>(
+			"Ridigbody::SetLinearDamping",
+			entity,
+			linearDamping,
+		);
 	}
 
-	static GetAngularDamping(...args: [entity: Entity]) {
-		return RpcClient.Call<number>("Ridigbody::GetAngularDamping", ...args);
+	/**
+	 * Gets the angular damping of a rigidbody.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the angular damping.
+	 */
+	static GetAngularDamping(entity: Entity) {
+		return RpcClient.Call<number>("Ridigbody::GetAngularDamping", entity);
 	}
 
-	static SetAngularDamping(...args: [entity: Entity, angularDamping: number]) {
-		return RpcClient.Call<void>("Ridigbody::SetAngularDamping", ...args);
+	/**
+	 * Sets the angular damping of a rigidbody.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param angularDamping - The angular damping.
+	 * @returns A promise that resolves when the angular damping has been changed.
+	 */
+	static SetAngularDamping(entity: Entity, angularDamping: number) {
+		return RpcClient.Call<void>(
+			"Ridigbody::SetAngularDamping",
+			entity,
+			angularDamping,
+		);
 	}
 }
