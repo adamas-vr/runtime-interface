@@ -199,7 +199,8 @@ export class MaterialManager {
 	 * @param handle - The {@link Material} to update.
 	 * @param property - The property to change.
 	 * @param rgba - The color value to assign as an RGBA `vec4`, with each channel
-	 * in the range `[0.0, 1.0]`.
+	 * in the range `[0.0, 1.0]`. For HDR emission, values greater than `1.0` are
+	 * supported.
 	 * @returns A promise that resolves when the property has been changed.
 	 */
 	static SetColor(handle: Material, property: MaterialProperty, rgba: vec4) {
