@@ -1,50 +1,63 @@
+/**
+ * Transform management APIs for reading and updating entity transforms.
+ *
+ * @module transform
+ */
 import { RpcClient } from "../rpc";
 import { Entity } from "../entity";
 import { quat, vec3 } from "gl-matrix";
 import { Project } from "../project";
 
+/**
+ * Reads and updates entity transforms.
+ */
 export class TransformManager {
 	/**
-	 * Rotates the transform so the entity looks at the world position.
-	 * @param entity The entity with the transform component
-	 * @param worldPosition The world position to look at.
-	 * @param worldUp The world upward direction.
+	 * Rotates an entity so it faces a world position.
+	 *
+	 * @param entity - The {@link Entity} to rotate.
+	 * @param worldPosition - The world position to face.
+	 * @param worldUp - The upward direction to use. Defaults to `[0, 1, 0]`.
+	 * @returns A promise that resolves when the rotation has been changed.
 	 */
-	static LookAt(
-		...args: [entity: Entity, worldPosition: vec3, worldUp?: vec3]
-	) {
+	static LookAt(entity: Entity, worldPosition: vec3, worldUp?: vec3) {
 		return RpcClient.Call<void>(
 			"Transform::LookAt",
-			args[0],
-			Array.from(args[1]),
-			Array.from(args[2] ?? vec3.fromValues(0, 1, 0)),
+			entity,
+			Array.from(worldPosition),
+			Array.from(worldUp ?? vec3.fromValues(0, 1, 0)),
 		);
 	}
 
 	/**
-	 * Sets this entity's parent transform.
-	 * @param entity The entity with the transform component
-	 * @param parent The parent entity
+	 * Sets the parent of an entity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param parent - The parent {@link Entity}. If omitted, the entity will have
+	 * no parent.
+	 * @returns A promise that resolves when the parent has been changed.
 	 */
-	static async SetParent(...args: [entity: Entity, parent?: Entity]) {
+	static async SetParent(entity: Entity, parent?: Entity) {
 		return RpcClient.Call<void>(
 			"Transform::SetParent",
 			Project.GetProjectId(),
-			args[0],
-			args[1] ?? -1,
+			entity,
+			parent ?? -1,
 		);
 	}
 
 	/**
-	 * Gets the parent entity handle, or undefined if none.
-	 * @param entity The entity with the transform component
-	 * @returns The parent entity handle or undefined
+	 * Gets the parent of an entity.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the parent {@link Entity}, or
+	 * `undefined` if the entity has no parent.
 	 */
-	static async GetParent(...args: [entity: Entity]) {
+	static async GetParent(entity: Entity) {
 		const parent = await RpcClient.Call<Entity>(
 			"Transform::GetParent",
 			Project.GetProjectId(),
-			args[0],
+			entity,
 		);
 
 		if (parent === -1) return undefined;
@@ -52,92 +65,115 @@ export class TransformManager {
 	}
 
 	/**
-	 * Sets world position vector.
-	 * @param entity The entity with the transform component
-	 * @param pos The position vector
+	 * Sets the world position of an entity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param pos - The world position.
+	 * @returns A promise that resolves when the world position has been changed.
 	 */
-	static SetWorldPosition(...args: [entity: Entity, pos: vec3]) {
-		return RpcClient.Call<void>("Transform::SetWorldPosition", ...args);
+	static SetWorldPosition(entity: Entity, pos: vec3) {
+		return RpcClient.Call<void>("Transform::SetWorldPosition", entity, pos);
 	}
 
 	/**
-	 * Sets local position vector.
-	 * @param entity The entity with the transform component
-	 * @param pos The position vector
+	 * Sets the local position of an entity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param pos - The local position.
+	 * @returns A promise that resolves when the local position has been changed.
 	 */
-	static SetLocalPosition(...args: [entity: Entity, pos: vec3]) {
-		return RpcClient.Call<void>("Transform::SetLocalPosition", ...args);
+	static SetLocalPosition(entity: Entity, pos: vec3) {
+		return RpcClient.Call<void>("Transform::SetLocalPosition", entity, pos);
 	}
 
 	/**
-	 * Gets world position vector.
-	 * @param entity The entity with the transform component
-	 * @returns The position vector
+	 * Gets the world position of an entity.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the world position.
 	 */
-	static GetWorldPosition(...args: [entity: Entity]) {
-		return RpcClient.Call<vec3>("Transform::GetWorldPosition", ...args);
+	static GetWorldPosition(entity: Entity) {
+		return RpcClient.Call<vec3>("Transform::GetWorldPosition", entity);
 	}
 
 	/**
-	 * Gets local position vector.
-	 * @param entity The entity with the transform component
-	 * @returns The position vector
+	 * Gets the local position of an entity.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the local position.
 	 */
-	static GetLocalPosition(...args: [entity: Entity]) {
-		return RpcClient.Call<vec3>("Transform::GetLocalPosition", ...args);
+	static GetLocalPosition(entity: Entity) {
+		return RpcClient.Call<vec3>("Transform::GetLocalPosition", entity);
 	}
 
 	/**
-	 * Sets world rotation quaternion.
-	 * @param entity The entity with the transform component
-	 * @param rotation The rotation quaternion [x, y, z, w]
+	 * Sets the world rotation of an entity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param rotation - The world rotation quaternion in `[x, y, z, w]` order.
+	 * @returns A promise that resolves when the world rotation has been changed.
 	 */
-	static SetWorldRotation(...args: [entity: Entity, rotation: quat]) {
-		return RpcClient.Call<void>("Transform::SetWorldRotation", ...args);
+	static SetWorldRotation(entity: Entity, rotation: quat) {
+		return RpcClient.Call<void>(
+			"Transform::SetWorldRotation",
+			entity,
+			rotation,
+		);
 	}
 
 	/**
-	 * Sets local rotation quaternion.
-	 * @param entity The entity with the transform component
-	 * @param rotation The rotation quaternion [x, y, z, w]
+	 * Sets the local rotation of an entity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param rotation - The local rotation quaternion in `[x, y, z, w]` order.
+	 * @returns A promise that resolves when the local rotation has been changed.
 	 */
-	static SetLocalRotation(...args: [entity: Entity, rotation: quat]) {
-		return RpcClient.Call<void>("Transform::SetLocalRotation", ...args);
+	static SetLocalRotation(entity: Entity, rotation: quat) {
+		return RpcClient.Call<void>(
+			"Transform::SetLocalRotation",
+			entity,
+			rotation,
+		);
 	}
 
 	/**
-	 * Gets world rotation quaternion.
-	 * @param entity The entity with the transform component
-	 * @returns The rotation quaternion
+	 * Gets the world rotation of an entity.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the world rotation quaternion.
 	 */
-	static GetWorldRotation(...args: [entity: Entity]) {
-		return RpcClient.Call<quat>("Transform::GetWorldRotation", ...args);
+	static GetWorldRotation(entity: Entity) {
+		return RpcClient.Call<quat>("Transform::GetWorldRotation", entity);
 	}
 
 	/**
-	 * Gets local rotation quaternion.
-	 * @param entity The entity with the transform component
-	 * @returns The rotation quaternion
+	 * Gets the local rotation of an entity.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the local rotation quaternion.
 	 */
-	static GetLocalRotation(...args: [entity: Entity]) {
-		return RpcClient.Call<quat>("Transform::GetLocalRotation", ...args);
+	static GetLocalRotation(entity: Entity) {
+		return RpcClient.Call<quat>("Transform::GetLocalRotation", entity);
 	}
 
 	/**
-	 * Sets local scale vector.
-	 * @param entity The entity with the transform component
-	 * @param scale The scale vector
+	 * Sets the local scale of an entity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param scale - The local scale.
+	 * @returns A promise that resolves when the local scale has been changed.
 	 */
-	static SetLocalScale(...args: [entity: Entity, scale: vec3]) {
-		return RpcClient.Call<void>("Transform::SetLocalScale", ...args);
+	static SetLocalScale(entity: Entity, scale: vec3) {
+		return RpcClient.Call<void>("Transform::SetLocalScale", entity, scale);
 	}
 
 	/**
-	 * Gets local scale vector.
-	 * @param entity The entity with the transform component
-	 * @returns The scale vector
+	 * Gets the local scale of an entity.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the local scale.
 	 */
-	static GetLocalScale(...args: [entity: Entity]) {
-		return RpcClient.Call<vec3>("Transform::GetLocalScale", ...args);
+	static GetLocalScale(entity: Entity) {
+		return RpcClient.Call<vec3>("Transform::GetLocalScale", entity);
 	}
 }

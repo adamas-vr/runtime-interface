@@ -1,164 +1,221 @@
+/**
+ * APIs for creating and updating camera components.
+ *
+ * @module camera
+ */
 import { RpcClient } from "../rpc";
 import { Entity } from "../entity";
 import { Texture } from "./texture";
 
+/**
+ * Supported camera projection types.
+ */
 export enum ProjectionType {
+	/** Perspective projection. */
 	Perspective = 0,
+	/** Orthographic projection. */
 	Orthographic = 1,
 }
 
+/**
+ * Creates and updates camera components.
+ */
 export class CameraManager {
 	/**
-	 * Create a Camera component and attach it to the specified entity
-	 * @param entity The entity to attach the camera to
-	 * @returns boolean indicating success
+	 * Creates a camera component on an entity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @returns A promise that resolves to `true` if the camera component was
+	 * created, or `false` otherwise.
 	 */
-	static Create(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Camera::Create", ...args);
+	static Create(entity: Entity) {
+		return RpcClient.Call<boolean>("Camera::Create", entity);
 	}
 
 	/**
-	 * Destroy the Camera component from the specified entity
-	 * @param entity The entity to remove the camera from
-	 * @returns boolean indicating success
+	 * Removes a camera component from an entity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @returns A promise that resolves to `true` if the camera component was
+	 * removed, or `false` otherwise.
 	 */
-	static Destroy(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Camera::Destroy", ...args);
+	static Destroy(entity: Entity) {
+		return RpcClient.Call<boolean>("Camera::Destroy", entity);
 	}
 
 	/**
-	 * Check if the entity has a Camera component
-	 * @param entity The entity to check
-	 * @returns boolean indicating if camera component exists
+	 * Checks whether an entity has a camera component.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if the entity has a camera
+	 * component, or `false` otherwise.
 	 */
-	static HasComponent(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Camera::HasComponent", ...args);
+	static HasComponent(entity: Entity) {
+		return RpcClient.Call<boolean>("Camera::HasComponent", entity);
 	}
 
 	/**
-	 * Set if the camera component is enabled
-	 * @param entity The entity with the renderable component
-	 * @param enabled If the camera component is enabled
+	 * Sets whether a camera component is enabled.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param enabled - Whether the camera component is enabled.
+	 * @returns A promise that resolves when the enabled state has been changed.
 	 */
-	static SetEnabled(...args: [entity: Entity, enabled: boolean]) {
-		return RpcClient.Call<void>("Camera::SetEnabled", ...args);
-	}
-
-	static GetEnabled(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Camera::GetEnabled", ...args);
-	}
-
-	/**
-	 * Set the camera render target (targetTexture)
-	 * @param entity The entity that owns the camera
-	 * @param renderTexture RenderTexture handle
-	 * @returns boolean indicating success
-	 */
-	static SetRenderTexture(...args: [entity: Entity, renderTexture: Texture]) {
-		return RpcClient.Call<void>("Camera::SetRenderTexture", ...args);
+	static SetEnabled(entity: Entity, enabled: boolean) {
+		return RpcClient.Call<void>("Camera::SetEnabled", entity, enabled);
 	}
 
 	/**
-	 * Get the camera render target (targetTexture)
-	 * @param entity The entity that owns the camera
-	 * @returns RenderTexture handle, or -1 on failure
+	 * Gets whether a camera component is enabled.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if the camera component is
+	 * enabled, or `false` otherwise.
 	 */
-	static GetRenderTexture(...args: [entity: Entity]) {
-		return RpcClient.Call<Texture>("Camera::GetRenderTexture", ...args);
+	static GetEnabled(entity: Entity) {
+		return RpcClient.Call<boolean>("Camera::GetEnabled", entity);
 	}
 
 	/**
-	 * Set the camera projection type
-	 * @param entity The entity that owns the camera
-	 * @param projectionType Projection type flag
+	 * Sets the render texture of a camera.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param renderTexture - The {@link Texture} to assign as the render texture;
+	 * it must be a render texture.
+	 * @returns A promise that resolves when the render texture has been changed.
 	 */
-	static SetProjectionType(
-		...args: [entity: Entity, projectionType: ProjectionType]
-	) {
-		return RpcClient.Call<void>("Camera::SetProjectionType", ...args);
+	static SetRenderTexture(entity: Entity, renderTexture: Texture) {
+		return RpcClient.Call<void>("Camera::SetRenderTexture", entity, renderTexture);
 	}
 
 	/**
-	 * Get the camera projection type
-	 * @param entity The entity that owns the camera
-	 * @returns projection type flag: 0 = perspective, 1 = orthographic, -1 = failure
+	 * Gets the render texture of a camera.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the assigned {@link Texture}.
 	 */
-	static GetProjectionType(...args: [entity: Entity]) {
-		return RpcClient.Call<ProjectionType>("Camera::GetProjectionType", ...args);
+	static GetRenderTexture(entity: Entity) {
+		return RpcClient.Call<Texture>("Camera::GetRenderTexture", entity);
 	}
 
 	/**
-	 * Set the camera field of view (degrees)
-	 * @param entity The entity that owns the camera
-	 * @param fov Field of view in degrees
+	 * Sets the projection type of a camera.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param projectionType - The projection type to assign.
+	 * @returns A promise that resolves when the projection type has been changed.
 	 */
-	static SetFieldOfView(...args: [entity: Entity, fov: number]) {
-		return RpcClient.Call<void>("Camera::SetFieldOfView", ...args);
+	static SetProjectionType(entity: Entity, projectionType: ProjectionType) {
+		return RpcClient.Call<void>(
+			"Camera::SetProjectionType",
+			entity,
+			projectionType,
+		);
 	}
 
 	/**
-	 * Get the camera field of view (degrees)
-	 * @param entity The entity that owns the camera
-	 * @returns field of view in degrees, or -1 on failure
+	 * Gets the projection type of a camera.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the projection type.
 	 */
-	static GetFieldOfView(...args: [entity: Entity]) {
-		return RpcClient.Call<number>("Camera::GetFieldOfView", ...args);
+	static GetProjectionType(entity: Entity) {
+		return RpcClient.Call<ProjectionType>("Camera::GetProjectionType", entity);
 	}
 
 	/**
-	 * Set the camera orthographic size
-	 * Only meaningful when the camera is orthographic
-	 * @param entity The entity that owns the camera
-	 * @param orthographicSize Orthographic size value
+	 * Sets the field of view of a camera in degrees.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param fov - The field of view in degrees.
+	 * @returns A promise that resolves when the field of view has been changed.
 	 */
-	static SetOrthographicSize(
-		...args: [entity: Entity, orthographicSize: number]
-	) {
-		return RpcClient.Call<void>("Camera::SetOrthographicSize", ...args);
+	static SetFieldOfView(entity: Entity, fov: number) {
+		return RpcClient.Call<void>("Camera::SetFieldOfView", entity, fov);
 	}
 
 	/**
-	 * Get the camera orthographic size
-	 * @param entity The entity that owns the camera
-	 * @returns orthographic size, or -1 on failure
+	 * Gets the field of view of a camera in degrees.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the field of view in degrees.
 	 */
-	static GetOrthographicSize(...args: [entity: Entity]) {
-		return RpcClient.Call<number>("Camera::GetOrthographicSize", ...args);
+	static GetFieldOfView(entity: Entity) {
+		return RpcClient.Call<number>("Camera::GetFieldOfView", entity);
 	}
 
 	/**
-	 * Set the camera near clip plane
-	 * @param entity The entity that owns the camera
-	 * @param nearClipPlane Near clip plane distance
+	 * Sets the orthographic size of a camera.
+	 *
+	 * This value is used when the projection type is
+	 * {@link ProjectionType.Orthographic}.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param orthographicSize - The orthographic size.
+	 * @returns A promise that resolves when the orthographic size has been
+	 * changed.
 	 */
-	static SetNearClipPlane(...args: [entity: Entity, nearClipPlane: number]) {
-		return RpcClient.Call<void>("Camera::SetNearClipPlane", ...args);
+	static SetOrthographicSize(entity: Entity, orthographicSize: number) {
+		return RpcClient.Call<void>(
+			"Camera::SetOrthographicSize",
+			entity,
+			orthographicSize,
+		);
 	}
 
 	/**
-	 * Get the camera near clip plane
-	 * @param entity The entity that owns the camera
-	 * @returns near clip plane distance, or -1 on failure
+	 * Gets the orthographic size of a camera.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the orthographic size.
 	 */
-	static GetNearClipPlane(...args: [entity: Entity]) {
-		return RpcClient.Call<number>("Camera::GetNearClipPlane", ...args);
+	static GetOrthographicSize(entity: Entity) {
+		return RpcClient.Call<number>("Camera::GetOrthographicSize", entity);
 	}
 
 	/**
-	 * Set the camera far clip plane
-	 * @param entity The entity that owns the camera
-	 * @param farClipPlane Far clip plane distance
+	 * Sets the near clip plane distance of a camera.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param nearClipPlane - The near clip plane distance.
+	 * @returns A promise that resolves when the near clip plane has been changed.
 	 */
-	static SetFarClipPlane(...args: [entity: Entity, farClipPlane: number]) {
-		return RpcClient.Call<void>("Camera::SetFarClipPlane", ...args);
+	static SetNearClipPlane(entity: Entity, nearClipPlane: number) {
+		return RpcClient.Call<void>(
+			"Camera::SetNearClipPlane",
+			entity,
+			nearClipPlane,
+		);
 	}
 
 	/**
-	 * Get the camera far clip plane
-	 * @param entity The entity that owns the camera
-	 * @returns far clip plane distance, or -1 on failure
+	 * Gets the near clip plane distance of a camera.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the near clip plane distance.
 	 */
-	static GetFarClipPlane(...args: [entity: Entity]) {
-		return RpcClient.Call<number>("Camera::GetFarClipPlane", ...args);
+	static GetNearClipPlane(entity: Entity) {
+		return RpcClient.Call<number>("Camera::GetNearClipPlane", entity);
+	}
+
+	/**
+	 * Sets the far clip plane distance of a camera.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param farClipPlane - The far clip plane distance.
+	 * @returns A promise that resolves when the far clip plane has been changed.
+	 */
+	static SetFarClipPlane(entity: Entity, farClipPlane: number) {
+		return RpcClient.Call<void>("Camera::SetFarClipPlane", entity, farClipPlane);
+	}
+
+	/**
+	 * Gets the far clip plane distance of a camera.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the far clip plane distance.
+	 */
+	static GetFarClipPlane(entity: Entity) {
+		return RpcClient.Call<number>("Camera::GetFarClipPlane", entity);
 	}
 }

@@ -1,35 +1,55 @@
+/**
+ * APIs for creating, updating, and reading textures.
+ *
+ * @module texture
+ */
 import { vec2 } from "gl-matrix";
 import { RpcClient } from "../rpc";
 
+/**
+ * Opaque numeric handle that identifies a texture.
+ */
 export type Texture = number;
 
+/**
+ * Supported texture data formats.
+ */
 export enum TextureFormat {
-	/**  Alpha-only texture format, 8 bit integer. */
+	/** Alpha-only texture format, 8 bit integer. */
 	Alpha8 = 1,
-	/** Three channel (RGB) texture format, 8-bits unsigned integer per channel. */
+	/** Three channel RGB texture format, 8-bits unsigned integer per channel. */
 	RGB24 = 3,
-	/** Four channel (RGBA) texture format, 8-bits unsigned integer per channel. */
+	/** Four channel RGBA texture format, 8-bits unsigned integer per channel. */
 	RGBA32 = 4,
 }
 
+/**
+ * Supported render texture formats.
+ */
 export enum RenderTextureFormat {
-	/** A depth render texture format. */
+	/** Depth render texture format. */
 	Depth = 1,
-	/** A native shadowmap render texture format. */
+	/** Shadow map render texture format. */
 	Shadowmap = 3,
-	/** Default color render texture format: will be chosen accordingly to Frame Buffer format and Platform. */
+	/** Default color render texture format. */
 	Default = 7,
-	/** Default HDR color render texture format: will be chosen accordingly to Frame Buffer format and Platform. */
+	/** Default HDR color render texture format. */
 	DefaultHDR = 9,
 }
 
+/**
+ * Supported texture dimensions.
+ */
 export enum TextureDimension {
-	/** 2D texture (Texture2D). */
+	/** 2D texture. */
 	Tex2D = 2,
 	/** Cubemap texture.  */
 	Cube = 4,
 }
 
+/**
+ * Texture filtering modes.
+ */
 export enum TextureFilterMode {
 	Nearest = 0,
 	Linear = 1,
@@ -39,182 +59,217 @@ export enum TextureFilterMode {
 	LinearMipmapLinear = 5,
 }
 
+/**
+ * Texture wrapping modes.
+ */
 export enum TextureWrapMode {
 	ClampToEdge = 0,
 	Repeat = 1,
 	MirroredRepeat = 2,
 }
 
+/**
+ * Image data returned from a texture readback operation.
+ */
 export interface ImageReadbackResult {
+	/** Width of the image, in pixels. */
 	width: number;
+	/** Height of the image, in pixels. */
 	height: number;
+	/** Encoding of the returned image data. */
 	kind: "rgba" | "png" | "jpeg";
 
-	/**  Base64 of payload (raw bytes or encoded bytes) */
+	/** Base64-encoded image data. */
 	data: string;
 }
 
+/**
+ * Creates, updates, and reads textures.
+ */
 export class TextureManager {
 	/**
-	 * Create a 2D texture
-	 * @param width The texture width
-	 * @param height The texture height
-	 * @param format The texture format
-	 * @param linear Whether the texture is color (sRGB) or raw data (linear)
-	 * @returns The texture handle
+	 * Creates a 2D texture.
+	 *
+	 * @param width - The texture width, in pixels.
+	 * @param height - The texture height, in pixels.
+	 * @param format - The texture format. Defaults to {@link TextureFormat.RGBA32}.
+	 * @param linear - Whether the texture should use linear color format. Defaults to
+	 * `false` (sRGB).
+	 * @returns A promise that resolves to the created {@link Texture}.
 	 */
 	static async Create2D(
-		...args: [
-			width: number,
-			height: number,
-			format?: TextureFormat,
-			linear?: boolean,
-		]
+		width: number,
+		height: number,
+		format?: TextureFormat,
+		linear?: boolean,
 	) {
 		return RpcClient.Call<Texture>(
 			"Texture::Create2D",
 			RpcClient.GetClientId(),
-			args[0],
-			args[1],
-			args[2] ?? TextureFormat.RGBA32,
-			args[3] ?? false,
+			width,
+			height,
+			format ?? TextureFormat.RGBA32,
+			linear ?? false,
 		);
 	}
 
 	/**
-	 * Create a render texture
-	 * @param width The texture width
-	 * @param height The texture height
-	 * @param depth The texture depth
-	 * @param format The texture format
-	 * @returns The texture handle
+	 * Creates a render texture.
+	 *
+	 * @param width - The texture width, in pixels. Defaults to `512`.
+	 * @param height - The texture height, in pixels. Defaults to `512`.
+	 * @param depth - The depth buffer size. Defaults to `16`.
+	 * @param dimension - The texture dimension. Defaults to
+	 * {@link TextureDimension.Tex2D}.
+	 * @param format - The texture format. Defaults to
+	 * {@link RenderTextureFormat.DefaultHDR}.
+	 * @returns A promise that resolves to the created {@link Texture}.
 	 */
 	static async CreateRenderTexture(
-		...args: [
-			width?: number,
-			height?: number,
-			depth?: number,
-			dimension?: TextureDimension,
-			format?: RenderTextureFormat,
-		]
+		width?: number,
+		height?: number,
+		depth?: number,
+		dimension?: TextureDimension,
+		format?: RenderTextureFormat,
 	) {
 		return RpcClient.Call<Texture>(
 			"Texture::CreateRenderTexture",
 			RpcClient.GetClientId(),
-			args[0] ?? 512,
-			args[1] ?? 512,
-			args[2] ?? 16,
-			args[3] ?? TextureDimension.Tex2D,
-			args[4] ?? RenderTextureFormat.DefaultHDR,
+			width ?? 512,
+			height ?? 512,
+			depth ?? 16,
+			dimension ?? TextureDimension.Tex2D,
+			format ?? RenderTextureFormat.DefaultHDR,
 		);
 	}
 
 	/**
-	 * Destroy a texture
-	 * @param handle The texture handle to destroy
-	 * @returns boolean indicating success
+	 * Destroys a texture.
+	 *
+	 * @param handle - The {@link Texture} to destroy.
+	 * @returns A promise that resolves to `true` if the texture was destroyed, or
+	 * `false` otherwise.
 	 */
-	static Destroy(...args: [handle: Texture]) {
-		return RpcClient.Call<boolean>("Texture::Destroy", ...args);
-	}
-
-	static GetTextureSize(...args: [handle: Texture]) {
-		return RpcClient.Call<vec2>("Texture::GetTextureSize", ...args);
+	static Destroy(handle: Texture) {
+		return RpcClient.Call<boolean>("Texture::Destroy", handle);
 	}
 
 	/**
-	 * Set raw RGBA iamge for the texture
-	 * @param handle The texture handle
-	 * @param rgbaData RGBA values in array buffer, each element is 1 byte in R, G, B, A order
-	 * @param width The texture width
-	 * @param height The texture height
-	 * @returns boolean indicating success
+	 * Gets the size of a texture.
+	 *
+	 * @param handle - The {@link Texture} to inspect.
+	 * @returns A promise that resolves to the texture size as `[width, height]`.
+	 */
+	static GetTextureSize(handle: Texture) {
+		return RpcClient.Call<vec2>("Texture::GetTextureSize", handle);
+	}
+
+	/**
+	 * Sets raw RGBA image data for a texture.
+	 *
+	 * @param handle - The {@link Texture} to update.
+	 * @param rgbaData - RGBA byte data in `R`, `G`, `B`, `A` order.
+	 * @param width - The image width, in pixels.
+	 * @param height - The image height, in pixels.
+	 * @returns A promise that resolves when the image data has been changed.
 	 */
 	static LoadRGBAImage(
-		...args: [
-			handle: Texture,
-			rgbaData: Uint8Array,
-			width: number,
-			height: number,
-		]
+		handle: Texture,
+		rgbaData: Uint8Array,
+		width: number,
+		height: number,
 	) {
-		return RpcClient.Call<void>("Texture::LoadRawTextureData", ...args);
+		return RpcClient.Call<void>(
+			"Texture::LoadRawTextureData",
+			handle,
+			rgbaData,
+			width,
+			height,
+		);
 	}
 
 	/**
-	 * Loads PNG, JPG, and EXR image byte array into a texture.
-	 * @param handle The texture handle
-	 * @param image PNG, JPG, or EXR image data in arraybuffer
-	 * @returns boolean indicating success
+	 * Loads encoded image data into a texture.
+	 *
+	 * @param handle - The {@link Texture} to update.
+	 * @param image - PNG, JPG, or EXR image data.
+	 * @returns A promise that resolves when the image data has been changed.
 	 */
-	static LoadImage(...args: [handle: Texture, image: Uint8Array]) {
-		return RpcClient.Call<void>("Texture::LoadImage", ...args);
+	static LoadImage(handle: Texture, image: Uint8Array) {
+		return RpcClient.Call<void>("Texture::LoadImage", handle, image);
 	}
 
 	/**
-	 * Read back image data in RGBA format
-	 * @param handle The texture handle
-	 * @returns image readback result
+	 * Gets image data from a texture in RGBA format.
+	 *
+	 * @param handle - The {@link Texture} to read.
+	 * @returns A promise that resolves to the image data.
 	 */
-	static ReadbackRGBAImage(...args: [handle: Texture]) {
+	static ReadbackRGBAImage(handle: Texture) {
 		return RpcClient.Call<ImageReadbackResult>(
 			"Texture::ReadbackRGBAImage",
-			args[0],
+			handle,
 		);
 	}
 
 	/**
-	 * Read back image data in jpg format
-	 * @param handle The texture handle
-	 * @returns image readback result
+	 * Gets image data from a texture in JPEG format.
+	 *
+	 * @param handle - The {@link Texture} to read.
+	 * @param quality - The JPEG quality, from `0` to `100`. Defaults to `75`.
+	 * @returns A promise that resolves to the image data.
 	 */
-	static ReadbackJPGImage(...args: [handle: Texture, quality?: number]) {
+	static ReadbackJPGImage(handle: Texture, quality?: number) {
 		return RpcClient.Call<ImageReadbackResult>(
 			"Texture::ReadbackJPGImage",
-			args[0],
-			args[1] ?? 75,
+			handle,
+			quality ?? 75,
 		);
 	}
 
 	/**
-	 * Read back image data in png format
-	 * @param handle The texture handle
-	 * @returns image readback result
+	 * Gets image data from a texture in PNG format.
+	 *
+	 * @param handle - The {@link Texture} to read.
+	 * @returns A promise that resolves to the image data.
 	 */
-	static ReadbackPNGImage(...args: [handle: Texture]) {
+	static ReadbackPNGImage(handle: Texture) {
 		return RpcClient.Call<ImageReadbackResult>(
 			"Texture::ReadbackPNGImage",
-			args[0],
+			handle,
 		);
 	}
 
 	/**
-	 * Set the filter mode for the texture
-	 * @param handle The texture handle
-	 * @param mode The filter mode
-	 * @returns boolean indicating success
+	 * Sets the filter mode of a texture.
+	 *
+	 * @param handle - The {@link Texture} to update.
+	 * @param mode - The filter mode to apply.
+	 * @returns A promise that resolves when the filter mode has been changed.
 	 */
-	static SetFilterMode(...args: [handle: Texture, mode: TextureFilterMode]) {
-		return RpcClient.Call<void>("Texture::SetFilterMode", ...args);
+	static SetFilterMode(handle: Texture, mode: TextureFilterMode) {
+		return RpcClient.Call<void>("Texture::SetFilterMode", handle, mode);
 	}
 
 	/**
-	 * Set the U coordinate wrap mode for the texture
-	 * @param handle The texture handle
-	 * @param wrapMode The wrap mode
-	 * @returns boolean indicating success
+	 * Sets the wrap mode of a texture on the U axis.
+	 *
+	 * @param handle - The {@link Texture} to update.
+	 * @param wrapMode - The wrap mode to apply.
+	 * @returns A promise that resolves when the wrap mode has been changed.
 	 */
-	static SetWrapModeU(...args: [handle: Texture, wrapMode: TextureWrapMode]) {
-		return RpcClient.Call<void>("Texture::SetWrapModeU", ...args);
+	static SetWrapModeU(handle: Texture, wrapMode: TextureWrapMode) {
+		return RpcClient.Call<void>("Texture::SetWrapModeU", handle, wrapMode);
 	}
 
 	/**
-	 * Set the V coordinate wrap mode for the texture
-	 * @param handle The texture handle
-	 * @param wrapMode The wrap mode
-	 * @returns boolean indicating success
+	 * Sets the wrap mode of a texture on the V axis.
+	 *
+	 * @param handle - The {@link Texture} to update.
+	 * @param wrapMode - The wrap mode to apply.
+	 * @returns A promise that resolves when the wrap mode has been changed.
 	 */
-	static SetWrapModeV(...args: [handle: Texture, wrapMode: TextureWrapMode]) {
-		return RpcClient.Call<void>("Texture::SetWrapModeV", ...args);
+	static SetWrapModeV(handle: Texture, wrapMode: TextureWrapMode) {
+		return RpcClient.Call<void>("Texture::SetWrapModeV", handle, wrapMode);
 	}
 }

@@ -1,96 +1,119 @@
+/**
+ * APIs for creating and updating materials.
+ *
+ * @module material
+ */
 import { Entity } from "../entity";
 import { RpcClient } from "../rpc";
 import { vec4 } from "gl-matrix";
 import { Texture } from "./texture";
 
+/**
+ * Opaque numeric handle that identifies a material.
+ */
 export type Material = number;
 
+/**
+ * Supported material properties.
+ */
 export enum MaterialProperty {
-	/** vec4 [0.0, 1.0] */
+	/** Base color as a `vec4`, with each channel in the range `[0.0, 1.0]`. */
 	BaseColor = "baseColorFactor",
-	/** 2D Texture */
+	/** Base color texture. */
 	BaseColorMap = "baseColorTexture",
-	/** vec4 */
+	/** Base color texture scale and offset as a `vec4`. */
 	BaseColorMapScaleOffset = "baseColorTexture_ST",
-	/** float [0, +inf] */
+	/** Base color texture rotation as a non-negative number in `[0, +inf]`. */
 	BaseColorMapRotation = "baseColorTextureRotation",
 
-	/** float [0.0, 2.0] */
+	/** Normal map strength in the range `[0.0, 2.0]`. */
 	NormalScale = "normalScale",
-	/** 2D Texture */
+	/** Normal map texture. */
 	NormalMap = "normalTexture",
-	/** vec4 */
+	/** Normal map texture scale and offset as a `vec4`. */
 	NormalMapScaleOffset = "normalTexture_ST",
-	/** float [0, +inf] */
+	/** Normal map texture rotation as a non-negative number in `[0, +inf]`. */
 	NormalMapRotation = "normalTextureRotation",
 
-	/** vec3 [0.0, +inf] HDR supported */
+	/** Emission color as a vector with values in the range `[0.0, +inf]`. */
 	Emission = "emissiveFactor",
-	/** 2D Texture */
+	/** Emission texture. */
 	EmissionMap = "emissiveTexture",
-	/** vec4 */
+	/** Emission texture scale and offset as a `vec4`. */
 	EmissionMapScaleOffset = "emissiveTexture_ST",
-	/** float [0, +inf] */
+	/** Emission texture rotation as a non-negative number in `[0, +inf]`. */
 	EmissionMapRotation = "emissiveTextureRotation",
 
-	/** float [0.0, 1.0] */
+	/** Occlusion strength in the range `[0.0, 1.0]`. */
 	OcclusionStrength = "occlusionStrength",
-	/** 2D Texture */
+	/** Occlusion texture. */
 	OcclusionMap = "occlusionTexture",
-	/** vec4 */
+	/** Occlusion texture scale and offset as a `vec4`. */
 	OcclusionMapScaleOffset = "occlusionTexture_ST",
-	/** float [0, +inf] */
+	/** Occlusion texture rotation as a non-negative number in `[0, +inf]`. */
 	OcclusionMapRotation = "occlusionTextureRotation",
 
-	/** float [0.0, 1.0] */
+	/** Metallic value in the range `[0.0, 1.0]`. */
 	Metalness = "metallicFactor",
-	/** float [0.0, 1.0] */
+	/** Roughness value in the range `[0.0, 1.0]`. */
 	Roughness = "roughnessFactor",
-	/** float */
+	/** Metallic-roughness texture. */
 	MetallicRoughnessMap = "metallicRoughnessTexture",
-	/** vec4 */
+	/** Metallic-roughness texture scale and offset as a `vec4`. */
 	MetallicRoughnessMapScaleOffset = "metallicRoughnessTexture_ST",
-	/** float [0, +inf] */
+	/** Metallic-roughness texture rotation as a non-negative number in `[0, +inf]`. */
 	MetallicRoughnessMapRotation = "metallicRoughnessTextureRotation",
 
-	/** float [0.0, 1.0] */
+	/** Alpha cutoff value in the range `[0.0, 1.0]`. */
 	AlphaCutoff = "alphaCutoff",
 
-	/** float 0: Two Sides; 2: Front Only */
+	/** Culling mode, where `0` means two-sided and `2` means front-only. */
 	Culling = "_Cull",
 }
 
+/**
+ * Supported alpha modes for a material.
+ */
 export enum AlphaMode {
+	/** Fully opaque alpha mode. */
 	Opaque = "Opaque",
+	/** Masked alpha mode that uses the alpha cutoff to discard low-alpha fragments. */
 	Mask = "Mask",
+	/** Blended alpha mode that mixes the material color with other colors using alpha. */
 	Blend = "Blend",
 }
 
+/**
+ * Creates and updates materials.
+ */
 export class MaterialManager {
 	/**
-	 * Create a new material
-	 * @returns The material handle
+	 * Creates a material.
+	 *
+	 * @returns A promise that resolves to the created {@link Material}.
 	 */
 	static Create(): Promise<Material>;
 	/**
-	 * Create a new material and attach it to a renderable component
-	 * @param entity The entity with the renderable component
-	 * @param submeshIndex The submesh index to attach to (default: 0)
-	 * @returns The material handle
+	 * Creates a material and assigns it to an entity.
+	 *
+	 * @param entity - The {@link Entity} to assign the material to.
+	 * @param submeshIndex - The submesh index to assign the material to. Defaults
+	 * to `0`.
+	 * @returns A promise that resolves to the created {@link Material}.
 	 */
 	static Create(entity: Entity, submeshIndex?: number): Promise<Material>;
-	static async Create(...args: [entity?: Entity, submeshIndex?: number]) {
+	static async Create(entity?: Entity, submeshIndex?: number) {
 		const matHandle = await RpcClient.Call<Material>(
 			"Material::Create",
 			RpcClient.GetClientId(),
 		);
 
-		if (args[0] !== undefined) {
+		if (entity !== undefined) {
 			await RpcClient.Call<boolean>(
 				"Renderable::SetMaterial",
-				args[0],
+				entity,
 				matHandle,
-				args[1] ?? 0,
+				submeshIndex ?? 0,
 			);
 		}
 
@@ -98,42 +121,46 @@ export class MaterialManager {
 	}
 
 	/**
-	 * Destroy a material
-	 * @param handle The material handle to destroy
-	 * @returns boolean indicating success
+	 * Destroys a material.
+	 *
+	 * @param handle - The {@link Material} to destroy.
+	 * @returns A promise that resolves to `true` if the material was destroyed, or
+	 * `false` otherwise.
 	 */
-	static Destroy(...args: [handle: Material]) {
-		return RpcClient.Call<boolean>("Material::Destroy", ...args);
+	static Destroy(handle: Material) {
+		return RpcClient.Call<boolean>("Material::Destroy", handle);
 	}
 
 	/**
-	 * Set a float property on the material
-	 * @param handle The material handle
-	 * @param property The property name
-	 * @param value The float value
-	 * @returns boolean indicating success
+	 * Sets a numeric property on a material.
+	 *
+	 * @param handle - The {@link Material} to update.
+	 * @param property - The property to change.
+	 * @param value - The numeric value to assign.
+	 * @returns A promise that resolves when the property has been changed.
 	 */
-	static SetFloat(
-		...args: [handle: Material, property: MaterialProperty, value: number]
-	) {
-		return RpcClient.Call<void>("Material::SetFloat", ...args);
+	static SetFloat(handle: Material, property: MaterialProperty, value: number) {
+		return RpcClient.Call<void>("Material::SetFloat", handle, property, value);
 	}
 
 	/**
-	 * Get a float property from the material
-	 * @param handle The material handle
-	 * @param property The property name
-	 * @returns The float value
+	 * Gets a numeric property from a material.
+	 *
+	 * @param handle - The {@link Material} to inspect.
+	 * @param property - The property to read.
+	 * @returns A promise that resolves to the numeric property value.
 	 */
-	static GetFloat(...args: [handle: Material, property: MaterialProperty]) {
-		return RpcClient.Call<number>("Material::GetFloat", ...args);
+	static GetFloat(handle: Material, property: MaterialProperty) {
+		return RpcClient.Call<number>("Material::GetFloat", handle, property);
 	}
 
 	/**
-	 * Set a vector property on the material
-	 * @param handle The material handle
-	 * @param property The property name
-	 * @param value vec4 value
+	 * Sets a vector property on a material.
+	 *
+	 * @param handle - The {@link Material} to update.
+	 * @param property - The property to change.
+	 * @param value - The vector value to assign.
+	 * @returns A promise that resolves when the property has been changed.
 	 */
 	static SetVector(handle: Material, property: MaterialProperty, value: vec4) {
 		let newW = value[3];
@@ -146,78 +173,106 @@ export class MaterialManager {
 	}
 
 	/**
-	 * Get a vector property on the material
-	 * @param handle The material handle
-	 * @param property The property name
-	 * @returns vec4 value
+	 * Gets a vector property from a material.
+	 *
+	 * @param handle - The {@link Material} to inspect.
+	 * @param property - The property to read.
+	 * @returns A promise that resolves to the vector property value.
 	 */
-	static async GetVector(
-		...args: [handle: Material, property: MaterialProperty]
-	) {
-		const arr = await RpcClient.Call<vec4>("Material::GetVector", ...args);
+	static async GetVector(handle: Material, property: MaterialProperty) {
+		const arr = await RpcClient.Call<vec4>(
+			"Material::GetVector",
+			handle,
+			property,
+		);
 
 		let newW = arr[3];
-		if (args[1].includes("Texture_ST")) {
+		if (property.includes("Texture_ST")) {
 			newW = 1 - arr[1] - newW;
 		}
 		return vec4.fromValues(arr[0], arr[1], arr[2], newW);
 	}
 
 	/**
-	 * Set a color property on the material
-	 * @param handle The material handle
-	 * @param property The property name
-	 * @param rgba vec4 color [0.0, 1.0]
+	 * Sets a color property on a material.
+	 *
+	 * @param handle - The {@link Material} to update.
+	 * @param property - The property to change.
+	 * @param rgba - The color value to assign as an RGBA `vec4`, with each channel
+	 * in the range `[0.0, 1.0]`.
+	 * @returns A promise that resolves when the property has been changed.
 	 */
-	static SetColor(
-		...args: [handle: Material, property: MaterialProperty, rgba: vec4]
-	) {
-		return RpcClient.Call<void>("Material::SetColor", ...args);
+	static SetColor(handle: Material, property: MaterialProperty, rgba: vec4) {
+		return RpcClient.Call<void>("Material::SetColor", handle, property, rgba);
 	}
 
 	/**
-	 * Get a color property from the material
-	 * @param handle The material handle
-	 * @param property The property name
-	 * @returns Color
+	 * Gets a color property from a material.
+	 *
+	 * @param handle - The {@link Material} to inspect.
+	 * @param property - The property to read.
+	 * @returns A promise that resolves to the color value as an RGBA `vec4`, with
+	 * each channel in the range `[0.0, 1.0]`.
 	 */
-	static async GetColor(
-		...args: [handle: Material, property: MaterialProperty]
-	) {
-		return RpcClient.Call<vec4>("Material::GetColor", ...args);
+	static async GetColor(handle: Material, property: MaterialProperty) {
+		return RpcClient.Call<vec4>("Material::GetColor", handle, property);
 	}
 
 	/**
-	 * Set a texture property on the material
-	 * @param handle The material handle
-	 * @param property The property name
-	 * @param texture The texture handle
+	 * Sets a texture property on a material.
+	 *
+	 * @param handle - The {@link Material} to update.
+	 * @param property - The property to change.
+	 * @param texture - The {@link Texture} to assign.
+	 * @returns A promise that resolves when the property has been changed.
 	 */
 	static SetTexture(
-		...args: [handle: Material, property: MaterialProperty, texture: Texture]
+		handle: Material,
+		property: MaterialProperty,
+		texture: Texture,
 	) {
-		return RpcClient.Call<void>("Material::SetTexture", ...args);
-	}
-
-	/**
-	 * Get a texture property on the material
-	 * @param handle The material handle
-	 * @param property The property name
-	 * @returns The texture handle
-	 */
-	static GetTexture(...args: [handle: Material, property: MaterialProperty]) {
-		return RpcClient.Call<Texture>("Material::GetTexture", ...args);
-	}
-
-	static SetAlphaMode(...args: [handle: Material, alphaMode?: AlphaMode]) {
 		return RpcClient.Call<void>(
-			"Material::SetAlphaMode",
-			args[0],
-			args[1] ?? AlphaMode.Opaque,
+			"Material::SetTexture",
+			handle,
+			property,
+			texture,
 		);
 	}
 
-	static GetAlphaMode(...args: [handle: Material]) {
-		return RpcClient.Call<AlphaMode>("Material::GetAlphaMode", ...args);
+	/**
+	 * Gets a texture property from a material.
+	 *
+	 * @param handle - The {@link Material} to inspect.
+	 * @param property - The property to read.
+	 * @returns A promise that resolves to the assigned {@link Texture}.
+	 */
+	static GetTexture(handle: Material, property: MaterialProperty) {
+		return RpcClient.Call<Texture>("Material::GetTexture", handle, property);
+	}
+
+	/**
+	 * Sets the alpha mode of a material.
+	 *
+	 * @param handle - The {@link Material} to update.
+	 * @param alphaMode - The alpha mode to assign. Defaults to
+	 * {@link AlphaMode.Opaque}.
+	 * @returns A promise that resolves when the alpha mode has been changed.
+	 */
+	static SetAlphaMode(handle: Material, alphaMode?: AlphaMode) {
+		return RpcClient.Call<void>(
+			"Material::SetAlphaMode",
+			handle,
+			alphaMode ?? AlphaMode.Opaque,
+		);
+	}
+
+	/**
+	 * Gets the alpha mode of a material.
+	 *
+	 * @param handle - The {@link Material} to inspect.
+	 * @returns A promise that resolves to the alpha mode.
+	 */
+	static GetAlphaMode(handle: Material) {
+		return RpcClient.Call<AlphaMode>("Material::GetAlphaMode", handle);
 	}
 }

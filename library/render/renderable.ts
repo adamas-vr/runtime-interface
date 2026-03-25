@@ -1,8 +1,16 @@
+/**
+ * APIs for creating and updating renderable components.
+ *
+ * @module renderable
+ */
 import { RpcClient } from "../rpc";
 import { Entity } from "../entity";
 import { Material } from "./material";
 import { Mesh } from "./mesh";
 
+/**
+ * Supported shadow casting modes for a renderable component.
+ */
 export enum ShadowCastingMode {
 	/** No shadows are cast from this object. */
 	Off = 0,
@@ -14,155 +22,210 @@ export enum ShadowCastingMode {
 	ShadowsOnly = 3,
 }
 
+/**
+ * Creates and updates renderable components.
+ */
 export class RenderableManager {
 	/**
-	 * Create a renderable component and attach it to the specified entity
-	 * @param entity The entity to attach the renderable component to
-	 * @returns boolean indicating success
+	 * Creates a renderable component on an entity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param isSkinnedMesh - Whether the renderable should be created as a skinned
+	 * mesh. Defaults to `false`. Blend shapes only work when this is `true`.
+	 * @returns A promise that resolves to `true` if the renderable component was
+	 * created, or `false` otherwise.
 	 */
-	static Create(...args: [entity: Entity, isSkinnedMesh?: boolean]) {
+	static Create(entity: Entity, isSkinnedMesh?: boolean) {
 		return RpcClient.Call<boolean>(
 			"Renderable::Create",
-			args[0],
-			args[1] ?? false,
+			entity,
+			isSkinnedMesh ?? false,
 		);
 	}
 
 	/**
-	 * Destroy the Renderable component on this entity.
-	 * @param entity The entity to remove the renderable component from
-	 * @returns boolean indicating success
+	 * Removes a renderable component from an entity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @returns A promise that resolves to `true` if the renderable component was
+	 * removed, or `false` otherwise.
 	 */
-	static Destroy(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Renderable::Destroy", ...args);
+	static Destroy(entity: Entity) {
+		return RpcClient.Call<boolean>("Renderable::Destroy", entity);
 	}
 
 	/**
-	 * Returns whether this entity currently has a Renderable.
-	 * @param entity The entity to check
-	 * @returns boolean indicating if renderable component exists
+	 * Checks whether an entity has a renderable component.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if the entity has a renderable
+	 * component, or `false` otherwise.
 	 */
-	static HasComponent(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Renderable::HasComponent", ...args);
+	static HasComponent(entity: Entity) {
+		return RpcClient.Call<boolean>("Renderable::HasComponent", entity);
 	}
 
 	/**
-	 * Set if the renderable component is enabled
-	 * @param entity The entity with the renderable component
-	 * @param enabled If the renderable component is enabled
-	 * @returns boolean indicating success
+	 * Sets whether a renderable component is enabled.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param enabled - Whether the renderable component is enabled.
+	 * @returns A promise that resolves when the enabled state has been changed.
 	 */
-	static SetEnabled(...args: [entity: Entity, enabled: boolean]) {
-		return RpcClient.Call<void>("Renderable::SetEnabled", ...args);
-	}
-
-	static GetEnabled(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Renderable::GetEnabled", ...args);
+	static SetEnabled(entity: Entity, enabled: boolean) {
+		return RpcClient.Call<void>("Renderable::SetEnabled", entity, enabled);
 	}
 
 	/**
-	 * Set the mesh for the renderable component
-	 * @param entity The entity with the renderable component
-	 * @param mesh The mesh handle to attach
-	 * @returns boolean indicating success
+	 * Gets whether a renderable component is enabled.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if the renderable component is
+	 * enabled, or `false` otherwise.
 	 */
-	static SetMesh(...args: [entity: Entity, mesh: Mesh]) {
-		return RpcClient.Call<void>("Renderable::SetMesh", ...args);
-	}
-
-	static GetMesh(...args: [entity: Entity]) {
-		return RpcClient.Call<Mesh>("Renderable::GetMesh", ...args);
+	static GetEnabled(entity: Entity) {
+		return RpcClient.Call<boolean>("Renderable::GetEnabled", entity);
 	}
 
 	/**
-	 * @param entity
-	 * @param index The entity with the renderable component
-	 * @param weight [0, 1.0] The weight of the blend shape
-	 * @returns boolean indicating success
+	 * Sets the mesh of a renderable component.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param mesh - The {@link Mesh} to assign.
+	 * @returns A promise that resolves when the mesh has been changed.
 	 */
-	static SetBlendShapeWeight(
-		...args: [entity: Entity, index: number, weight: number]
-	) {
-		return RpcClient.Call<void>("Renderable::SetBlendShapeWeight", ...args);
+	static SetMesh(entity: Entity, mesh: Mesh) {
+		return RpcClient.Call<void>("Renderable::SetMesh", entity, mesh);
 	}
 
 	/**
-	 * Get blend shape weight at the given index
-	 * @param entity
-	 * @param index The entity with the renderable component
-	 * @returns boolean indicating success
+	 * Gets the mesh of a renderable component.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the assigned {@link Mesh}.
 	 */
-	static GetBlendShapeWeight(...args: [entity: Entity, index: number]) {
-		return RpcClient.Call<number>("Renderable::GetBlendShapeWeight", ...args);
+	static GetMesh(entity: Entity) {
+		return RpcClient.Call<Mesh>("Renderable::GetMesh", entity);
 	}
 
 	/**
-	 * Set the material for the renderable component
-	 * @param entity The entity with the renderable component
-	 * @param material The material handle to attach
-	 * @param index The material index (default: 0)
-	 * @returns boolean indicating success
+	 * Sets the weight of a blend shape.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param index - The blend shape index.
+	 * @param weight - The blend shape weight in the range `[0.0, 1.0]`.
+	 * @returns A promise that resolves when the blend shape weight has been
+	 * changed.
 	 */
-	static SetMaterial(
-		...args: [entity: Entity, material: Material, index?: number]
-	) {
+	static SetBlendShapeWeight(entity: Entity, index: number, weight: number) {
+		return RpcClient.Call<void>(
+			"Renderable::SetBlendShapeWeight",
+			entity,
+			index,
+			weight,
+		);
+	}
+
+	/**
+	 * Gets the weight of a blend shape.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @param index - The blend shape index.
+	 * @returns A promise that resolves to the blend shape weight.
+	 */
+	static GetBlendShapeWeight(entity: Entity, index: number) {
+		return RpcClient.Call<number>(
+			"Renderable::GetBlendShapeWeight",
+			entity,
+			index,
+		);
+	}
+
+	/**
+	 * Sets the material of a renderable component.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param material - The {@link Material} to assign.
+	 * @param index - The material index. Defaults to `0`.
+	 * @returns A promise that resolves when the material has been changed.
+	 */
+	static SetMaterial(entity: Entity, material: Material, index?: number) {
 		return RpcClient.Call<void>(
 			"Renderable::SetMaterial",
-			args[0],
-			args[1],
-			args[2] ?? 0,
+			entity,
+			material,
+			index ?? 0,
 		);
 	}
 
 	/**
-	 * Get the material for the renderable component
-	 * @param entity The entity with the renderable component
-	 * @param index The material index (default: 0)
-	 * @returns material
+	 * Gets the material of a renderable component.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @param index - The material index. Defaults to `0`.
+	 * @returns A promise that resolves to the assigned {@link Material}.
 	 */
-	static GetMaterial(...args: [entity: Entity, index?: number]) {
+	static GetMaterial(entity: Entity, index?: number) {
 		return RpcClient.Call<Material>(
 			"Renderable::GetMaterial",
-			args[0],
-			args[1] ?? 0,
+			entity,
+			index ?? 0,
 		);
 	}
 
 	/**
-	 * Enable or disable receiving shadows on this Renderable.
-	 * @param entity The entity with the renderable component
-	 * @param receive Whether to receive shadows
-	 * @returns boolean indicating success
+	 * Sets whether a renderable component receives shadows.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param receive - Whether the renderable component receives shadows.
+	 * @returns A promise that resolves when the receive-shadows setting has been
+	 * changed.
 	 */
-	static SetReceiveShadows(...args: [entity: Entity, receive: boolean]) {
-		return RpcClient.Call<void>("Renderable::SetReceiveShadows", ...args);
-	}
-
-	static GetReceiveShadows(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Renderable::GetReceiveShadows", ...args);
-	}
-
-	/**
-	 * Set shadow‐casting mode.
-	 * @param entity The entity with the renderable component
-	 * @param shadowMode The shadow casting mode
-	 * @returns boolean indicating success
-	 */
-	static SetShadowMode(
-		...args: [entity: Entity, shadowMode: ShadowCastingMode]
-	) {
-		return RpcClient.Call<void>("Renderable::SetShadowMode", ...args);
+	static SetReceiveShadows(entity: Entity, receive: boolean) {
+		return RpcClient.Call<void>(
+			"Renderable::SetReceiveShadows",
+			entity,
+			receive,
+		);
 	}
 
 	/**
-	 * Get shadow‐casting mode.
-	 * @param entity The entity with the renderable component
-	 * @returns boolean indicating success
+	 * Gets whether a renderable component receives shadows.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if the renderable component
+	 * receives shadows, or `false` otherwise.
 	 */
-	static GetShadowMode(...args: [entity: Entity]) {
+	static GetReceiveShadows(entity: Entity) {
+		return RpcClient.Call<boolean>("Renderable::GetReceiveShadows", entity);
+	}
+
+	/**
+	 * Sets the shadow casting mode of a renderable component.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param shadowMode - The shadow casting mode to assign.
+	 * @returns A promise that resolves when the shadow casting mode has been
+	 * changed.
+	 */
+	static SetShadowMode(entity: Entity, shadowMode: ShadowCastingMode) {
+		return RpcClient.Call<void>(
+			"Renderable::SetShadowMode",
+			entity,
+			shadowMode,
+		);
+	}
+
+	/**
+	 * Gets the shadow casting mode of a renderable component.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the shadow casting mode.
+	 */
+	static GetShadowMode(entity: Entity) {
 		return RpcClient.Call<ShadowCastingMode>(
 			"Renderable::GetShadowMode",
-			...args,
+			entity,
 		);
 	}
 }

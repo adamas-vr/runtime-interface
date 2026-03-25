@@ -1,136 +1,221 @@
+/**
+ * APIs for creating and updating light components.
+ *
+ * @module light
+ */
 import { RpcClient } from "../rpc";
 import { Entity } from "../entity";
 import { vec3 } from "gl-matrix";
 
+/**
+ * Supported shadow modes for a light.
+ */
 export enum LightShadowMode {
+	/** Shadow casting is disabled. */
 	NoShadows = 0,
+	/** Cast hard shadows. */
 	Hard = 1,
+	/** Cast soft shadows. */
 	Soft = 2,
 }
 
+/**
+ * Supported light types.
+ */
 export enum LightType {
+	/** Spot light. */
 	Spot = 0,
+	/** Directional light. */
 	Directional = 1,
+	/** Point light. */
 	Point = 2,
 }
 
+/**
+ * Creates and updates light components.
+ */
 export class LightManager {
 	/**
-	 * Create a Light component and attach it to the specified entity
-	 * @param entity The entity to attach the light to
-	 * @param type The type of light to create
-	 * @returns boolean indicating success
+	 * Creates a light component on an entity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param type - The light type to create.
+	 * @returns A promise that resolves to `true` if the light component was
+	 * created, or `false` otherwise.
 	 */
-	static Create(...args: [entity: Entity, type: LightType]) {
-		return RpcClient.Call<boolean>("Light::Create", ...args);
+	static Create(entity: Entity, type: LightType) {
+		return RpcClient.Call<boolean>("Light::Create", entity, type);
 	}
 
 	/**
-	 * Destroy the Light component from the specified entity
-	 * @param entity The entity to remove the light from
-	 * @returns boolean indicating success
+	 * Removes a light component from an entity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @returns A promise that resolves to `true` if the light component was
+	 * removed, or `false` otherwise.
 	 */
-	static Destroy(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Light::Destroy", ...args);
+	static Destroy(entity: Entity) {
+		return RpcClient.Call<boolean>("Light::Destroy", entity);
 	}
 
 	/**
-	 * Check if the entity has a Light component
-	 * @param entity The entity to check
-	 * @returns boolean indicating if light component exists
+	 * Checks whether an entity has a light component.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if the entity has a light
+	 * component, or `false` otherwise.
 	 */
-	static HasComponent(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Light::HasComponent", ...args);
+	static HasComponent(entity: Entity) {
+		return RpcClient.Call<boolean>("Light::HasComponent", entity);
 	}
 
 	/**
-	 * Set if the light component is enabled
-	 * @param entity The entity with the renderable component
-	 * @param enabled If the light component is enabled
+	 * Sets whether a light component is enabled.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param enabled - Whether the light component is enabled.
+	 * @returns A promise that resolves when the enabled state has been changed.
 	 */
-	static SetEnabled(...args: [entity: Entity, enabled: boolean]) {
-		return RpcClient.Call<void>("Light::SetEnabled", ...args);
-	}
-
-	static GetEnabled(...args: [entity: Entity]) {
-		return RpcClient.Call<boolean>("Light::GetEnabled", ...args);
+	static SetEnabled(entity: Entity, enabled: boolean) {
+		return RpcClient.Call<void>("Light::SetEnabled", entity, enabled);
 	}
 
 	/**
-	 * Set the type of light
-	 * @param entity The entity with the light component
-	 * @param type The light type
+	 * Gets whether a light component is enabled.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to `true` if the light component is
+	 * enabled, or `false` otherwise.
 	 */
-	static SetType(...args: [entity: Entity, type: LightType]) {
-		return RpcClient.Call<void>("Light::SetType", ...args);
-	}
-
-	static GetType(...args: [entity: Entity]) {
-		return RpcClient.Call<LightType>("Light::GetType", ...args);
+	static GetEnabled(entity: Entity) {
+		return RpcClient.Call<boolean>("Light::GetEnabled", entity);
 	}
 
 	/**
-	 * Set the color of the light
-	 * @param entity The entity with the light component
-	 * @param rgb color in range [0, 1]
+	 * Sets the light type.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param type - The light type to assign.
+	 * @returns A promise that resolves when the light type has been changed.
 	 */
-	static SetColor(...args: [entity: Entity, rgb: vec3]) {
-		return RpcClient.Call<void>("Light::SetColor", ...args);
-	}
-
-	static async GetColor(...args: [entity: Entity]) {
-		return RpcClient.Call<vec3>("Light::GetColor", ...args);
+	static SetType(entity: Entity, type: LightType) {
+		return RpcClient.Call<void>("Light::SetType", entity, type);
 	}
 
 	/**
-	 * Set the intensity of the light
-	 * @param entity The entity with the light component
-	 * @param intensity The light intensity
+	 * Gets the light type.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the light type.
 	 */
-	static SetIntensity(...args: [entity: Entity, intensity: number]) {
-		return RpcClient.Call<void>("Light::SetIntensity", ...args);
-	}
-
-	static GetIntensity(...args: [entity: Entity]) {
-		return RpcClient.Call<number>("Light::GetIntensity", ...args);
+	static GetType(entity: Entity) {
+		return RpcClient.Call<LightType>("Light::GetType", entity);
 	}
 
 	/**
-	 * Set the range of the light
-	 * @param entity The entity with the light component
-	 * @param range The light range
+	 * Sets the light color.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param rgb - The RGB color as a `vec3`, with each channel in the range
+	 * `[0.0, 1.0]`.
+	 * @returns A promise that resolves when the color has been changed.
 	 */
-	static SetRange(...args: [entity: Entity, range: number]) {
-		return RpcClient.Call<void>("Light::SetRange", ...args);
-	}
-
-	static GetRange(...args: [entity: Entity]) {
-		return RpcClient.Call<number>("Light::GetRange", ...args);
+	static SetColor(entity: Entity, rgb: vec3) {
+		return RpcClient.Call<void>("Light::SetColor", entity, rgb);
 	}
 
 	/**
-	 * Set the spot angle for spot lights
-	 * @param entity The entity with the light component
-	 * @param angle The spot angle in degree
+	 * Gets the light color.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the RGB color as a `vec3`, with each
+	 * channel in the range `[0.0, 1.0]`.
 	 */
-	static SetSpotAngle(...args: [entity: Entity, angle: number]) {
-		return RpcClient.Call<void>("Light::SetSpotAngle", ...args);
-	}
-
-	static GetSpotAngle(...args: [entity: Entity]) {
-		return RpcClient.Call<number>("Light::GetSpotAngle", ...args);
+	static async GetColor(entity: Entity) {
+		return RpcClient.Call<vec3>("Light::GetColor", entity);
 	}
 
 	/**
-	 * Set the shadow mode for the light
-	 * @param entity The entity with the light component
-	 * @param mode The shadow mode
+	 * Sets the light intensity.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param intensity - The light intensity.
+	 * @returns A promise that resolves when the intensity has been changed.
 	 */
-	static SetShadows(...args: [entity: Entity, mode: LightShadowMode]) {
-		return RpcClient.Call<void>("Light::SetShadows", ...args);
+	static SetIntensity(entity: Entity, intensity: number) {
+		return RpcClient.Call<void>("Light::SetIntensity", entity, intensity);
 	}
 
-	static GetShadows(...args: [entity: Entity]) {
-		return RpcClient.Call<LightShadowMode>("Light::GetShadows", ...args);
+	/**
+	 * Gets the light intensity.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the light intensity.
+	 */
+	static GetIntensity(entity: Entity) {
+		return RpcClient.Call<number>("Light::GetIntensity", entity);
+	}
+
+	/**
+	 * Sets the light range.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param range - The light range.
+	 * @returns A promise that resolves when the range has been changed.
+	 */
+	static SetRange(entity: Entity, range: number) {
+		return RpcClient.Call<void>("Light::SetRange", entity, range);
+	}
+
+	/**
+	 * Gets the light range.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the light range.
+	 */
+	static GetRange(entity: Entity) {
+		return RpcClient.Call<number>("Light::GetRange", entity);
+	}
+
+	/**
+	 * Sets the spot angle in degrees.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param angle - The spot angle in degrees.
+	 * @returns A promise that resolves when the spot angle has been changed.
+	 */
+	static SetSpotAngle(entity: Entity, angle: number) {
+		return RpcClient.Call<void>("Light::SetSpotAngle", entity, angle);
+	}
+
+	/**
+	 * Gets the spot angle in degrees.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the spot angle in degrees.
+	 */
+	static GetSpotAngle(entity: Entity) {
+		return RpcClient.Call<number>("Light::GetSpotAngle", entity);
+	}
+
+	/**
+	 * Sets the shadow mode of a light.
+	 *
+	 * @param entity - The {@link Entity} to update.
+	 * @param mode - The shadow mode to assign.
+	 * @returns A promise that resolves when the shadow mode has been changed.
+	 */
+	static SetShadows(entity: Entity, mode: LightShadowMode) {
+		return RpcClient.Call<void>("Light::SetShadows", entity, mode);
+	}
+
+	/**
+	 * Gets the shadow mode of a light.
+	 *
+	 * @param entity - The {@link Entity} to inspect.
+	 * @returns A promise that resolves to the shadow mode.
+	 */
+	static GetShadows(entity: Entity) {
+		return RpcClient.Call<LightShadowMode>("Light::GetShadows", entity);
 	}
 }
