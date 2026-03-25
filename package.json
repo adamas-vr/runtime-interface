@@ -1,6 +1,6 @@
 {
 	"name": "@adamasvr/sdk",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"description": "Adamas Typescript interface.",
 	"main": "dist/index.js",
 	"scripts": {
