@@ -3,11 +3,15 @@
  *
  * @module project
  */
-import { ProjectBundle, ProjectMetadata } from "./asset";
+import { ProjectBundle, ProjectMetadata, Version } from "./asset";
 import { LoadProject, SceneGraph } from "./project-loader";
 import { RpcClient } from "./rpc";
 import { User } from "./user";
 import { generateId, isVersion } from "./utilities/rpc-utils";
+import packageJson from "../package.json";
+
+/** Adamas Runtime API Version */
+export const API_VERSION = packageJson.version as Version;
 
 /**
  * Project lifecycle callbacks.

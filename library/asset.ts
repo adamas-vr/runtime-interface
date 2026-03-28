@@ -416,10 +416,10 @@ export type Version = `${number}.${number}.${number}`;
  * Project metadata.
  */
 export interface ProjectMetadata {
-	/** Project name. */
-	name: string;
 	/** Project identifier. */
 	projectId: string;
+	/** Project name. */
+	name: string;
 	/** Project author. */
 	author: string;
 	/** Project version. */
