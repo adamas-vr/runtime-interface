@@ -7,7 +7,8 @@ import { ProjectBundle, ProjectMetadata, Version } from "./asset";
 import { LoadProject, SceneGraph } from "./project-loader";
 import { RpcClient } from "./rpc";
 import { User } from "./user";
-import { generateId, isVersion } from "./utilities/rpc-utils";
+import { quat } from "gl-matrix";
+import { generateId, isVersion, RAD2DEG } from "./utilities/rpc-utils";
 import packageJson from "../package.json";
 
 /** Adamas Runtime API Version */
@@ -119,7 +120,16 @@ export class Project {
 			const world = this.bundle.project.world;
 			if (world.worldEntrance) {
 				const user = await User.GetLocalUser();
-				await user.TeleportTo(world.spawnPosition, world.spawnRotation);
+				await user.TeleportTo(
+					world.spawnPosition,
+					quat.fromEuler(
+						[0, 0, 0, 0],
+						world.spawnRotation[0] * RAD2DEG,
+						world.spawnRotation[1] * RAD2DEG,
+						world.spawnRotation[2] * RAD2DEG,
+						"xyz",
+					),
+				);
 			}
 
 			sceneGraph = await LoadProject(this.bundle.assets, this.bundle.project);

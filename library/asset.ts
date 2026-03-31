@@ -395,6 +395,7 @@ export interface PrefabAsset extends Asset {
 
 /**
  * World-level project settings.
+ * These properties are used only during a world setup
  */
 export interface WorldProperty {
 	/** Tracked entity UUID. */
@@ -405,8 +406,12 @@ export interface WorldProperty {
 	spawnRotation: vec3;
 	/** Spawn position. */
 	spawnPosition: vec3;
-	/** Skybox texture loaded during world setup. */
+	/** Skybox texture */
 	skyboxTexture?: UUID;
+	/** Ambient light */
+	ambientLight: vec3;
+	/** Reflection intensity */
+	reflectionIntensity: number;
 }
 
 /**

@@ -30,10 +30,10 @@ import {
 	SphereCollider,
 	TextureAsset,
 	TransformComponent,
+	WorldProperty,
 } from "./asset";
 import { RendererManager } from "./render/renderer";
-
-const RAD2DEG = 180 / Math.PI;
+import { RAD2DEG } from "./utilities/rpc-utils";
 
 export interface SceneGraph {}
 
@@ -366,10 +366,15 @@ export async function LoadProject(
 		return matHandle;
 	};
 
-	if (projectFile.world.worldEntrance && projectFile.world.skyboxTexture) {
-		const skybox = assetRecord.get(
-			projectFile.world.skyboxTexture,
-		) as TextureAsset;
+	const setupWorld = async (world: WorldProperty) => {
+		if (!world.worldEntrance) return;
+
+		RendererManager.SetAmbientLight(world.ambientLight);
+		RendererManager.SetReflectionIntensity(world.reflectionIntensity);
+
+		if (world.skyboxTexture === undefined) return;
+
+		const skybox = assetRecord.get(world.skyboxTexture) as TextureAsset;
 		if (skybox === undefined || skybox.assetType !== AssetType.Texture)
 			throw "Skybox texture is not valid";
 
@@ -394,7 +399,9 @@ export async function LoadProject(
 		RendererManager.SetSkybox2DTexture(skyboxTex);
 		RendererManager.RenderCubemap(renderTexture);
 		RendererManager.SetReflectionCubemap(renderTexture);
-	}
+	};
+
+	setupWorld(projectFile.world);
 
 	const entityMap = new Map<string, Entity>();
 	for (const entity of scene.entities) {

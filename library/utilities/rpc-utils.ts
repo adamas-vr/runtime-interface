@@ -10,6 +10,8 @@ function packBinary(view: Uint8Array | Uint16Array | Float32Array) {
 	return new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
 }
 
+export const RAD2DEG = 180 / Math.PI;
+
 export function isVersion(value: string): value is Version {
 	return /^\d+\.\d+\.\d+$/.test(value);
 }
