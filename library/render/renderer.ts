@@ -54,10 +54,10 @@ export class RendererManager {
 	 * Renders a cubemap from a position.
 	 *
 	 * @param texture - The {@link Texture} to render into. It must be a render texture with a cube dimesion.
-	 * @param position - The world position to render from.
+	 * @param position - The world position to render from. Defaults to `[0, 0, 0]`.
 	 * @returns A promise that resolves when the cubemap has been rendered.
 	 */
-	static RenderCubemap(texture: Texture, position: vec3) {
+	static RenderCubemap(texture: Texture, position: vec3 = [0, 0, 0]) {
 		return RpcClient.Call<void>("Renderer::RenderCubemap", texture, position);
 	}
 

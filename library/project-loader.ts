@@ -4,7 +4,12 @@ import { Entity, EntityManager } from "./entity";
 import { Mesh, MeshManager } from "./render/mesh";
 import { RenderableManager } from "./render/renderable";
 import { Material, MaterialManager, MaterialProperty } from "./render/material";
-import { TextureFormat, Texture, TextureManager } from "./render/texture";
+import {
+	TextureFormat,
+	Texture,
+	TextureManager,
+	TextureDimension,
+} from "./render/texture";
 import { LightManager } from "./render/light";
 import { ColliderManager } from "./physics/collider";
 import { CameraManager } from "./render/camera";
@@ -15,6 +20,7 @@ import { UUID } from "crypto";
 import { Networking } from "./networking";
 import {
 	Asset,
+	AssetType,
 	BoxCollider,
 	CapsuleCollider,
 	MaterialAsset,
@@ -25,6 +31,7 @@ import {
 	TextureAsset,
 	TransformComponent,
 } from "./asset";
+import { RendererManager } from "./render/renderer";
 
 const RAD2DEG = 180 / Math.PI;
 
@@ -358,6 +365,36 @@ export async function LoadProject(
 		materialCache.set(materialAsset.uuid, matHandle);
 		return matHandle;
 	};
+
+	if (projectFile.world.worldEntrance && projectFile.world.skyboxTexture) {
+		const skybox = assetRecord.get(
+			projectFile.world.skyboxTexture,
+		) as TextureAsset;
+		if (skybox === undefined || skybox.assetType !== AssetType.Texture)
+			throw "Skybox texture is not valid";
+
+		const renderTexture = await TextureManager.CreateRenderTexture(
+			1024,
+			1024,
+			16,
+			TextureDimension.Cube,
+		);
+		const skyboxTex = await TextureManager.Create2D(
+			1,
+			1,
+			TextureFormat.RGBA32,
+			true,
+		);
+
+		TextureManager.LoadImage(skyboxTex, skybox.image);
+		TextureManager.SetFilterMode(skyboxTex, skybox.filterMode);
+		TextureManager.SetWrapModeU(skyboxTex, skybox.wrapModeU);
+		TextureManager.SetWrapModeV(skyboxTex, skybox.wrapModeV);
+
+		RendererManager.SetSkybox2DTexture(skyboxTex);
+		RendererManager.RenderCubemap(renderTexture);
+		RendererManager.SetReflectionCubemap(renderTexture);
+	}
 
 	const entityMap = new Map<string, Entity>();
 	for (const entity of scene.entities) {
