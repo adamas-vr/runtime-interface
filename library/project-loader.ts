@@ -367,12 +367,7 @@ export async function LoadProject(
 	};
 
 	const setupWorld = async (world: WorldProperty) => {
-		if (!world.worldEntrance) return;
-
-		RendererManager.SetAmbientLight(world.ambientLight);
-		RendererManager.SetReflectionIntensity(world.reflectionIntensity);
-
-		if (world.skyboxTexture === undefined) return;
+		if (!world.worldEntrance || world.skyboxTexture === undefined) return;
 
 		const skybox = assetRecord.get(world.skyboxTexture) as TextureAsset;
 		if (skybox === undefined || skybox.assetType !== AssetType.Texture)
@@ -399,6 +394,7 @@ export async function LoadProject(
 		RendererManager.SetSkybox2DTexture(skyboxTex);
 		RendererManager.RenderCubemap(renderTexture);
 		RendererManager.SetReflectionCubemap(renderTexture);
+		RendererManager.SetEnvironmentIntensity(world.environmentIntensity);
 	};
 
 	setupWorld(projectFile.world);

@@ -406,12 +406,10 @@ export interface WorldProperty {
 	spawnRotation: vec3;
 	/** Spawn position. */
 	spawnPosition: vec3;
-	/** Skybox texture */
+	/** Skybox texture. */
 	skyboxTexture?: UUID;
-	/** Ambient light */
-	ambientLight: vec3;
-	/** Reflection intensity */
-	reflectionIntensity: number;
+	/** Environment intensity. */
+	environmentIntensity: number;
 }
 
 /**

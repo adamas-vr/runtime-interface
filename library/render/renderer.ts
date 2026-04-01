@@ -31,26 +31,6 @@ export class RendererManager {
 	}
 
 	/**
-	 * Sets the ambient light color.
-	 *
-	 * @param color - The HDR color as a `vec3`, with each component in the range
-	 * `[0, +10]`.
-	 * @returns A promise that resolves when the ambient light has been changed.
-	 */
-	static SetAmbientLight(color: vec3) {
-		return RpcClient.Call<void>("Renderer::SetAmbientLight", color);
-	}
-
-	/**
-	 * Gets the ambient light color.
-	 *
-	 * @returns A promise that resolves to the ambient light color as a `vec3`.
-	 */
-	static GetAmbientLight() {
-		return RpcClient.Call<vec3>("Renderer::GetAmbientLight");
-	}
-
-	/**
 	 * Renders a cubemap from a position.
 	 *
 	 * @param texture - The {@link Texture} to render into. It must be a render texture with a cube dimesion.
@@ -82,23 +62,23 @@ export class RendererManager {
 	}
 
 	/**
-	 * Sets the reflection intensity.
+	 * Sets the environment intensity.
 	 *
-	 * @param intensity - The reflection intensity as a number in the range
-	 * `[0, 10]`, where `0` means no reflection.
-	 * @returns A promise that resolves when the reflection intensity has been
+	 * @param intensity - The environment intensity as a number in the range
+	 * `[0, 10]`, where `0` means no environment lighting and reflection.
+	 * @returns A promise that resolves when the environment intensity has been
 	 * changed.
 	 */
-	static SetReflectionIntensity(intensity: number) {
-		return RpcClient.Call<void>("Renderer::SetReflectionIntensity", intensity);
+	static SetEnvironmentIntensity(intensity: number) {
+		return RpcClient.Call<void>("Renderer::SetEnvironmentIntensity", intensity);
 	}
 
 	/**
-	 * Gets the reflection intensity.
+	 * Gets the environment intensity.
 	 *
-	 * @returns A promise that resolves to the reflection intensity.
+	 * @returns A promise that resolves to the environment intensity.
 	 */
-	static GetReflectionIntensity() {
-		return RpcClient.Call<number>("Renderer::GetReflectionIntensity");
+	static GetEnvironmentIntensity() {
+		return RpcClient.Call<number>("Renderer::GetEnvironmentIntensity");
 	}
 }
