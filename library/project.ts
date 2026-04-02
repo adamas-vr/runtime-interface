@@ -24,7 +24,7 @@ export interface ProjectCallbacks {
 	 * @param project - The launched {@link Project}.
 	 * @param sceneGraph - The loaded scene graph, if one is available.
 	 */
-	OnSetup?: (project: Project, sceneGraph?: SceneGraph) => void;
+	OnSetup?: (project: Project, sceneGraph: SceneGraph) => Promise<void>;
 	/**
 	 * Called on each tick.
 	 *
@@ -114,7 +114,7 @@ export class Project {
 			previewImagePath,
 		);
 
-		let sceneGraph: SceneGraph | undefined;
+		let sceneGraph: SceneGraph = {};
 
 		if (this.bundle) {
 			const world = this.bundle.project.world;
@@ -135,7 +135,7 @@ export class Project {
 			sceneGraph = await LoadProject(this.bundle.assets, this.bundle.project);
 		}
 
-		callbacks.OnSetup?.(this, sceneGraph);
+		await callbacks.OnSetup?.(this, sceneGraph);
 
 		await RpcClient.Call<void>("Project::ProjectBootupEnd", Project.projectId);
 
