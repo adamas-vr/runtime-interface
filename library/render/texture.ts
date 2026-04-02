@@ -5,6 +5,7 @@
  */
 import { vec2 } from "gl-matrix";
 import { RpcClient } from "../rpc";
+import { base64DecodeAsync } from "../utilities/base64";
 
 /**
  * Opaque numeric handle that identifies a texture.
@@ -79,7 +80,19 @@ export interface ImageReadbackResult {
 	/** Encoding of the returned image data. */
 	kind: "rgba" | "png" | "jpeg";
 
-	/** Base64-encoded image data. */
+	/** Image data. */
+	data: Uint8Array;
+}
+
+interface ImageReadbackResultInternal {
+	/** Width of the image, in pixels. */
+	width: number;
+	/** Height of the image, in pixels. */
+	height: number;
+	/** Encoding of the returned image data. */
+	kind: "rgba" | "png" | "jpeg";
+
+	/** Base64 image data. */
 	data: string;
 }
 
@@ -122,7 +135,7 @@ export class TextureManager {
 	 * @param dimension - The texture dimension. Defaults to
 	 * {@link TextureDimension.Tex2D}.
 	 * @param format - The texture format. Defaults to
-	 * {@link RenderTextureFormat.DefaultHDR}.
+	 * {@link RenderTextureFormat.Default}.
 	 * @returns A promise that resolves to the created {@link Texture}.
 	 */
 	static async CreateRenderTexture(
@@ -139,7 +152,7 @@ export class TextureManager {
 			height ?? 512,
 			depth ?? 16,
 			dimension ?? TextureDimension.Tex2D,
-			format ?? RenderTextureFormat.DefaultHDR,
+			format ?? RenderTextureFormat.Default,
 		);
 	}
 
@@ -205,11 +218,20 @@ export class TextureManager {
 	 * @param handle - The {@link Texture} to read.
 	 * @returns A promise that resolves to the image data.
 	 */
-	static ReadbackRGBAImage(handle: Texture) {
-		return RpcClient.Call<ImageReadbackResult>(
+	static async ReadbackRGBAImage(handle: Texture) {
+		const _res = await RpcClient.Call<ImageReadbackResultInternal>(
 			"Texture::ReadbackRGBAImage",
 			handle,
 		);
+
+		const result: ImageReadbackResult = {
+			width: _res.width,
+			height: _res.height,
+			kind: _res.kind,
+			data: new Uint8Array(await base64DecodeAsync(_res.data)),
+		};
+
+		return result;
 	}
 
 	/**
@@ -219,12 +241,21 @@ export class TextureManager {
 	 * @param quality - The JPEG quality, from `0` to `100`. Defaults to `75`.
 	 * @returns A promise that resolves to the image data.
 	 */
-	static ReadbackJPGImage(handle: Texture, quality?: number) {
-		return RpcClient.Call<ImageReadbackResult>(
+	static async ReadbackJPGImage(handle: Texture, quality?: number) {
+		const _res = await RpcClient.Call<ImageReadbackResultInternal>(
 			"Texture::ReadbackJPGImage",
 			handle,
 			quality ?? 75,
 		);
+
+		const result: ImageReadbackResult = {
+			width: _res.width,
+			height: _res.height,
+			kind: _res.kind,
+			data: new Uint8Array(await base64DecodeAsync(_res.data)),
+		};
+
+		return result;
 	}
 
 	/**
@@ -233,11 +264,20 @@ export class TextureManager {
 	 * @param handle - The {@link Texture} to read.
 	 * @returns A promise that resolves to the image data.
 	 */
-	static ReadbackPNGImage(handle: Texture) {
-		return RpcClient.Call<ImageReadbackResult>(
+	static async ReadbackPNGImage(handle: Texture) {
+		const _res = await RpcClient.Call<ImageReadbackResultInternal>(
 			"Texture::ReadbackPNGImage",
 			handle,
 		);
+
+		const result: ImageReadbackResult = {
+			width: _res.width,
+			height: _res.height,
+			kind: _res.kind,
+			data: new Uint8Array(await base64DecodeAsync(_res.data)),
+		};
+
+		return result;
 	}
 
 	/**
