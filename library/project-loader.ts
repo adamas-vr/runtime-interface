@@ -488,17 +488,19 @@ export async function LoadProject(
 					});
 				}
 
-				renderable.materialList.forEach(async (m, idx) => {
-					if (m === undefined) return;
-					const material = assetRecord.get(m);
-					if (material === undefined) return;
+				await Promise.all(
+					renderable.materialList.map(async (m, idx) => {
+						if (m === undefined) return;
+						const material = assetRecord.get(m);
+						if (material === undefined) return;
 
-					const matHandle = await createMaterial(
-						material as MaterialAsset,
-						renderable.culling,
-					);
-					RenderableManager.SetMaterial(currEntity, matHandle, idx);
-				});
+						const matHandle = await createMaterial(
+							material as MaterialAsset,
+							renderable.culling,
+						);
+						await RenderableManager.SetMaterial(currEntity, matHandle, idx);
+					}),
+				);
 
 				if (renderable.enabled) {
 					RenderableManager.SetEnabled(currEntity, true);
