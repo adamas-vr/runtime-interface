@@ -5,7 +5,7 @@
 	"main": "dist/index.js",
 	"scripts": {
 		"format": "npx prettier . --write",
-		"esbuild": "npx esbuild library/index.ts --bundle --minify --format=esm --outfile=dist/index.js --platform=node  --external:\"*.node\" --packages=external",
+		"esbuild": "npx esbuild library/index.ts --bundle --minify --format=esm --outfile=dist/index.js --platform=node",
 		"dts": "npx dts-bundle-generator --project tsconfig.json -o types/lib.d.ts library/index.ts"
 	},
 	"repository": {
