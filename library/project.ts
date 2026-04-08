@@ -110,8 +110,8 @@ export class Project {
 			process.pid,
 			name,
 			author,
-			version,
 			previewImagePath,
+			version,
 		);
 
 		let sceneGraph: SceneGraph = {};
