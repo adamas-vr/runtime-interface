@@ -165,6 +165,7 @@ export class RenderableManager {
 	 * @param entity - The {@link Entity} to inspect.
 	 * @param index - The material index. Defaults to `0`.
 	 * @returns A promise that resolves to the assigned {@link Material}.
+	 * @throws An error if no material is assigned to the renderable component at the given index.
 	 */
 	static GetMaterial(entity: Entity, index?: number) {
 		return RpcClient.Call<Material>(
