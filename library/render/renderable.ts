@@ -103,6 +103,7 @@ export class RenderableManager {
 	 *
 	 * @param entity - The {@link Entity} to inspect.
 	 * @returns A promise that resolves to the assigned {@link Mesh}.
+	 * @throws An error if no mesh is assigned to the renderable component.
 	 */
 	static GetMesh(entity: Entity) {
 		return RpcClient.Call<Mesh>("Renderable::GetMesh", entity);
