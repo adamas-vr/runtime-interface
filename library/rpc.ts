@@ -68,7 +68,6 @@ export class RpcClient {
 				out.set(fnBytes, 4);
 				out[4 + fnBytes.length] = 0;
 
-				console.log(out);
 				await this.writeAsync(Buffer.from(out));
 				resolve();
 			});
@@ -153,7 +152,9 @@ export class RpcClient {
 			functionName: funcName,
 		});
 
-		console.log(`Call ${funcName} |-> ${payloadJson}`);
+		if (process.env.DEBUG) {
+			console.log(`Call ${funcName} |-> ${payloadJson}`);
+		}
 		const promise = new Promise<T>((resolve, reject) => {
 			this.pendingCalls.set(requestId, {
 				resolve,
