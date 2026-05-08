@@ -5,7 +5,7 @@
  */
 import { RpcClient } from "../rpc";
 import { Entity } from "../entity";
-import { base64Encode } from "../utilities/base64";
+import { base64Decode } from "../utilities/base64";
 import { RenderableManager } from "./renderable";
 
 /**
@@ -56,6 +56,7 @@ export class MeshManager {
 
 	/**
 	 * Sets the vertex positions of a mesh.
+	 * Typed arrays are recommended for best performance.
 	 *
 	 * @param handle - The {@link Mesh} to update.
 	 * @param vertices - Vertex positions.
@@ -71,21 +72,28 @@ export class MeshManager {
 	 */
 	static SetVertices(handle: Mesh, base64Vertices: string): Promise<void>;
 	static SetVertices(handle: Mesh, verticesOrBase64: Float32Array | string) {
-		let base64Vertices: string;
+		let vertices: Float32Array;
 
 		if (typeof verticesOrBase64 === "string") {
-			base64Vertices = verticesOrBase64;
-		} else if (verticesOrBase64.length % 3 == 0) {
-			base64Vertices = base64Encode(verticesOrBase64);
+			const buffer = base64Decode(verticesOrBase64);
+			if (buffer.byteLength % Float32Array.BYTES_PER_ELEMENT !== 0) {
+				throw "Invalid vertex buffer format.";
+			}
+			vertices = new Float32Array(buffer);
 		} else {
+			vertices = verticesOrBase64;
+		}
+
+		if (vertices.length % 3 !== 0) {
 			throw "Invalid vertex buffer length.";
 		}
 
-		return RpcClient.Call<void>("Mesh::SetVertices", handle, base64Vertices);
+		return RpcClient.Call<void>("Mesh::SetVertices", handle, vertices);
 	}
 
 	/**
 	 * Sets the triangle indices of a mesh.
+	 * Typed arrays are recommended for best performance.
 	 *
 	 * @param handle - The {@link Mesh} to update.
 	 * @param indices - Triangle indices.
@@ -101,21 +109,28 @@ export class MeshManager {
 	 */
 	static SetTriangles(handle: Mesh, base64Indices: string): Promise<void>;
 	static SetTriangles(handle: Mesh, indicesOrBase64: Uint16Array | string) {
-		let base64Triangles: string;
+		let indices: Uint16Array;
 
 		if (typeof indicesOrBase64 === "string") {
-			base64Triangles = indicesOrBase64;
-		} else if (indicesOrBase64.length % 3 == 0) {
-			base64Triangles = base64Encode(indicesOrBase64);
+			const buffer = base64Decode(indicesOrBase64);
+			if (buffer.byteLength % Uint16Array.BYTES_PER_ELEMENT !== 0) {
+				throw "Invalid index buffer format.";
+			}
+			indices = new Uint16Array(buffer);
 		} else {
+			indices = indicesOrBase64;
+		}
+
+		if (indices.length % 3 !== 0) {
 			throw "Invalid index buffer format.";
 		}
 
-		return RpcClient.Call<void>("Mesh::SetTriangles", handle, base64Triangles);
+		return RpcClient.Call<void>("Mesh::SetTriangles", handle, indices);
 	}
 
 	/**
 	 * Sets the UV coordinates of a mesh.
+	 * Typed arrays are recommended for best performance.
 	 *
 	 * @param handle - The {@link Mesh} to update.
 	 * @param uvs - UV coordinates.
@@ -131,21 +146,28 @@ export class MeshManager {
 	 */
 	static SetUVs(handle: Mesh, base64Uvs: string): Promise<void>;
 	static SetUVs(handle: Mesh, uvsOrBase64: Float32Array | string) {
-		let base64Uvs: string;
+		let uvs: Float32Array;
 
 		if (typeof uvsOrBase64 === "string") {
-			base64Uvs = uvsOrBase64;
-		} else if (uvsOrBase64.length % 2 == 0) {
-			base64Uvs = base64Encode(uvsOrBase64);
+			const buffer = base64Decode(uvsOrBase64);
+			if (buffer.byteLength % Float32Array.BYTES_PER_ELEMENT !== 0) {
+				throw "Invalid uv buffer format.";
+			}
+			uvs = new Float32Array(buffer);
 		} else {
+			uvs = uvsOrBase64;
+		}
+
+		if (uvs.length % 2 !== 0) {
 			throw "Invalid uv buffer format.";
 		}
 
-		return RpcClient.Call<void>("Mesh::SetUVs", handle, base64Uvs);
+		return RpcClient.Call<void>("Mesh::SetUVs", handle, uvs);
 	}
 
 	/**
 	 * Sets the normals of a mesh.
+	 * Typed arrays are recommended for best performance.
 	 *
 	 * @param handle - The {@link Mesh} to update.
 	 * @param normals - Normal vectors.
@@ -161,17 +183,23 @@ export class MeshManager {
 	 */
 	static SetNormals(handle: Mesh, base64Normals: string): Promise<void>;
 	static SetNormals(handle: Mesh, normalsOrBase64: Float32Array | string) {
-		let base64Normals: string;
+		let normals: Float32Array;
 
 		if (typeof normalsOrBase64 === "string") {
-			base64Normals = normalsOrBase64;
-		} else if (normalsOrBase64.length % 3 == 0) {
-			base64Normals = base64Encode(normalsOrBase64);
+			const buffer = base64Decode(normalsOrBase64);
+			if (buffer.byteLength % Float32Array.BYTES_PER_ELEMENT !== 0) {
+				throw "Invalid normal buffer format.";
+			}
+			normals = new Float32Array(buffer);
 		} else {
+			normals = normalsOrBase64;
+		}
+
+		if (normals.length % 3 !== 0) {
 			throw "Invalid normal buffer format.";
 		}
 
-		return RpcClient.Call<void>("Mesh::SetNormals", handle, base64Normals);
+		return RpcClient.Call<void>("Mesh::SetNormals", handle, normals);
 	}
 
 	/**
