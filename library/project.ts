@@ -15,26 +15,6 @@ import packageJson from "../package.json";
 export const API_VERSION = packageJson.version as Version;
 
 /**
- * Project lifecycle callbacks.
- */
-export interface ProjectCallbacks {
-	/**
-	 * Called during project setup.
-	 *
-	 * @param project - The launched {@link Project}.
-	 * @param sceneGraph - The loaded scene graph, if one is available.
-	 */
-	OnSetup?: (project: Project, sceneGraph: SceneGraph) => Promise<void>;
-	/**
-	 * Called on each tick.
-	 *
-	 * @param project - The launched {@link Project}.
-	 * @param timestep - The elapsed time since the previous tick, in milliseconds.
-	 */
-	OnTick?: (project: Project, timestep: number) => void;
-}
-
-/**
  * Represents a project.
  */
 export class Project {
@@ -42,8 +22,6 @@ export class Project {
 
 	private readonly bundle?: ProjectBundle;
 	private readonly metadata: ProjectMetadata;
-
-	private lastTimeStamp = Date.now();
 
 	private constructor(metadata: ProjectMetadata, bundle?: ProjectBundle) {
 		this.metadata = metadata;
@@ -86,12 +64,39 @@ export class Project {
 	}
 
 	/**
+	 * Schedules an update callback to run at the requested interval.
+	 *
+	 * @param onUpdate - The update callback called on each scheduled project update
+	 * @param intervalMilliseconds - The update interval, in milliseconds.
+	 * @returns The interval handle, which can be passed to `clearInterval`.
+	 */
+	ScheduleUpdate(
+		onUpdate: (timestep: number, project: Project) => void,
+		intervalMilliseconds = 50,
+	): ReturnType<typeof setInterval> {
+		if (intervalMilliseconds <= 0) {
+			throw new Error("Update loop interval must be greater than zero.");
+		}
+
+		let lastTimeStamp = Date.now();
+
+		return setInterval(() => {
+			const currentTimeStamp = Date.now();
+			const timestep = currentTimeStamp - lastTimeStamp;
+			lastTimeStamp = currentTimeStamp;
+			onUpdate(timestep, this);
+		}, intervalMilliseconds);
+	}
+
+	/**
 	 * Launches the project.
 	 *
-	 * @param callbacks - The project lifecycle callbacks.
+	 * @param onSetup - Called during project setup.
 	 * @returns A promise that resolves when project launch has completed.
 	 */
-	async Launch(callbacks: ProjectCallbacks = {}): Promise<void> {
+	async Launch(
+		onSetup: (sceneGraph: SceneGraph, project: Project) => Promise<void>,
+	): Promise<void> {
 		const { name, author, version, previewImagePath } = this.metadata;
 
 		if (!isVersion(version)) {
@@ -135,17 +140,8 @@ export class Project {
 			sceneGraph = await LoadProject(this.bundle.assets, this.bundle.project);
 		}
 
-		await callbacks.OnSetup?.(this, sceneGraph);
+		await onSetup(sceneGraph, this);
 
 		await RpcClient.Call<void>("Project::ProjectBootupEnd", Project.projectId);
-
-		this.lastTimeStamp = Date.now();
-
-		setInterval(() => {
-			const currentTimeStamp = Date.now();
-			const timestep = currentTimeStamp - this.lastTimeStamp;
-			this.lastTimeStamp = currentTimeStamp;
-			callbacks.OnTick?.(this, timestep);
-		}, 50);
 	}
 }
