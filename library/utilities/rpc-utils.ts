@@ -6,10 +6,6 @@ type BinaryRef = {
 	length: number;
 };
 
-function packBinary(view: Uint8Array | Uint16Array | Float32Array) {
-	return new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
-}
-
 export const RAD2DEG = 180 / Math.PI;
 
 export function isVersion(value: string): value is Version {
@@ -39,16 +35,21 @@ export async function generateId(name: string, uid: string): Promise<string> {
 }
 
 export function createAssetBinaryReplacer() {
-	const chunks: Uint8Array[] = [];
+	const chunks: Uint8Array<ArrayBuffer>[] = [];
 	let offset = 0;
 
 	const replacer = (_key: string, value: unknown): unknown => {
 		if (
-			value instanceof Uint8Array ||
-			value instanceof Uint16Array ||
-			value instanceof Float32Array
+			(value instanceof Uint8Array ||
+				value instanceof Uint16Array ||
+				value instanceof Float32Array) &&
+			value.buffer instanceof ArrayBuffer
 		) {
-			const bytes = new Uint8Array(packBinary(value));
+			const bytes = new Uint8Array(
+				value.buffer,
+				value.byteOffset,
+				value.byteLength,
+			);
 			const ref: BinaryRef = {
 				__bufferType: value.constructor.name as BinaryRef["__bufferType"],
 				offset,
@@ -63,16 +64,14 @@ export function createAssetBinaryReplacer() {
 		return value;
 	};
 
-	const getBinaryBuffer = (): Uint8Array => {
-		const out = new Uint8Array(offset);
-		let cursor = 0;
-
-		for (const chunk of chunks) {
-			out.set(chunk, cursor);
-			cursor += chunk.byteLength;
-		}
-
-		return out;
+	const getBinaryBuffer = (): {
+		chunks: readonly Uint8Array<ArrayBuffer>[];
+		byteLength: number;
+	} => {
+		return {
+			chunks,
+			byteLength: offset,
+		};
 	};
 
 	return { replacer, getBinaryBuffer };

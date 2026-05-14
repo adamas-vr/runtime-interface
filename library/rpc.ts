@@ -144,11 +144,11 @@ export class RpcClient {
 		const { replacer, getBinaryBuffer } = createAssetBinaryReplacer();
 		const payloadJson = JSON.stringify(processedArgs, replacer);
 		const payloadBuffer = Buffer.from(payloadJson, "utf8");
-		const binBuffer = getBinaryBuffer();
+		const binary = getBinaryBuffer();
 		const headerBuffer = this.encodeRequestHeader({
 			requestId,
 			bufferSize: payloadBuffer.length,
-			binarySize: binBuffer.byteLength,
+			binarySize: binary.byteLength,
 			functionName: funcName,
 		});
 
@@ -166,7 +166,9 @@ export class RpcClient {
 
 		try {
 			await this.writeAsync(
-				Buffer.concat([headerBuffer, payloadBuffer, binBuffer]),
+				headerBuffer,
+				payloadBuffer,
+				...binary.chunks,
 			);
 		} catch (error) {
 			const pending = this.pendingCalls.get(requestId);
@@ -249,15 +251,30 @@ export class RpcClient {
 		}
 	}
 
-	private static async writeAsync(buffer: Buffer): Promise<void> {
+	private static async writeAsync(...buffers: Uint8Array[]): Promise<void> {
 		const socket = this.socket;
 		if (!socket) throw new Error("RPC socket is not connected");
+		if (buffers.length === 0) return;
 
 		await new Promise<void>((resolve, reject) => {
-			socket.write(buffer, (error?: Error | null) => {
-				if (error) reject(error);
-				else resolve();
-			});
+			let pendingWrites = buffers.length;
+			let failed = false;
+
+			for (const buffer of buffers) {
+				socket.write(buffer, (error?: Error | null) => {
+					if (failed) return;
+					if (error) {
+						failed = true;
+						reject(error);
+						return;
+					}
+
+					pendingWrites--;
+					if (pendingWrites === 0) {
+						resolve();
+					}
+				});
+			}
 		});
 	}
 
