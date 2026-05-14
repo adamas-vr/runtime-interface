@@ -64,28 +64,45 @@ export class Project {
 	}
 
 	/**
-	 * Schedules an update callback to run at the requested interval.
+	 * Registers an update callback for runtime render-frame ticks.
 	 *
-	 * @param onUpdate - The update callback called on each scheduled project update
-	 * @param intervalMilliseconds - The update interval, in milliseconds.
-	 * @returns The interval handle, which can be passed to `clearInterval`.
+	 * If the previous update is still running, the next frame tick is skipped.
+	 * The timestep is the elapsed time since the previous update started.
+	 *
+	 * @param onUpdate - The update callback called on each scheduled project update.
 	 */
 	ScheduleUpdate(
-		onUpdate: (timestep: number, project: Project) => void,
-		intervalMilliseconds = 50,
-	): ReturnType<typeof setInterval> {
-		if (intervalMilliseconds <= 0) {
-			throw new Error("Update loop interval must be greater than zero.");
-		}
-
+		onUpdate: (timestep: number, project: Project) => void | Promise<void>,
+	) {
 		let lastTimeStamp = Date.now();
+		let updateInProgress = false;
 
-		return setInterval(() => {
+		RpcClient.Call<number>("Project::ScheduleUpdate", Project.projectId, () => {
+			if (updateInProgress) return;
+
+			updateInProgress = true;
 			const currentTimeStamp = Date.now();
 			const timestep = currentTimeStamp - lastTimeStamp;
 			lastTimeStamp = currentTimeStamp;
-			onUpdate(timestep, this);
-		}, intervalMilliseconds);
+			try {
+				const updatePromise = onUpdate(timestep, this);
+				if (updatePromise == null) {
+					updateInProgress = false;
+					return;
+				}
+
+				void updatePromise
+					.catch((error) => {
+						console.error("Error in scheduled project update:", error);
+					})
+					.finally(() => {
+						updateInProgress = false;
+					});
+			} catch (error) {
+				updateInProgress = false;
+				throw error;
+			}
+		});
 	}
 
 	/**
