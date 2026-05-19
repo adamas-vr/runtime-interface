@@ -29,11 +29,20 @@ export class Project {
 	}
 
 	/**
-	 * Gets the current project ID.
+	 * Gets the current project ID assigned by the runtime.
 	 *
-	 * @returns The project ID.
+	 * This ID corresponds to the project identifier assigned after the project is
+	 * uploaded to the cloud. If the project has not been uploaded, the runtime
+	 * generates a local identifier instead.
+	 *
+	 * @returns The current project ID.
+	 * @throws If the project ID has not been initialized by the runtime.
 	 */
 	static GetProjectId(): string {
+		if (!Project.projectId) {
+			throw new Error("Project has not been initialized.");
+		}
+
 		return Project.projectId;
 	}
 
@@ -53,13 +62,12 @@ export class Project {
 	 * @param metadata - The project metadata, excluding the project identifier, which is generated at runtime.
 	 * @returns The created {@link Project}.
 	 */
-	static New(metadata: Omit<ProjectMetadata, "projectId">): Project {
+	static New(metadata: ProjectMetadata): Project {
 		return new Project({
 			name: metadata.name,
 			author: metadata.author,
 			version: metadata.version,
 			previewImagePath: metadata.previewImagePath,
-			projectId: "",
 		});
 	}
 
@@ -120,15 +128,13 @@ export class Project {
 			throw "Version format is incorrect.";
 		}
 
-		Project.projectId = this.bundle
-			? this.metadata.projectId
-			: await generateId(name, author);
-
-		await RpcClient.Connect(Project.projectId);
-
-		await RpcClient.Call<void>(
+		await RpcClient.Connect();
+		/**
+		 * This is a fallback option of providing project metadata to the runtime for outside-platform distribution
+		 * If the project is loaded from the cloud, cloud project information is used and the info provided here is ignored.
+		 */
+		Project.projectId = await RpcClient.Call<string>(
 			"Project::ProjectBootupBegin",
-			Project.projectId,
 			process.pid,
 			name,
 			author,

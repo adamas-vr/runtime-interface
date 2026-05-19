@@ -40,7 +40,7 @@ export class RpcClient {
 		return process.pid;
 	}
 
-	static async Connect(projectId: string, host = "127.0.0.1", port = 6969) {
+	static async Connect(host = "127.0.0.1", port = 6969) {
 		// TODO: connection error
 		if (this.socket) return;
 
@@ -49,26 +49,14 @@ export class RpcClient {
 		socket.setNoDelay(true);
 		await new Promise<void>((resolve, reject) => {
 			socket.on("connect", async () => {
-				console.log(
-					`Connecting to server -- pid: ${process.pid}; projectId: ${projectId}`,
-				);
+				console.log(`Connecting to server -- pid: ${process.pid}`);
 
-				const buf = new ArrayBuffer(48);
-				const view = new DataView(buf);
+				const buf = new ArrayBuffer(4);
 
 				// write pid as int32 little-endian at offset 0
+				const view = new DataView(buf);
 				view.setInt32(0, process.pid, true);
-
-				// encode projectId as bytes
-				const encoder = new TextEncoder();
-				const fnBytes = encoder.encode(projectId);
-
-				// copy string bytes starting at offset 4
-				const out = new Uint8Array(buf);
-				out.set(fnBytes, 4);
-				out[4 + fnBytes.length] = 0;
-
-				await this.writeAsync(Buffer.from(out));
+				await this.writeAsync(new Uint8Array(buf));
 				resolve();
 			});
 
@@ -165,11 +153,7 @@ export class RpcClient {
 		});
 
 		try {
-			await this.writeAsync(
-				headerBuffer,
-				payloadBuffer,
-				...binary.chunks,
-			);
+			await this.writeAsync(headerBuffer, payloadBuffer, ...binary.chunks);
 		} catch (error) {
 			const pending = this.pendingCalls.get(requestId);
 			this.pendingCalls.delete(requestId);
