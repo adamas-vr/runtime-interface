@@ -33,6 +33,7 @@ export class Networking {
 	) {
 		return RpcClient.Call<void>(
 			"Networking::NewChannel",
+			RpcClient.GetClientId(),
 			Networking.GetNetworkID(),
 			channelId,
 			onReceived,
