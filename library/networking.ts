@@ -81,6 +81,10 @@ export class Networking {
 	/**
 	 * Checks whether the current client is the master client.
 	 *
+	 * The master client is responsible for session-level authority and may change
+	 * during a network session. If the current master client leaves, a new master
+	 * client is automatically selected.
+	 *
 	 * @returns A promise that resolves to `true` if the current client is the
 	 * master client, or `false` otherwise.
 	 */
@@ -91,12 +95,14 @@ export class Networking {
 	/**
 	 * Gets the current client ID.
 	 *
+	 * Each client in a network session is assigned a unique ID that can be used
+	 * for identification and session-level networking operations.
+	 *
 	 * @returns A promise that resolves to the current client ID.
 	 */
 	static GetClientId() {
 		return RpcClient.Call<number>("Networking::GetClientId");
 	}
-
 	/**
 	 * Gets the master client ID.
 	 *
