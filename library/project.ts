@@ -116,8 +116,14 @@ export class Project {
 	/**
 	 * Launches the project.
 	 *
-	 * @param onSetup - Called during project setup.
-	 * @returns A promise that resolves when project launch has completed.
+	 * Adamas API calls are not available until internal initialization has
+	 * completed. The `onSetup` callback is invoked after initialization, and
+	 * application code may safely call Adamas APIs from within `onSetup` and any
+	 * functions executed after it.
+	 *
+	 * @param onSetup - Called after project initialization to configure the scene
+	 * and register project logic.
+	 * @returns A promise that resolves when the project launch has completed.
 	 */
 	async Launch(
 		onSetup: (sceneGraph: SceneGraph, project: Project) => Promise<void>,
