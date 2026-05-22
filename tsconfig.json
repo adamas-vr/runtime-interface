@@ -15,5 +15,5 @@
 		"noEmit": true
 	},
 	"include": ["./library", "./types"],
-	"exclude": ["samples", "index.ts"]
+	"exclude": ["misc", "index.ts"]
 }
