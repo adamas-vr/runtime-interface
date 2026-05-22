@@ -74,10 +74,14 @@ export class Project {
 	/**
 	 * Registers an update callback for runtime render-frame ticks.
 	 *
-	 * If the previous update is still running, the next frame tick is skipped.
-	 * The timestep is the elapsed time since the previous update started.
+	 * The callback is invoked once per render-frame tick while no previous update
+	 * is still running. If an earlier update has not completed, the current tick is
+	 * skipped.
 	 *
-	 * @param onUpdate - The update callback called on each scheduled project update.
+	 * The `timestep` parameter is the elapsed time, in milliseconds, since the
+	 * previous update callback started.
+	 *
+	 * @param onUpdate - The callback invoked on each scheduled render-frame tick.
 	 */
 	ScheduleUpdate(
 		onUpdate: (timestep: number, project: Project) => void | Promise<void>,

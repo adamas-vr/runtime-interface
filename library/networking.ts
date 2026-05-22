@@ -8,17 +8,23 @@ import { Project } from "./project";
 import { Entity } from "./entity";
 import { User } from "./user";
 
+type NonUndefined<T> = T extends undefined ? never : T;
+
 /**
  * Network state.
  */
 export interface NetworkState<T> {
 	/** Current state value. */
-	value: T;
+	value: NonUndefined<T>;
 }
 
 /**
  * Provides networking utilities for state synchronization, messaging, and user
  * session events.
+ *
+ * For real-time network data updates, including repeated networking calls or
+ * network variable updates in an loop, an update frequency of
+ * approximately 10 to 20 Hz is recommended.
  */
 export class Networking {
 	static #stateKey = 0;
@@ -172,6 +178,7 @@ export class Networking {
 	 *
 	 * @param channelName - The channel name.
 	 * @param onReceived - The callback invoked when a message is received.
+	 * @returns A promise that resolves when the channel has been created.
 	 */
 	static NewChannel(
 		channelName: string,
@@ -183,7 +190,7 @@ export class Networking {
 
 		const channelId = this.#KeyGen();
 		this.#channelNameMap.set(channelName, channelId);
-		this.#NewChannel(channelId, onReceived);
+		return this.#NewChannel(channelId, onReceived);
 	}
 
 	/**
@@ -192,6 +199,7 @@ export class Networking {
 	 * @param playerId - The target player ID.
 	 * @param channelName - The channel name.
 	 * @param payload - The message payload.
+	 * @returns A promise that resolves when the message has been sent.
 	 */
 	static SendMessageTo(playerId: number, channelName: string, payload: string) {
 		const channelId = this.#channelNameMap.get(channelName);
@@ -199,7 +207,7 @@ export class Networking {
 			throw `Failed to send message: channel ${channelName} cannot be found`;
 		}
 
-		this.#SendMessageTo(playerId, channelId, payload);
+		return this.#SendMessageTo(playerId, channelId, payload);
 	}
 
 	/**
@@ -207,6 +215,7 @@ export class Networking {
 	 *
 	 * @param channelName - The channel name.
 	 * @param payload - The message payload.
+	 * @returns A promise that resolves when the message has been broadcast.
 	 */
 	static BroadcastMessage(channelName: string, payload: string) {
 		const channelId = this.#channelNameMap.get(channelName);
@@ -214,7 +223,7 @@ export class Networking {
 			throw `Failed to broadcast message: channel ${channelName} cannot be found`;
 		}
 
-		this.#BroadcastMessage(channelId, payload);
+		return this.#BroadcastMessage(channelId, payload);
 	}
 
 	/**
@@ -223,17 +232,20 @@ export class Networking {
 	 * The returned state object holds the same value for all clients in the same
 	 * network session. Changes to `value` are broadcast to the session.
 	 *
-	 * @param initialValue - The initial state value.
+	 * `undefined` is not a valid state value. Use `null` instead when the state needs
+	 * to represent an intentionally empty value.
+	 *
+	 * @param initialValue - The initial state value. Must not be `undefined`.
 	 * @param onStateChange - The callback invoked when the state value changes.
 	 * It is also invoked when the initial value is first assigned to the network
 	 * state.
 	 * @returns The synchronized {@link NetworkState}.
 	 */
 	static NewVariable<T>(
-		initialValue: T,
-		onStateChange?: (state: T) => void,
+		initialValue: NonUndefined<T>,
+		onStateChange?: (state: NonUndefined<T>) => void,
 	): NetworkState<T> {
-		const internalState = { value: initialValue };
+		const internalState: NetworkState<T> = { value: initialValue };
 		const syncKey = Networking.#KeyGen();
 		const initKey = Networking.#KeyGen();
 		let initialized = false;
