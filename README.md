@@ -16,8 +16,8 @@ Compared with a traditional game-engine workflow for VR development, an Adamas p
 
 - A standard npm-based development model that integrates directly with existing Node.js and TypeScript ecosystem.
 - Higher-level VR runtime APIs for common systems such as interaction, devices, users, physics, and networking.
+- Built-in multiplayer support that allows projects to be used in a shared multi-user virtual space.
 - A modular project model oriented around shared virtual spaces and reusable packages, rather than monolithic applications where infrastructure is tightly bundled with 3D content.
-- A workflow that reduces the amount of custom infrastructure required to build networked and interactive VR experiences.
 
 You can start from a conventional `npm init` project and install `@adamasvr/sdk` directly, or you can create a project through Adamas Hub. When a project is created from Adamas Hub, Project Studio initializes a `.adamas` folder on top of the standard Node.js project structure and adds 3D entity and component editing to the existing TypeScript workflow.
 
@@ -74,7 +74,7 @@ const networkAct = sceneGraph["@Network Grabble"]["@Activated"].entityId;
 The following resources are useful when integrating the SDK into a project or working with the broader Adamas toolchain:
 
 - The [Adamas Hub documentation](https://docs.adamasvr.com/) provides product documentation, workflow guidance, and general platform concepts, including Project Studio usage.
-- The [API documentation](https://docs.adamasvr.com/docs/api/) is the primary reference for the API surface, including available types, classes, and runtime APIs.
+- The [API documentation](https://docs.adamasvr.com/docs/api/globals) is the primary reference for the API surface, including available types, classes, and runtime APIs.
 - The [Adamas Hub download page](https://www.adamasvr.com/) is the starting point for developers who want to use Project Studio to scaffold and author Adamas projects.
 - The [Adamas Discord community](https://www.adamasvr.com/community/discord) is the best place to follow ecosystem updates, ask implementation questions, and discuss workflow issues with the team and other developers.
 
