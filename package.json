@@ -1,6 +1,6 @@
 {
 	"name": "@adamasvr/sdk",
-	"version": "0.3.7",
+	"version": "0.4.0",
 	"description": "Adamas Typescript interface.",
 	"main": "dist/index.js",
 	"scripts": {
@@ -17,10 +17,6 @@
 		"url": "https://github.com/adamas-vr/runtime-interface/issues"
 	},
 	"types": "./types/index.d.ts",
-	"files": [
-		"dist",
-		"types"
-	],
 	"homepage": "https://github.com/adamas-vr/runtime-interface#readme",
 	"dependencies": {
 		"gl-matrix": "^3.4.4"
