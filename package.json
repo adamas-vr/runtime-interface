@@ -1,12 +1,30 @@
 {
 	"name": "@adamasvr/sdk",
-	"version": "0.4.1",
+	"version": "0.4.2",
 	"description": "Adamas Typescript interface.",
+	"keywords": [
+		"adamas",
+		"vr",
+		"sdk",
+		"typescript",
+		"rendering",
+		"physics",
+		"networking"
+	],
+	"license": "BSD-2-Clause",
 	"main": "dist/index.js",
+	"files": [
+		"dist",
+		"types",
+		"README.md",
+		"LICENSE"
+	],
 	"scripts": {
 		"format": "npx prettier . --write",
-		"esbuild": "npx esbuild library/index.ts --bundle --minify --format=esm --outfile=dist/index.js --platform=node",
-		"dts": "npx dts-bundle-generator --project tsconfig.json -o types/lib.d.ts library/index.ts"
+		"build": "npm run esbuild && npm run dts",
+		"prepare": "npm run build",
+		"esbuild": "esbuild library/index.ts --bundle --minify --format=esm --outfile=dist/index.js --platform=node",
+		"dts": "dts-bundle-generator --project tsconfig.json -o types/lib.d.ts library/index.ts"
 	},
 	"repository": {
 		"type": "git",
@@ -23,6 +41,8 @@
 	},
 	"devDependencies": {
 		"@types/node": "^24.12.3",
+		"dts-bundle-generator": "^9.5.1",
+		"esbuild": "^0.28.0",
 		"typescript": "^5.0.0"
 	}
 }
