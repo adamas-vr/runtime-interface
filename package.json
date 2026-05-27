@@ -1,6 +1,6 @@
 {
 	"name": "@adamasvr/sdk",
-	"version": "0.4.2",
+	"version": "0.4.3",
 	"description": "Adamas Typescript interface.",
 	"keywords": [
 		"adamas",
@@ -23,7 +23,7 @@
 		"format": "npx prettier . --write",
 		"build": "npm run esbuild && npm run dts",
 		"prepare": "npm run build",
-		"esbuild": "esbuild library/index.ts --bundle --minify --format=esm --outfile=dist/index.js --platform=node",
+		"esbuild": "esbuild library/index.ts --bundle --minify --format=esm --sourcemap --outfile=dist/index.js --platform=node",
 		"dts": "dts-bundle-generator --project tsconfig.json -o types/lib.d.ts library/index.ts"
 	},
 	"repository": {
