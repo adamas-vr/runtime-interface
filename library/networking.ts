@@ -89,7 +89,8 @@ export class Networking {
 	 *
 	 * The master client is responsible for session-level authority and may change
 	 * during a network session. If the current master client leaves, a new master
-	 * client is automatically selected.
+	 * client is automatically selected. In a local session, this method always
+	 * returns `true`.
 	 *
 	 * @returns A promise that resolves to `true` if the current client is the
 	 * master client, or `false` otherwise.
@@ -99,18 +100,22 @@ export class Networking {
 	}
 
 	/**
-	 * Gets the current client ID.
+	 * Gets the current client ID. Each client in a network session is
+	 * assigned a unique ID that can be used for identification and
+	 * session-level networking operations.
 	 *
-	 * Each client in a network session is assigned a unique ID that can be used
-	 * for identification and session-level networking operations.
+	 * In a local session, this method alreays returns `1`.
 	 *
 	 * @returns A promise that resolves to the current client ID.
 	 */
 	static GetClientId() {
 		return RpcClient.Call<number>("Networking::GetClientId");
 	}
+
 	/**
 	 * Gets the master client ID.
+	 *
+	 * In a local session, this method always returns `1`.
 	 *
 	 * @returns A promise that resolves to the master client ID.
 	 */
@@ -125,7 +130,8 @@ export class Networking {
 	 * Makes an entity use a network transform.
 	 *
 	 * The transform is synchronized across clients that have joined the same
-	 * network session.
+	 * network session. In a local session, this method has no effect and does not
+	 * throw an error.
 	 *
 	 * @param entityHandle - The {@link Entity} to update.
 	 * @returns A promise that resolves to `true` if the network transform was
@@ -159,7 +165,8 @@ export class Networking {
 	 * Synchronizes the local transform of an entity to the network session.
 	 *
 	 * The client that calls this method updates the local entity transform for all
-	 * clients in the same network session.
+	 * clients in the same network session. In a local session, this method has no
+	 * effect and does not throw an error.
 	 *
 	 * @param entityHandle - The {@link Entity} to synchronize.
 	 * @returns A promise that resolves to `true` if the transform was
@@ -175,6 +182,9 @@ export class Networking {
 
 	/**
 	 * Creates a named message channel.
+	 *
+	 * In a local session, the channel can still be created, but it does not receive
+	 * messages, including messages sent by the local client.
 	 *
 	 * @param channelName - The channel name.
 	 * @param onReceived - The callback invoked when a message is received.
@@ -196,6 +206,8 @@ export class Networking {
 	/**
 	 * Sends a message to a specific player on a named channel.
 	 *
+	 * In a local session, this method has no effect and does not throw an error.
+	 *
 	 * @param playerId - The target player ID.
 	 * @param channelName - The channel name.
 	 * @param payload - The message payload.
@@ -212,6 +224,8 @@ export class Networking {
 
 	/**
 	 * Broadcasts a message to all players on a named channel.
+	 *
+	 * In a local session, this method has no effect and does not throw an error.
 	 *
 	 * @param channelName - The channel name.
 	 * @param payload - The message payload.
@@ -230,7 +244,9 @@ export class Networking {
 	 * Creates a synchronized network variable.
 	 *
 	 * The returned state object holds the same value for all clients in the same
-	 * network session. Changes to `value` are broadcast to the session.
+	 * network session. Changes to `value` are broadcast to the session. In a local
+	 * session, the variable is still created, and the local `onStateChange`
+	 * callback is invoked when the state value changes.
 	 *
 	 * `undefined` is not a valid state value. Use `null` instead when the state needs
 	 * to represent an intentionally empty value.
@@ -310,7 +326,8 @@ export class Networking {
 	 * Creates a synchronized network function.
 	 *
 	 * Calling the returned function locally broadcasts the call arguments to the
-	 * network session.
+	 * network session. In a local session, the function is still
+	 * created and remains callable by the local client.
 	 *
 	 * @param func - The function to synchronize.
 	 * @returns The synchronized function.
