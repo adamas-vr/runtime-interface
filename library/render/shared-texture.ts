@@ -1,4 +1,5 @@
 import { RpcClient } from "../rpc";
+import { loadNativeAddon } from "../utilities/addon-loader";
 import type { Texture } from "./texture";
 
 interface SharedTextureCreateResult {
@@ -10,6 +11,11 @@ interface SharedTextureCreateResult {
 	linear: boolean;
 }
 
+interface SharedTextureShareToken {
+	api: string;
+	nativeTextureId: number;
+}
+
 interface SharedTextureNativeAddon {
 	openSharedTexture(shareTokenJson: string): number;
 	closeSharedTexture(nativeHandle: number): void;
@@ -17,33 +23,17 @@ interface SharedTextureNativeAddon {
 	readRGBA(nativeHandle: number): Uint8Array;
 }
 
-interface SharedTextureShareToken {
-	api: string;
-	nativeTextureId: number;
-}
-
-let cachedAddon: SharedTextureNativeAddon | null = null;
-
 function getSharedTextureNativeAddonFileName(): string {
 	return `adamas_shared_texture-${process.platform}-${process.arch}.node`;
 }
 
-function loadSharedTextureNativeAddon(): SharedTextureNativeAddon {
-	if (cachedAddon) {
-		return cachedAddon;
-	}
-
-	const addonFileName = getSharedTextureNativeAddonFileName();
-	try {
-		cachedAddon = module.require(`./${addonFileName}`) as SharedTextureNativeAddon;
-	} catch (error) {
-		const message =
-			error instanceof Error ? error.message : "Unknown native addon load error.";
-		throw new Error(
-			`Failed to load shared texture native addon "${addonFileName}" for ${process.platform}/${process.arch}: ${message}`,
-		);
-	}
-	return cachedAddon;
+async function loadSharedTextureNativeAddon(): Promise<SharedTextureNativeAddon> {
+	return loadNativeAddon<SharedTextureNativeAddon>({
+		addonFileName: getSharedTextureNativeAddonFileName(),
+		debugLabel: "SharedTexture",
+		nonNodeErrorMessage:
+			"SharedTexture native addon is only available in a Node.js runtime.",
+	});
 }
 
 function parseShareToken(shareTokenJson: string): SharedTextureShareToken {
@@ -111,7 +101,7 @@ export class SharedTexture {
 			linear,
 		);
 
-		const addon = loadSharedTextureNativeAddon();
+		const addon = await loadSharedTextureNativeAddon();
 		const nativeHandle = addon.openSharedTexture(createResult.shareTokenJson);
 		return new SharedTexture(createResult, addon, nativeHandle);
 	}

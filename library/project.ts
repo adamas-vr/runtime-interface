@@ -9,10 +9,6 @@ import { RpcClient } from "./rpc";
 import { User } from "./user";
 import { quat } from "gl-matrix";
 import { isVersion, RAD2DEG } from "./utilities/rpc-utils";
-import packageJson from "../package.json";
-
-/** Adamas Runtime API Version */
-export const API_VERSION = packageJson.version as Version;
 
 /**
  * Represents a project.

@@ -1671,8 +1671,6 @@ export interface ProjectBundle {
 }
 export interface SceneGraph {
 }
-/** Adamas Runtime API Version */
-export declare const API_VERSION: Version;
 /**
  * Represents a project.
  */
