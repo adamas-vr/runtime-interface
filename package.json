@@ -23,7 +23,7 @@
 		"format": "npx prettier . --write",
 		"build": "npm run esbuild && npm run build:shared-texture && npm run dts",
 		"build:shared-texture": "npx node-gyp rebuild --directory ./native/shared-texture-addon && node ./native/shared-texture-addon/copy-to-dist.js",
-		"esbuild": "esbuild library/index.ts --bundle --minify --format=cjs --sourcemap --outfile=dist/index.js --platform=node --external:'*.node'",
+		"esbuild": "esbuild library/index.ts --bundle --minify --format=cjs --sourcemap --outfile=dist/index.js --platform=node --external:*.node",
 		"dts": "dts-bundle-generator --project tsconfig.json -o types/lib.d.ts library/index.ts"
 	},
 	"repository": {
