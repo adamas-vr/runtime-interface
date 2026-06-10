@@ -24,13 +24,25 @@ interface SharedTextureShareToken {
 
 let cachedAddon: SharedTextureNativeAddon | null = null;
 
+function getSharedTextureNativeAddonFileName(): string {
+	return `adamas_shared_texture-${process.platform}-${process.arch}.node`;
+}
+
 function loadSharedTextureNativeAddon(): SharedTextureNativeAddon {
 	if (cachedAddon) {
 		return cachedAddon;
 	}
 
-	cachedAddon =
-		require("./adamas_shared_texture.node") as SharedTextureNativeAddon;
+	const addonFileName = getSharedTextureNativeAddonFileName();
+	try {
+		cachedAddon = module.require(`./${addonFileName}`) as SharedTextureNativeAddon;
+	} catch (error) {
+		const message =
+			error instanceof Error ? error.message : "Unknown native addon load error.";
+		throw new Error(
+			`Failed to load shared texture native addon "${addonFileName}" for ${process.platform}/${process.arch}: ${message}`,
+		);
+	}
 	return cachedAddon;
 }
 

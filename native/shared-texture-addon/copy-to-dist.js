@@ -9,7 +9,8 @@ const sourcePath = path.join(
 	"adamas_shared_texture.node",
 );
 const distDir = path.join(repoRoot, "dist");
-const targetPath = path.join(distDir, "adamas_shared_texture.node");
+const addonFileName = `adamas_shared_texture-${process.platform}-${process.arch}.node`;
+const targetPath = path.join(distDir, addonFileName);
 
 fs.mkdirSync(distDir, { recursive: true });
 fs.copyFileSync(sourcePath, targetPath);
