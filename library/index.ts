@@ -14,6 +14,7 @@ export * from "./render/renderable";
 export * from "./render/renderer";
 export * from "./render/camera";
 export * from "./render/light";
+export * from "./render/shared-texture";
 
 export * from "./physics/rigidbody";
 export * from "./physics/collider";
