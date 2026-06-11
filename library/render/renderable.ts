@@ -24,6 +24,12 @@ export enum ShadowCastingMode {
 
 /**
  * Creates and updates renderable components.
+ *
+ * Because runtime calls are performed asynchronously over IPC, procedurally
+ * building a renderable through a sequence of API calls can span multiple
+ * frames. To avoid exposing partially initialized content, such as placeholder
+ * shaders or incomplete meshes, keep the component disabled until setup is
+ * complete, then enable it once the renderable is ready.
  */
 export class RenderableManager {
 	/**
