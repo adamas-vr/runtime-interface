@@ -9,13 +9,22 @@ import { RpcClient } from "./rpc";
 import { User } from "./user";
 import { quat } from "gl-matrix";
 import { isVersion, RAD2DEG } from "./utilities/rpc-utils";
-import packageJson from "../package.json";
-
-/** Adamas Runtime API Version */
-export const API_VERSION = packageJson.version as Version;
 
 /**
  * Represents a project.
+ *
+ * Projects are launched in one of two ways: world projects always start at the
+ * session origin, while other projects start in front of the user who launches
+ * them. For projects that are not world projects, prefer creating entities in
+ * local space so their placement remains correct relative to the project
+ * origin. Use world-space transforms only when an entity must appear at a
+ * fixed absolute position.
+ *
+ * Project code runs in a Node.js environment and communicates with the Adamas
+ * runtime over asynchronous IPC. To reduce overhead, avoid awaiting every call
+ * sequentially unless one operation depends on the result of another. When
+ * possible, start independent operations first and await them only when their
+ * results are needed.
  */
 export class Project {
 	private static projectId: string;

@@ -28,7 +28,9 @@ export class GrabInteractableManager {
 	 * Creates a grab interactable component on an entity.
 	 *
 	 * Colliders added before the component is created are used for interaction
-	 * detection. Interaction states include hover, select, and activate.
+	 * detection. A rigidbody must exist for grab interactions to work correctly;
+	 * if one has not been added yet, it is created automatically.
+	 * Interaction states include hover, select, and activate.
 	 * Hover begins when a user's hand touches or points at the
 	 * collider, select begins when the user presses the grip input to grab the
 	 * entity, and activate begins when the user presses the trigger input.
@@ -51,6 +53,9 @@ export class GrabInteractableManager {
 	 * The grab interactable can then be used by network users, and its transform
 	 * is synchronized across the network session. An error is thrown in local mode
 	 * or when the entity does not use a network transform.
+	 *
+	 * Call this only after {@link Networking.MakeNetworkTransform} has been
+	 * applied to the entity.
 	 *
 	 * @param entity - The {@link Entity} to update.
 	 * @returns A promise that resolves when network grab behavior has been
